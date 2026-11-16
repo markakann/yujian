@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#121315">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>天星界・御劍者 v0.9</title>
+<title>天星界・御劍者 v0.10</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -334,6 +334,35 @@ button:active:not(:disabled){transform:scale(.95)}
 .tier em{font-style:normal;font-size:11px;white-space:nowrap}
 .tier.on em{color:#a6e3cd}
 .pill.heal{background:#2f4a3a;color:#bfe6cf}
+/* 技能設定 */
+.scfg{display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:8px;padding-top:8px;border-top:1px dashed var(--line);font-size:12px;color:var(--muted)}
+.scfg label{display:flex;align-items:center;gap:4px}
+.scfg input{accent-color:var(--jade);width:16px;height:16px}
+.scfg select{font-size:12px;padding:4px 6px}
+.scfg .ord{margin-left:auto;display:flex;align-items:center;gap:4px}
+.scfg .ord button{width:28px;height:28px;border-radius:7px;border:1px solid var(--line);background:var(--panel);font-size:13px}
+.scfg .ord button:disabled{opacity:.3}
+.needbook{margin-top:8px;font-size:12px;color:var(--gold);display:flex;align-items:center;justify-content:space-between;gap:8px}
+.needbook button{padding:5px 10px;border-radius:7px;border:1px solid var(--gold-d);background:#3a3220;color:#f2d58a;font-size:12px;white-space:nowrap}
+.skill.ult{border-color:#6e5a2f;background:linear-gradient(135deg,#2a2418,#23262a 60%)}
+.skill.ult .sh b{color:#f2d58a}
+.pill.ultp{background:#5a4a1a;color:#ffe9a8}
+/* 天御按鈕與演出 */
+.arena{position:relative}
+.ultbtn{position:absolute;top:10px;right:10px;z-index:4;min-width:64px;padding:6px 10px;border-radius:10px;border:1px solid #6e5a2f;background:#1b1d20cc;color:var(--faint);font-family:var(--serif);font-size:13px;line-height:1.2;text-align:center}
+.ultbtn small{display:block;font-family:var(--sans);font-size:10px;font-variant-numeric:tabular-nums}
+.ultbtn.ready{color:#1b1d20;background:linear-gradient(135deg,#f2d58a,#c9a45c);border-color:#f2d58a;animation:ultReady 1.6s ease-in-out infinite}
+.ultbtn.ready:disabled{animation:none;opacity:.6}
+@keyframes ultReady{50%{box-shadow:0 0 0 5px #f2d58a44}}
+#ultFx{position:fixed;inset:0;z-index:25;pointer-events:none;display:none;align-items:center;justify-content:center;flex-direction:column;background:radial-gradient(ellipse at center,#000000cc 20%,#000000ee 100%)}
+#ultFx.on{display:flex;animation:ultBg 1.6s ease-out forwards}
+#ultFx .uk{font-family:var(--serif);font-size:16px;letter-spacing:.6em;color:#c9a45c;opacity:0;animation:ultIn 1.6s ease-out .05s forwards}
+#ultFx .un{font-family:var(--serif);font-size:46px;font-weight:700;letter-spacing:.18em;color:#f6eee0;text-shadow:0 0 18px #f2d58a88;opacity:0;animation:ultName 1.6s cubic-bezier(.2,.9,.3,1) .12s forwards}
+#ultFx .slash{position:absolute;left:-10%;right:-10%;top:50%;height:3px;background:linear-gradient(90deg,transparent,#fff6ea,#f2d58a,transparent);transform:rotate(-14deg) scaleX(0);animation:ultSlash .5s ease-out .35s forwards}
+@keyframes ultBg{0%{opacity:0}12%{opacity:1}75%{opacity:1}100%{opacity:0}}
+@keyframes ultIn{0%{opacity:0;transform:translateY(8px)}25%{opacity:1;transform:none}80%{opacity:1}100%{opacity:0}}
+@keyframes ultName{0%{opacity:0;transform:scale(1.5);filter:blur(6px)}25%{opacity:1;transform:scale(1);filter:none}80%{opacity:1}100%{opacity:0;transform:scale(.96)}}
+@keyframes ultSlash{0%{transform:rotate(-14deg) scaleX(0);opacity:1}70%{transform:rotate(-14deg) scaleX(1);opacity:1}100%{transform:rotate(-14deg) scaleX(1);opacity:0}}
 .hidden{display:none!important}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--panel2);border:1px solid var(--line);padding:8px 14px;border-radius:8px;font-size:13px;z-index:30;transition:opacity .3s}
 </style>
@@ -341,7 +370,7 @@ button:active:not(:disabled){transform:scale(.95)}
 <body>
 <div class="wrap">
   <header>
-    <h1>天星界・御劍者<small>v0.9 暫定名稱</small></h1>
+    <h1>天星界・御劍者<small>v0.10 暫定名稱</small></h1>
     <div class="silver" id="silver">銀兩 0</div>
   </header>
 
@@ -364,6 +393,7 @@ button:active:not(:disabled){transform:scale(.95)}
   <section class="maincard" id="mainCard"></section>
 
   <section class="card arena">
+    <button class="ultbtn hidden" id="ultBtn"></button>
     <div class="stage" id="stage"><div class="floaters" id="floaters"></div></div>
     <div class="mobinfo" id="mobinfo"></div>
   </section>
@@ -380,13 +410,14 @@ button:active:not(:disabled){transform:scale(.95)}
 <div class="modal hidden" id="modal"><div class="card" id="modalBody"></div></div>
 <div class="toast hidden" id="toast"></div>
 <div id="hurt"></div>
+<div id="ultFx"><div class="uk">天御</div><div class="un"></div><div class="slash"></div></div>
 
 <script>
 /* ===== 天星界・御劍者 — 遊戲資料與引擎（不含畫面） ===== */
 
 /* ---------- 遊戲資料：名稱、數值都集中在這裡，改這裡就好 ---------- */
 const GAME = {
-  meta: { title: '天星界・御劍者', subtitle: '暫定名稱', version: '0.9', era: '仙曆五百餘年' },
+  meta: { title: '天星界・御劍者', subtitle: '暫定名稱', version: '0.10', era: '仙曆五百餘年' },
 
   // 八項資源系統（順序固定，星數陣列照這個順序）
   statNames: ['力量', '抵擋', '體力', '敏捷', '智慧', '守護', '靈力', '控制'],
@@ -746,6 +777,46 @@ function tierLine(fx) {
   return Object.entries(fx).map(([k, v]) => GAME.tiers.text[k].replace('{p}', round3(v * 100) + '%').replace('{n}', v)).join('、');
 }
 
+/* ---------- 技能書：第一招入門就會；第二、三招要讀書；天御要讀天御書 ---------- */
+GAME.books = {
+  price: { 1: 800, 2: 3000 },               // 書肆的價錢（第二招、第三招）
+  drop: { normal: 0.002, elite: 0.10, boss: 0.10 },   // 魔物掉落技能書
+  ultDrop: { elite: 0.04, boss: 0.06 },     // 精英、首領掉落天御書
+  pageDrop: { elite: 0.4, boss: 1 },        // 天御殘頁
+  pages: 10                                 // 幾張殘頁換一本天御書
+};
+GAME.bookNpc = { name: '沈硯', title: '天霖市・墨香書肆掌櫃', seal: '硯', line: '書裡的招式，看得懂的人才帶得走。' };
+// 施放條件：每一招主動技可以各自設定
+GAME.conds = [
+  ['always', '一有空就放'], ['hp50', '血量低於 50% 時'], ['mobs2', '魔物 2 隻以上時'], ['mobs3', '魔物 3 隻以上時'],
+  ['rare', '只對精英和首領'], ['counter', '目標架勢被我剋制時']
+];
+/* ---------- 天御：每把武器一招，20 分鐘充能一次（離線也算），只能手動施放 ----------
+   hit：aoe 打所有魔物（waves 次）、single 打目標（n 次）、random 隨機打 n 次、each 每隻各打 n 次、storm 一段時間內持續打 */
+GAME.ult = { name: '天御', chargeSec: 1200, lv: 12 };
+GAME.ults = {
+  '萬': { name: '萬軍辟易', stat: '抵擋', hit: 'aoe', waves: 3, coef: 2.5, selfDr: 0.3, dur: 10, desc: '戟掃三圈，對所有魔物造成三次 250% 傷害（以抵擋計算）；之後 10 秒受到的傷害降低 30%。', flavor: '三圈掃過，站著的只剩你。' },
+  '天': { name: '天傾', stat: '智慧', hit: 'aoe', coef: 6, shield: 0.3, desc: '法球化成流星雨，對所有魔物造成 600% 魔法傷害，並張開最大血量 30% 的護盾。', flavor: '天上的光，一次全落下來。' },
+  '皇': { name: '貫日', stat: '敏捷', hit: 'aoe', coef: 5, forceCrit: true, ignoreDef: 0.5, desc: '一槍貫穿所有魔物，造成 500% 傷害，無視一半防禦，必定爆擊（以敏捷計算）。', flavor: '槍尖過去，日光從洞裡透出來。' },
+  '必': { name: '必守之誓', stat: '抵擋', hit: 'single', coef: 4, guard: 3, guardCoef: 2.5, desc: '盾擊造成 400% 傷害；接下來 3 次攻擊完全擋下，每擋一次反擊 250%（以抵擋計算）。', flavor: '說好了守住，就一步也不退。' },
+  '暗': { name: '封天', stat: '智慧', hit: 'aoe', coef: 4, seal: 4, desc: '禁文封天，對所有魔物造成 400% 魔法傷害，並封住牠們 4 秒不能出手。', flavor: '天被寫上一個字，就不會再動了。' },
+  '武': { name: '震山河', stat: '體力', hit: 'aoe', coef: 4, seal: 3, defDown: 0.4, dur: 8, desc: '重槌落地，對所有魔物造成 400% 傷害（以體力計算），震懾 3 秒，物理防禦降低 40%，持續 8 秒。', flavor: '山先晃了一下，河才跟著響。' },
+  '術': { name: '九雷', stat: '智慧', hit: 'random', n: 9, coef: 1.8, desc: '九道雷隨機落在魔物身上，每道造成 180% 魔法傷害。', flavor: '第九道雷落下時，雲才剛聚好。' },
+  '神': { name: '百裂', stat: '敏捷', hit: 'single', n: 11, coef: 0.6, lastCrit: 2.5, desc: '連打 11 拳，每拳 60% 傷害，最後一拳 250% 傷害且必定爆擊（以敏捷計算）。', flavor: '數到一百之前，它就倒了。' },
+  '聖': { name: '合擊', stat: '敏捷', hit: 'aoe', waves: 2, coef: 2.5, perBoost: 8, desc: '機關獸跟你合擊，對所有魔物造成兩次 250% 傷害（以敏捷計算），之後 8 秒機關獸撲擊速度加倍。', flavor: '齒輪和心跳，第一次對上同一個拍子。' },
+  '霸': { name: '霸王掃', stat: '抵擋', hit: 'aoe', coef: 4, delay: 3, desc: '掄棍橫掃，對所有魔物造成 400% 傷害（以抵擋計算），把牠們打退，下一次出手延後 3 秒。', flavor: '棍子停下的時候，四周已經空了。' },
+  '銀': { name: '開天', stat: '力量', hit: 'single', coef: 14, counterX: 2, desc: '蓄力一劍劈下，對單一魔物造成 1400% 傷害；目標的架勢被你剋制時，傷害再加倍。', flavor: '天從中間分開，劍還在往下。' },
+  '弓': { name: '萬箭', stat: '力量', hit: 'aoe', waves: 5, coef: 1.3, desc: '五波箭雨覆蓋所有魔物，每波造成 130% 傷害。', flavor: '天暗了一下，是箭遮住了。' },
+  '玉': { name: '玉碎', stat: '智慧', hit: 'aoe', coef: 5, heal: 0.3, desc: '所有玉珠一起炸開，對所有魔物造成 500% 魔法傷害，並回復最大血量 30%。', flavor: '碎掉的玉，聲音最清。' },
+  '慧': { name: '捲雲', stat: '控制', hit: 'aoe', coef: 3.5, seal: 3, vuln: 0.3, dur: 6, desc: '狂風捲起所有魔物，造成 350% 魔法傷害（以控制計算），震懾 3 秒，6 秒內受到的傷害提高 30%。', flavor: '風把雲捲走，也把牠們捲上去。' },
+  '降': { name: '千影', stat: '敏捷', hit: 'each', n: 3, coef: 1.4, forceCrit: true, desc: '化成千道影子，對每隻魔物各刺 3 刀，每刀 140% 傷害，必定爆擊（以敏捷計算）。', flavor: '每個影子都說是自己動的手。' },
+  '閃': { name: '萬蠱噬心', stat: '智慧', hit: 'aoe', coef: 1.5, dot: 1.2, dur: 8, plague: 1.5, desc: '所有魔物受到 150% 魔法傷害並中劇毒，每秒受到 120% 傷害，持續 8 秒；毒死的魔物會爆開，對其他魔物造成 150% 傷害。', flavor: '一隻倒下，其他的都聽見了蟲聲。' },
+  '星': { name: '星河', stat: '敏捷', hit: 'storm', dur: 8, every: 0.5, coef: 0.9, desc: '寶輪化成星河繞著戰場轉，8 秒內每半秒打一隻魔物，每次 90% 傷害（以敏捷計算）。', flavor: '天上的河，流到地上來了。' },
+  '誅': { name: '十字', stat: '力量', hit: 'aoe', coef: 4.5, exec: 0.3, desc: '十字斬擊，對所有魔物造成 450% 傷害；斬完後血量低於 30% 的一般魔物直接倒下。', flavor: '一橫一豎，就是結局。' },
+  '闇': { name: '九轉', stat: '靈力', hit: 'aoe', coef: 2, heal: 1, selfDr: 0.4, dur: 10, desc: '煉成九轉丹，回復全部血量，10 秒內受到的傷害降低 40%；丹火溢出，對所有魔物造成 200% 魔法傷害（以靈力計算）。', flavor: '九次轉爐，換一口完整的氣。' },
+  '仙': { name: '天籟', stat: '智慧', hit: 'aoe', coef: 4.5, drain: 0.5, desc: '琴聲傳遍戰場，對所有魔物造成 450% 魔法傷害，造成傷害的一半轉為血量。', flavor: '聽見的，都停下來了。' }
+};
+
 /* ---------- 藥品：回復藥用銀兩買，增益藥用材料調製 ---------- */
 GAME.shopNpc = { name: '宋苓', title: '天霖市・百草堂掌櫃', seal: '苓' };
 GAME.items = {
@@ -887,7 +958,7 @@ GAME.main = {
     { title: '楓林', zone: 'xy1', lv: 7, npc: '仙緣鎮・祠堂管事',
       lines: ['楓葉落下來，有的會自己站起來。', '鎮上的孩子不敢再進林子撿葉子了。'],
       goal: { type: 'kill', keys: ['fengye'], n: 12 }, goalText: '擊倒楓葉靈 12 隻',
-      reward: { silver: 400, expPct: 0.15, items: { '中還丹': 3 } } },
+      reward: { silver: 400, expPct: 0.15, items: { '中還丹': 3 }, book: 1 } },
     { title: '舊址', zone: 'xy3', lv: 9, npc: '仙緣鎮・祠堂管事',
       lines: ['楓緣舊址是五百多年前那位英雄出生的地方。每年榮耀日，鎮上的人都會去掃一掃。', '今年去的人說，屋簷下的燈自己亮著。'],
       goal: { type: 'survive', zone: 'xy3', sec: 600 }, goalText: '在楓緣舊址連續巡守 10 分鐘，中途不重傷',
@@ -1050,7 +1121,7 @@ function powerOf(d, lv) {
 
 function newState() {
   return {
-    v: 8, lv: 1, exp: 0, weapon: '銀', swordLv: {}, alloc: {}, resetUsed: {}, mastery: {},
+    v: 10, lv: 1, exp: 0, weapon: '銀', swordLv: {}, alloc: {}, resetUsed: {}, mastery: {},
     main: { step: 0, base: 0, surv: 0, gated: true, done: false },
     items: { '小還丹': 10 }, potion: { auto: { '小還丹': true, '中還丹': true, '大還丹': true, '凝神丹': false }, thr: 0.4 }, buffs: {}, buffAuto: {}, board: [], boardDone: 0, silver: 0, mats: {}, zone: GAME.zones[0].id, auto: true,
     hp: null, en: null,
@@ -1058,6 +1129,7 @@ function newState() {
     stats: { kills: {}, deaths: 0, playSec: 0, offlineSec: 0, totalExp: 0, bossKills: 0, counterKills: 0, crafted: 0, salvaged: 0 },
     equip: { weapons: {} }, gear: [], gearSeq: 0, gearGift: {}, gearSet: { salv: 1, other: false, autoEquip: true },
     autoRevive: false, fx: { shake: true, buzz: false },
+    learned: {}, books: {}, pages: 0, ultKnown: {}, ultCharge: 0, skillCfg: {}, skillOrder: {},
     lastSave: Date.now()
   };
 }
@@ -1092,8 +1164,17 @@ function migrate(st) {
   if (st.stats && st.stats.salvaged === undefined) st.stats.salvaged = 0;
   if (!st.fx) st.fx = { shake: true, buzz: false };
   if (st.autoRevive === undefined) st.autoRevive = false;
+  if ((st.v || 0) < 10 || !st.learned) {
+    // v0.10 以前的存檔：照等級已經學會的招式全部保留（每把武器都是）
+    st.learned = {};
+    for (const w of Object.keys(GAME.skills)) st.learned[w] = GAME.skills[w].map(s => st.lv >= s.lv);
+    st.books = st.books || {}; st.pages = st.pages || 0; st.ultKnown = st.ultKnown || {}; st.ultCharge = st.ultCharge || 0;
+  }
+  for (const k of ['books', 'ultKnown', 'skillCfg', 'skillOrder']) if (!st[k]) st[k] = {};
+  if (st.pages === undefined) st.pages = 0;
+  if (st.ultCharge === undefined) st.ultCharge = 0;
   ensureWeaponGear(st, st.weapon);
-  st.v = 8;
+  st.v = 10;
   return st;
 }
 
@@ -1156,7 +1237,7 @@ function applySkills(st, d, sw) {
   d.skills = []; d.actives = []; d.triggers = []; d.drs = [];
   d.lowRegen = 0; d.lifesteal = 0; d.stunnedBonus = 0; d.leech = 0; d.killHaste = null;
   (GAME.skills[st.weapon] || []).forEach((s, i) => {
-    if (st.lv < s.lv) return;
+    if (st.lv < s.lv || !skillKnown(st, st.weapon, i)) return;
     const r = resolveSkill(d, sw, s, i, masteryOf(st, st.weapon, i)[0]);
     d.skills.push(r);
     if (s.type === 'active') d.actives.push(r);
@@ -1210,7 +1291,10 @@ function gainExp(st, rt, amount) {
     st.exp -= expNeed(st.lv); st.lv++;
     rt.d = derive(st); st.hp = rt.d.maxHp; st.en = rt.d.maxEn;
     emit(rt, { t: 'levelup', lv: st.lv }); rt.autoMove = true;
-    (GAME.skills[st.weapon] || []).forEach(s => { if (s.lv === st.lv) emit(rt, { t: 'learn', name: s.name }); });
+    (GAME.skills[st.weapon] || []).forEach((s, i) => { if (s.lv === st.lv && skillKnown(st, st.weapon, i)) emit(rt, { t: 'learn', name: s.name }); });
+    readBooks(st, rt);
+    (GAME.skills[st.weapon] || []).forEach((s, i) => { if (s.lv === st.lv && !skillKnown(st, st.weapon, i)) emit(rt, { t: 'needBook', name: s.name, book: bookName(st.weapon, i) }); });
+    if (st.lv === GAME.ult.lv && !ultKnown(st)) emit(rt, { t: 'needBook', name: GAME.ult.name + '・' + GAME.ults[st.weapon].name, book: bookName(st.weapon, 'u'), ult: true });
   }
 }
 function gainMastery(st, rt, i) {
@@ -1290,8 +1374,40 @@ function normalAttack(st, rt) {
     }
   }
 }
+function skillCfg(st, w, i) { return (st.skillCfg && st.skillCfg[w] && st.skillCfg[w][i]) || { on: true, cond: 'always' }; }
+function setSkillCfg(st, w, i, patch) {
+  if (!st.skillCfg[w]) st.skillCfg[w] = {};
+  st.skillCfg[w][i] = Object.assign({}, skillCfg(st, w, i), patch);
+}
+// 主動技的施放順序：玩家調過就照玩家的，沒調過就照預設（補血、護盾先判斷）
+function activeOrder(st, d, w) {
+  const ord = st.skillOrder && st.skillOrder[w || st.weapon];
+  if (!ord) return d.actives;
+  const pos = i => { const k = ord.indexOf(i); return k < 0 ? 99 + i : k; };
+  return d.actives.slice().sort((a, b) => pos(a.i) - pos(b.i));
+}
+function moveSkill(st, d, i, dir) {
+  const w = st.weapon, cur = activeOrder(st, d).map(r => r.i), k = cur.indexOf(i), j = k + dir;
+  if (k < 0 || j < 0 || j >= cur.length) return false;
+  [cur[k], cur[j]] = [cur[j], cur[k]];
+  st.skillOrder[w] = cur;
+  return true;
+}
+function condOk(st, rt, cond) {
+  const live = alive(rt);
+  switch (cond) {
+    case 'hp50': return st.hp < rt.d.maxHp * 0.5;
+    case 'mobs2': return live.length >= 2;
+    case 'mobs3': return live.length >= 3;
+    case 'rare': return live.some(m => m.rank);
+    case 'counter': { const m = pickTarget(rt, rt.mob); return !!m && matchup(st.weapon, m.attrs[m.stance]) === 'counter'; }
+    default: return true;
+  }
+}
 function pickActive(st, rt) {
-  for (const r of rt.d.actives) {
+  for (const r of activeOrder(st, rt.d)) {
+    const c = skillCfg(st, st.weapon, r.i);
+    if (!c.on || !condOk(st, rt, c.cond)) continue;
     if ((rt.cds[r.i] || 0) > 0 || st.en < r.s.cost) continue;
     if (r.s.hpBelow && st.hp > rt.d.maxHp * r.s.hpBelow) continue;
     if (r.shield && rt.shield > 0) continue;
@@ -1352,7 +1468,12 @@ function mobAttack(st, rt, m) {
       if (r.s.block && rng() < r.chance) { blocked = r; break; }
       if (r.s.half && rng() < r.chance) half = r;
     }
-    if (blocked) { dmg = 0; emit(rt, { t: 'proc', name: blocked.s.name, text: '擋下了' + m.label + '的攻擊' }); gainMastery(st, rt, blocked.i); }
+    if (!blocked && rt.guard && rt.guard.n > 0) {
+      rt.guard.n--; dmg = 0;
+      emit(rt, { t: 'proc', name: rt.guard.name, text: '擋下了' + m.label + '的攻擊，反擊（還能擋 ' + rt.guard.n + ' 次）' });
+      hitMob(st, rt, rt.guard.atk, rt.guard.magic, rt.guard.coef, { skill: rt.guard.name, proc: true, sure: true }, m);
+    }
+    else if (blocked) { dmg = 0; emit(rt, { t: 'proc', name: blocked.s.name, text: '擋下了' + m.label + '的攻擊' }); gainMastery(st, rt, blocked.i); }
     else {
       if (half) dmg *= 0.5;
       const guard = m.type === 'phys' && d.block && rng() < d.block;
@@ -1397,6 +1518,11 @@ function onKillOne(st, rt, m) {
   if (st.quest.progress < GAME.quest.target) st.quest.progress++;
   emit(rt, { t: 'kill', key: m.key, name: m.name, label: m.label, uid: m.uid, exp, silver, got, rank: m.rank });
   if (st.equip) { const D = gearDropFor(m); if (rng() < D.chance * (m.rank ? 1 : (m.dropMult || 1))) receiveGear(st, rt, genGear(st, m.lv, rollIdx(D.q)), m.label); }
+  if (st.learned) bookDrops(st, rt, m);
+  if (m.dot && m.dot.t > 0 && m.dot.plague) {
+    const P = m.dot.plague, others = alive(rt).filter(x => x !== m);
+    if (others.length) { emit(rt, { t: 'proc', name: P.name, text: m.label + '爆開了' }); for (const x of others) hitMob(st, rt, P.atk, P.magic, P.coef, { skill: P.name, proc: true, sure: true, quiet: true }, x); }
+  }
   for (const r of rt.d.triggers) if (r.s.on === 'kill') {
     if (r.heal) { healHp(st, rt, rt.d.maxHp * r.heal * (1 + rt.d.heal)); gainMastery(st, rt, r.i); }
     if (r.carryPoison && m.dot && m.dot.t > 0) {
@@ -1481,6 +1607,8 @@ function step(st, rt, dt) {
   for (const k in rt.icd) rt.icd[k] -= dt;
   if (rt.haste.t > 0 && (rt.haste.t -= dt) <= 0) rt.haste.n = 0;
   rt.potCd -= dt; rt.enCd -= dt;
+  st.ultCharge = Math.min(GAME.ult.chargeSec, (st.ultCharge || 0) + dt); // 天御充能：離線也算
+  if (rt.perBoost > 0) rt.perBoost -= dt;
   tickBuffs(st, rt, dt);
   mainTick(st, rt, dt);
   d = rt.d;
@@ -1518,7 +1646,7 @@ function step(st, rt, dt) {
   if (reap(st, rt)) return;
   // 機關獸這類定時觸發
   for (const r of d.triggers) if (r.s.on === 'periodic' || r.s.on === 'brew') {
-    rt.per[r.i] = (rt.per[r.i] === undefined ? r.s.period : rt.per[r.i]) - dt;
+    rt.per[r.i] = (rt.per[r.i] === undefined ? r.s.period : rt.per[r.i]) - dt * (rt.perBoost > 0 && r.s.on === 'periodic' && !r.heal ? 2 : 1);
     if (rt.per[r.i] <= 0) {
       rt.per[r.i] += r.s.period * (1 - d.cdr);
       if (r.s.on === 'brew') { if (rt.pills < r.s.max) { rt.pills++; emit(rt, { t: 'proc', name: r.s.name, text: '煉成一顆丹（存了 ' + rt.pills + ' 顆）', quiet: true }); } }
@@ -1526,6 +1654,13 @@ function step(st, rt, dt) {
       else { procStrike(st, rt, r); if (reap(st, rt)) return; }
     }
     if (r.s.on === 'brew' && rt.pills > 0 && st.hp < d.maxHp * r.s.below) { rt.pills--; const v = skillHeal(st, rt, r.heal); emit(rt, { t: 'proc', name: r.s.name, text: '服下丹藥，回復 ' + v }); gainMastery(st, rt, r.i); }
+  }
+  // 星河這類持續一段時間的天御
+  if (rt.storm) {
+    const S = rt.storm; S.t -= dt; S.acc += dt;
+    while (S.acc >= S.every) { S.acc -= S.every; const pool = alive(rt); if (pool.length) hitMob(st, rt, S.atk, S.magic, S.coef, { skill: S.name, quiet: true, sure: true }, pool[Math.floor(rng() * pool.length)]); }
+    if (S.t <= 0) rt.storm = null;
+    if (reap(st, rt)) return;
   }
   // 玩家出手
   if (rt.bound > 0) rt.bound -= dt;
@@ -1557,6 +1692,104 @@ function step(st, rt, dt) {
   reap(st, rt);
 }
 
+/* ---------- 技能書 ---------- */
+function bookKey(w, i) { return w + ':' + i; }
+function bookLv(w, i) { return i === 'u' ? GAME.ult.lv : GAME.skills[w][i].lv; }
+function bookName(w, i) { return '《' + w + '・' + (i === 'u' ? GAME.ult.name + '・' + GAME.ults[w].name : GAME.skills[w][i].name) + '》'; }
+function skillKnown(st, w, i) { return i === 0 || !st.learned || !!(st.learned[w] && st.learned[w][i]); }
+function ultKnown(st, w) { return !!(st.ultKnown && st.ultKnown[w || st.weapon]); }
+function bookKnown(st, w, i) { return i === 'u' ? ultKnown(st, w) : skillKnown(st, w, i); }
+function hasBook(st, w, i) { return (st.books[bookKey(w, i)] || 0) > 0; }
+function learnBook(st, rt, w, i) {
+  if (i === 'u') st.ultKnown[w] = true;
+  else { if (!st.learned[w]) st.learned[w] = [true, false, false]; st.learned[w][i] = true; }
+  if (rt && w === st.weapon) rt.d = derive(st);
+  emit(rt, { t: 'learn', name: i === 'u' ? GAME.ult.name + '・' + GAME.ults[w].name : GAME.skills[w][i].name, w, book: true });
+}
+// 拿到一本書：等級夠就馬上讀，不夠就先收著，升級時自動讀
+function gainBook(st, rt, w, i, src) {
+  if (bookKnown(st, w, i)) return false;
+  emit(rt, { t: 'book', name: bookName(w, i), src: src || '' });
+  if (st.lv >= bookLv(w, i)) learnBook(st, rt, w, i);
+  else st.books[bookKey(w, i)] = (st.books[bookKey(w, i)] || 0) + 1;
+  return true;
+}
+function readBooks(st, rt) {
+  for (const k in st.books) {
+    if (!(st.books[k] > 0)) continue;
+    const [w, j] = k.split(':'), i = j === 'u' ? 'u' : +j;
+    if (st.lv >= bookLv(w, i)) { st.books[k] = 0; if (!bookKnown(st, w, i)) learnBook(st, rt, w, i); }
+  }
+}
+function buyBook(st, rt, w, i) {
+  const pr = GAME.books.price[i];
+  if (!pr || bookKnown(st, w, i) || hasBook(st, w, i) || st.silver < pr) return false;
+  st.silver -= pr;
+  return gainBook(st, rt, w, i, 'shop');
+}
+function exchangePages(st, rt, w) {
+  if ((st.pages || 0) < GAME.books.pages || ultKnown(st, w) || hasBook(st, w, 'u')) return false;
+  st.pages -= GAME.books.pages;
+  return gainBook(st, rt, w, 'u', 'pages');
+}
+// 魔物掉落：技能書挑還沒學、也還沒拿到的；一半機率是目前這把武器
+function pickBook(st, kinds) {
+  const play = playableWeapons(), first = rng() < 0.5 ? st.weapon : play[Math.floor(rng() * play.length)];
+  for (const w of [first, st.weapon]) {
+    const list = kinds.filter(i => !bookKnown(st, w, i) && !hasBook(st, w, i));
+    if (list.length) return { w, i: list[Math.floor(rng() * list.length)] };
+  }
+  return null;
+}
+function bookDrops(st, rt, m) {
+  const B = GAME.books, rk = m.rank || 'normal';
+  if (rng() < B.drop[rk] * (m.rank ? 1 : (m.dropMult || 1))) { const b = pickBook(st, [1, 2]); if (b) gainBook(st, rt, b.w, b.i, m.label); }
+  if (m.rank) {
+    if (rng() < B.ultDrop[rk]) { const b = pickBook(st, ['u']); if (b) gainBook(st, rt, b.w, 'u', m.label); }
+    if (rng() < B.pageDrop[rk]) { st.pages = (st.pages || 0) + 1; emit(rt, { t: 'page', n: st.pages }); }
+  }
+}
+
+/* ---------- 天御 ---------- */
+function ultReady(st) { return (st.ultCharge || 0) >= GAME.ult.chargeSec; }
+function castUlt(st, rt) {
+  const U = GAME.ults[st.weapon];
+  if (!U || !ultKnown(st) || !ultReady(st) || rt.mode !== 'fight' || !alive(rt).length) return null;
+  st.ultCharge = 0; st.stats.ults = (st.stats.ults || 0) + 1;
+  const d = rt.d, full = GAME.ult.name + '・' + U.name;
+  const r = resolveSkill(d, st.swordLv[st.weapon] || 0, { stat: U.stat }, 9, 1);
+  const o = { skill: full, quiet: true, sure: true, forceCrit: U.forceCrit, ignoreDef: U.ignoreDef, keepBonus: true };
+  let total = 0, hits = 0;
+  const hit = (m, c, extra) => { total += hitMob(st, rt, r.atk, r.magic, c, Object.assign({}, o, extra || {}), m); hits++; };
+  const main = pickTarget(rt, rt.mob);
+  if (U.hit === 'aoe') for (let k = 0; k < (U.waves || 1); k++) for (const m of alive(rt)) hit(m, U.coef);
+  if (U.hit === 'single' && main) {
+    const cx = U.counterX && matchup(st.weapon, main.attrs[main.stance]) === 'counter' ? U.counterX : 1;
+    for (let k = 0; k < (U.n || 1) && main.hp > 0; k++) hit(main, U.coef * cx);
+    if (U.lastCrit && main.hp > 0) hit(main, U.lastCrit, { forceCrit: true });
+  }
+  if (U.hit === 'random') for (let k = 0; k < U.n; k++) { const pool = alive(rt); if (!pool.length) break; hit(pool[Math.floor(rng() * pool.length)], U.coef); }
+  if (U.hit === 'each') for (const m of alive(rt)) for (let k = 0; k < U.n && m.hp > 0; k++) hit(m, U.coef);
+  if (U.hit === 'storm') rt.storm = { t: U.dur, every: U.every, acc: 0, coef: U.coef, atk: r.atk, magic: r.magic, name: full };
+  for (const m of alive(rt)) {
+    if (U.seal) m.stunned = Math.max(m.stunned, U.seal);
+    if (U.defDown) m.defDown = { v: U.defDown, t: U.dur || 6 };
+    if (U.vuln) m.vuln = { v: U.vuln, t: U.dur || 6 };
+    if (U.delay) m.timer += U.delay;
+    if (U.dot) m.dot = { dps: dmgCalc(r.atk, m.mdef, U.dot, st.lv), t: U.dur || 8, plague: U.plague ? { atk: r.atk, magic: r.magic, coef: U.plague, name: full } : null };
+    if (U.exec && !m.rank && m.hp < m.maxHp * U.exec) { m.hp = 0; m.killKind = m.killKind || matchup(st.weapon, m.attrs[m.stance]); }
+  }
+  if (U.heal) healHp(st, rt, d.maxHp * U.heal * (U.heal >= 1 ? 1 : 1 + d.heal));
+  if (U.shield) rt.shield = Math.max(rt.shield, shieldOf(d, U.shield));
+  if (U.selfDr) rt.drBuff = { v: U.selfDr, t: U.dur || 10 };
+  if (U.guard) rt.guard = { n: U.guard, coef: U.guardCoef, atk: r.atk, magic: r.magic, name: full };
+  if (U.perBoost) rt.perBoost = U.perBoost;
+  if (U.drain && total) healHp(st, rt, total * U.drain * (1 + d.heal));
+  emit(rt, { t: 'ult', name: U.name, full, total, hits });
+  reap(st, rt);
+  return { total, hits };
+}
+
 /* ---------- 重傷：線上要休養比較久，可以花銀兩立刻恢復；離線維持原本的速度 ---------- */
 function reviveCost(st, rt) {
   if (!rt || rt.mode !== 'down') return 0;
@@ -1572,7 +1805,7 @@ function revive(st, rt) {
 
 /* ---------- 離線結算：用同一套戰鬥規則快轉 ---------- */
 function simulate(st, seconds, rt) {
-  const sum = { seconds, lvFrom: st.lv, lvTo: st.lv, zoneFrom: st.zone, zoneTo: st.zone, exp: 0, silver: 0, kills: {}, mats: {}, deaths: 0, quest: 0, rareKills: 0, mastery: {}, learned: [], used: {}, gear: [0, 0, 0, 0, 0], salv: 0, soul: 0, equipped: [], named: [], bag: 0 };
+  const sum = { seconds, lvFrom: st.lv, lvTo: st.lv, zoneFrom: st.zone, zoneTo: st.zone, exp: 0, silver: 0, kills: {}, mats: {}, deaths: 0, quest: 0, rareKills: 0, mastery: {}, learned: [], used: {}, gear: [0, 0, 0, 0, 0], salv: 0, soul: 0, equipped: [], named: [], bag: 0, books: [], pages: 0, ultFrom: st.ultCharge || 0 };
   rt = rt || newRuntime(st);
   const saveEvents = rt.events; rt.events = [];
   const wasOffline = rt.offline; rt.offline = true;
@@ -1583,7 +1816,7 @@ function simulate(st, seconds, rt) {
   while (t < seconds) {
     step(st, rt, dt); t += dt;
     if (rt.events.length) {
-      for (const e of rt.events) if (e.t === 'potion' || e.t === 'buff') sum.used[e.name] = (sum.used[e.name] || 0) + 1; else if (e.t === 'mastery') sum.mastery[e.name] = e.lv; else if (e.t === 'learn') sum.learned.push(e.name); else if (e.t === 'loot') {
+      for (const e of rt.events) if (e.t === 'book') sum.books.push(e.name); else if (e.t === 'page') sum.pages++; else if (e.t === 'potion' || e.t === 'buff') sum.used[e.name] = (sum.used[e.name] || 0) + 1; else if (e.t === 'mastery') sum.mastery[e.name] = e.lv; else if (e.t === 'learn') sum.learned.push(e.name); else if (e.t === 'loot') {
         sum.gear[e.q]++;
         if (e.q === 4) sum.named.push(e.name);
         if (e.fate === 'equip') sum.equipped.push(e.name); else if (e.fate === 'bag') sum.bag++; else { sum.salv++; sum.soul += e.soul || 0; }
@@ -1760,6 +1993,7 @@ function mainClaim(st, rt, skip) {
     for (const k in R.items || {}) { st.items[k] = (st.items[k] || 0) + R.items[k]; got.items[k] = R.items[k]; }
     for (const k in R.mats || {}) { st.mats[k] = (st.mats[k] || 0) + R.mats[k]; got.mats[k] = R.mats[k]; }
     if (R.gear && st.equip) { const it = genGear(st, st.lv, R.gear.q, { slot: R.gear.slot }); it.isNew = true; st.gear.push(it); got.gear = gearName(it); }
+    if (R.book) { if (!skillKnown(st, st.weapon, R.book) && !hasBook(st, st.weapon, R.book)) { gainBook(st, rt, st.weapon, R.book, 'main'); got.book = bookName(st.weapon, R.book); } else { const pr = GAME.books.price[R.book]; st.silver += pr; got.silver += pr; } }
   } else got.silver = Math.round(R.silver / 2);
   st.silver += got.silver;
   if (got.exp) gainExp(st, rt, got.exp);
@@ -1973,7 +2207,8 @@ if (typeof module !== 'undefined') module.exports = {
   useBuff, buyItem, canCraft, craftItem, genRequest, fillBoard, turnIn, rerollRequest, MAT_LV,
   mainStep, mainProgress, mainClaim, mainCanSkip, featureOpen, mainBegin,
   freshState, genGear, gearName, gearBase, affixVal, affixText, gearTotals, equippedList, powerWith, powerNow, gearDelta, equipGear, salvageGear,
-  receiveGear, bestGear, ensureWeaponGear, reviveCost, revive, tierFx, tierLine, equipCount, rollIdx, playableWeapons, autoSalvageable, gearOwner, salvageValue, namedDir
+  receiveGear, bestGear, ensureWeaponGear, reviveCost, revive, tierFx, tierLine,
+  skillKnown, ultKnown, hasBook, bookName, bookLv, buyBook, exchangePages, gainBook, readBooks, castUlt, ultReady, skillCfg, setSkillCfg, activeOrder, moveSkill, learnBook, equipCount, rollIdx, playableWeapons, autoSalvageable, gearOwner, salvageValue, namedDir
 };
 
 </script>
@@ -2053,7 +2288,7 @@ const KIND_TXT = { counter: '剋制', countered: '被剋', neutral: '' };
 const wName = ch => ch + '（' + GAME.weapons[ch].weapon + '）';
 
 let pend = [0, 0, 0, 0, 0, 0, 0, 0], resetPtArm = 0, townTab = 'quest', lastChips = '';
-let gearTab = 'wear', bagFilter = 'mine', bulkQ = 2, bulkArm = 0, salvArm = { id: 0, t: 0 }, sawBag = false;
+let bookW = null, gearTab = 'wear', bagFilter = 'mine', bulkQ = 2, bulkArm = 0, salvArm = { id: 0, t: 0 }, sawBag = false;
 const f3 = x => x.toLocaleString('zh-TW', { maximumFractionDigits: 3 });
 let st, rt, tab = 'map', viewChap = 'shou', selWeapon = null, logs = [], lastWall = Date.now(), acc = 0, lastSaveAt = Date.now(), resetArm = 0;
 let shownMob = null, shownStance = -1, shownGroup = '', shownInfo = '', lastMobs = [];
@@ -2314,7 +2549,11 @@ function handle(e) {
     case 'buff': addLog('<span class="k-gold">' + (e.auto ? e.name + '效果結束，自動補上一份' : '使用' + e.name + '：' + GAME.items[e.name].desc.replace('。', '')) + '</span>'); panelDirty = true; break;
     case 'buffEnd': addLog(e.name + '的效果結束了'); panelDirty = true; break;
     case 'mastery': addLog('<span class="k-lv">' + e.name + '熟練度提升至 Lv.' + e.lv + '</span>'); toast(e.name + ' 熟練 Lv.' + e.lv); panelDirty = true; break;
-    case 'learn': addLog('<span class="k-lv">學會新招式：' + e.name + '</span>'); toast('學會新招式：' + e.name); panelDirty = true; break;
+    case 'learn': addLog('<span class="k-lv">' + (e.book ? '讀完書，' : '') + '學會新招式：' + (e.w && e.w !== st.weapon ? e.w + '的' : '') + e.name + '</span>'); toast('學會新招式：' + e.name); panelDirty = true; break;
+    case 'needBook': addLog('<span class="k-gold">' + e.book + '可以研讀了：到城鎮的書肆購買' + (e.ult ? '，或從精英、首領身上取得' : '，或等魔物掉落') + '</span>'); toast(e.book + ' 可以研讀了', 1); panelDirty = true; break;
+    case 'book': addLog('<span class="k-gold">' + (e.src === 'shop' ? '買下' : e.src === 'pages' ? '用殘頁換到' : e.src === 'main' ? '得到' : '從' + e.src + '身上撿到') + e.name + '</span>'); if (e.src !== 'shop' && e.src !== 'pages') toast('撿到' + e.name, 1); panelDirty = true; break;
+    case 'page': addLog('<span class="k-gold">撿到一張天御殘頁（' + e.n + '／' + GAME.books.pages + '）</span>'); panelDirty = true; break;
+    case 'ult': addLog('<span class="k-lv">【' + e.full + '】</span>共造成 ' + fmt(e.total) + (e.hits > 1 ? '（' + e.hits + ' 次命中）' : '')); break;
     case 'kill': {
       const got = Object.entries(e.got).map(([k, n]) => k + '×' + n).join('、');
       addLog('擊倒' + e.label + '，經驗 +' + e.exp + '，銀兩 +' + e.silver + (got ? '，<span class="k-gold">獲得 ' + got + '</span>' : ''));
@@ -2434,6 +2673,22 @@ function renderArena() {
     }
   }
 }
+function renderUlt() {
+  const b = $('#ultBtn'), known = ultKnown(st);
+  b.classList.toggle('hidden', !known);
+  if (!known) return;
+  const left = Math.max(0, GAME.ult.chargeSec - (st.ultCharge || 0)), ready = left <= 0, fighting = rt.mode === 'fight' && alive(rt).length > 0;
+  const html = ready ? GAME.ult.name + '<small>' + (fighting ? '點擊施放' : '等魔物出現') + '</small>' : GAME.ult.name + '<small>' + Math.floor(left / 60) + ':' + String(Math.floor(left % 60)).padStart(2, '0') + '</small>';
+  if (b.innerHTML !== html) b.innerHTML = html;
+  b.classList.toggle('ready', ready);
+  b.disabled = !(ready && fighting);
+}
+function ultShow(name) {
+  const fx = $('#ultFx'); fx.querySelector('.un').textContent = name;
+  fx.classList.remove('on'); void fx.offsetWidth; fx.classList.add('on');
+  clearTimeout(ultShow.t); ultShow.t = setTimeout(() => fx.classList.remove('on'), 1700);
+  setTimeout(() => { const was = arenaSeen; arenaSeen = true; lastShake = 0; shakeScreen(true); arenaSeen = was; }, 420);
+}
 function renderLog() { $('#log').innerHTML = logs.map(l => '<div>' + l + '</div>').join(''); }
 
 function starHtml(n) { return '★'.repeat(n) + '<i>' + '★'.repeat(5 - n) + '</i>'; }
@@ -2448,12 +2703,18 @@ function costRows(cost) {
 }
 function questReady() { return st.quest.progress >= GAME.quest.target; }
 // 行囊裡有新的、而且比身上更好的裝備，或是新的名器
+// 目前這把武器有等級到了、買得起（或殘頁夠換）的書
+function bookHint() {
+  const w = st.weapon;
+  for (const i of [1, 2]) if (st.lv >= bookLv(w, i) && !skillKnown(st, w, i) && st.silver >= GAME.books.price[i]) return true;
+  return st.lv >= GAME.ult.lv && !ultKnown(st, w) && (st.pages || 0) >= GAME.books.pages;
+}
 function gearHint() { return st.gear.some(it => it.isNew && (it.q === 4 || (gearOwner(st, it) === st.weapon && gearDelta(st, it) > 0))); }
 function swordReady() { const n = st.swordLv[st.weapon] || 0; return n < GAME.sword.maxLv && canAfford(st, swordCost(n)); }
 function renderTabs() {
   document.querySelectorAll('#tabs button').forEach(b => {
     b.classList.toggle('on', b.dataset.t === tab);
-    const dot = (b.dataset.t === 'quest' && (questReady() || (featureOpen(st, 'board') && st.board.some(r => (st.mats[r.mat] || 0) >= r.n)))) || (b.dataset.t === 'gear' && (swordReady() || gearHint())) || (b.dataset.t === 'stats' && pointsFree(st, st.weapon) > 0);
+    const dot = (b.dataset.t === 'quest' && (questReady() || (featureOpen(st, 'board') && st.board.some(r => (st.mats[r.mat] || 0) >= r.n)))) || (b.dataset.t === 'gear' && (swordReady() || gearHint())) || (b.dataset.t === 'stats' && pointsFree(st, st.weapon) > 0) || (b.dataset.t === 'skill' && bookHint());
     const has = b.querySelector('.dot');
     if (dot && !has) b.insertAdjacentHTML('beforeend', '<span class="dot"></span>');
     if (!dot && has) has.remove();
@@ -2513,7 +2774,7 @@ function renderPanel() {
     }
     p.innerHTML = h + '</div>';
   } else if (tab === 'quest') {
-    let h = '<div class="subtabs"><button data-town="quest" class="' + (townTab === 'quest' ? 'on' : '') + '">委託</button><button data-town="shop" class="' + (townTab === 'shop' ? 'on' : '') + '">百草堂</button></div>';
+    let h = '<div class="subtabs three"><button data-town="quest" class="' + (townTab === 'quest' ? 'on' : '') + '">委託</button><button data-town="shop" class="' + (townTab === 'shop' ? 'on' : '') + '">百草堂</button><button data-town="book" class="' + (townTab === 'book' ? 'on' : '') + '">書肆</button></div>';
     if (townTab === 'quest') {
       const q = GAME.quest, r = q.reward(st.lv), ready = questReady(), N = GAME.npcs;
       h += '<div class="npc quest"><div class="giver"><span class="seal mid">' + N.quest.seal + '</span><div><b>' + N.quest.name + '</b><br><span>' + N.quest.title + '</span></div></div>' +
@@ -2532,6 +2793,8 @@ function renderPanel() {
       });
       const N2 = GAME.npcs;
       h += '<div class="npc quest locked" style="margin-top:14px"><div class="giver"><span class="seal mid" style="background:#3a2f4a;color:#e3d6f5">' + N2.fate.seal + '</span><div><b>' + N2.fate.name + '</b><br><span>' + N2.fate.title + '</span></div></div><p>' + N2.fate.text + '</p></div>';
+    } else if (townTab === 'book') {
+      h += bookPanel();
     } else if (!featureOpen(st, 'shop')) {
       h += '<div class="npc quest locked"><p>百草堂還沒開門。完成主線〈百草〉後開放。</p></div>';
     } else {
@@ -2575,7 +2838,8 @@ function renderPanel() {
     if (w.stars) {
       h += '<div style="margin-top:8px">' + GAME.statNames.map((n, i) => '<div class="statrow" style="grid-template-columns:40px 1fr;padding:3px 0"><b>' + n + '</b><span class="stars">' + starHtml(w.stars[i]) + '</span></div>').join('') + '</div>';
       const dw = derive(Object.assign({}, st, { weapon: selWeapon }));
-      h += '<div class="wskills">' + (GAME.skills[selWeapon] || []).map((s, i) => '<div><b>' + s.name + '</b>　' + TYPE_TXT[s.type][0] + '・Lv.' + s.lv + '　' + skillDesc(s, resolveSkill(dw, st.swordLv[selWeapon] || 0, s, i, masteryOf(st, selWeapon, i)[0])) + '</div>').join('') + '</div>';
+      h += '<div class="wskills">' + (GAME.skills[selWeapon] || []).map((s, i) => '<div><b>' + s.name + '</b>　' + TYPE_TXT[s.type][0] + '・Lv.' + s.lv + (skillKnown(st, selWeapon, i) ? '' : '・<span style="color:var(--gold)">未讀書</span>') + '　' + skillDesc(s, resolveSkill(dw, st.swordLv[selWeapon] || 0, s, i, masteryOf(st, selWeapon, i)[0])) + '</div>').join('') +
+        '<div><b style="color:#f2d58a">' + GAME.ult.name + '・' + GAME.ults[selWeapon].name + '</b>　Lv.' + GAME.ult.lv + (ultKnown(st, selWeapon) ? '' : '・<span style="color:var(--gold)">未讀書</span>') + '　' + GAME.ults[selWeapon].desc + '</div></div>';
       h += '<p class="note" style="margin-top:8px">已分配 ' + (pointsTotal(st) - pointsFree(st, selWeapon)) + '／' + pointsTotal(st) + ' 點</p>';
       h += selWeapon === st.weapon ? '<p class="note">目前使用中。</p>' :
         '<button class="btn ghost" id="doSwap" style="margin-top:10px">換成' + wName(selWeapon) + '（' + GAME.sword.levelName + ' +' + (st.swordLv[selWeapon] || 0) + '）</button>';
@@ -2588,7 +2852,7 @@ function renderPanel() {
     let total = 0, rows = '';
     for (const k in GAME.monsters) { const n = s.kills[k] || 0; if (!n) continue; total += n; rows += '<span>' + GAME.monsters[k].name + '</span><span>' + fmt(n) + '</span>'; }
     p.innerHTML = '<div class="sec"><h3>巡守紀錄</h3><div class="kv"><span>線上時間</span><span>' + dur(s.playSec) + '</span><span>離線結算時間</span><span>' + dur(s.offlineSec) + '</span>' +
-      '<span>主線</span><span>' + (st.main.done ? GAME.main.chapter + ' 完成' : stepNo(st.main.step) + '／共 ' + GAME.main.steps.length + ' 步') + '</span><span>總擊倒</span><span>' + fmt(total) + '</span><span>擊倒首領</span><span>' + fmt(s.bossKills || 0) + '</span>' + rows + '<span>分解裝備</span><span>' + fmt(s.salvaged || 0) + ' 件</span><span>重傷次數</span><span>' + fmt(s.deaths) + '</span></div></div>' +
+      '<span>主線</span><span>' + (st.main.done ? GAME.main.chapter + ' 完成' : stepNo(st.main.step) + '／共 ' + GAME.main.steps.length + ' 步') + '</span><span>總擊倒</span><span>' + fmt(total) + '</span><span>擊倒首領</span><span>' + fmt(s.bossKills || 0) + '</span>' + rows + '<span>施放天御</span><span>' + fmt(s.ults || 0) + ' 次</span><span>天御殘頁</span><span>' + (st.pages || 0) + ' 張</span><span>分解裝備</span><span>' + fmt(s.salvaged || 0) + ' 件</span><span>重傷次數</span><span>' + fmt(s.deaths) + '</span></div></div>' +
       '<div class="sec"><h3>設定</h3>' +
       '<label class="toggle"><span>爆擊時畫面震動<br><span class="note">造成爆擊輕震、被爆擊重震；戰鬥畫面不在螢幕上時不會震</span></span><input type="checkbox" id="fxShake"' + (st.fx.shake ? ' checked' : '') + '></label>' +
       '<label class="toggle"><span>被爆擊時手機跟著震動</span><input type="checkbox" id="fxBuzz"' + (st.fx.buzz ? ' checked' : '') + '></label>' +
@@ -2750,19 +3014,67 @@ const TYPE_TXT = { active: ['主動', 'act'], passive: ['被動', 'pas'], trigge
 function skillDesc(s, cur, max) {
   return s.desc.replace(/\{(\w+)\}/g, (_, k) => pct(cur[k]) + (max && Math.abs(max[k] - cur[k]) > 1e-6 ? '<span class="mx">→' + pct(max[k]) + '</span>' : ''));
 }
+function bookLine(w, i) {
+  const lv = bookLv(w, i), price = GAME.books.price[i];
+  if (hasBook(st, w, i)) return '<div class="needbook"><span>已經有' + bookName(w, i) + '，Lv.' + lv + ' 時自動研讀</span></div>';
+  const how = i === 'u' ? '精英、首領會掉落；天御殘頁 ' + (st.pages || 0) + '／' + GAME.books.pages + ' 張可以換一本' : '書肆 ' + fmt(price) + ' 銀兩，魔物偶爾也會掉落';
+  return '<div class="needbook"><span>需要' + bookName(w, i) + '：' + how + '</span><button data-gobook="' + w + '">到書肆</button></div>';
+}
+function ultCard(w, d) {
+  const U = GAME.ults[w]; if (!U) return '';
+  const known = ultKnown(st, w), left = Math.max(0, GAME.ult.chargeSec - (st.ultCharge || 0));
+  const mmss = t => Math.floor(t / 60) + ':' + String(Math.floor(t % 60)).padStart(2, '0');
+  return '<div class="skill ult' + (known ? '' : ' lock') + '"><div class="sh"><b>' + GAME.ult.name + '・' + U.name + '</b><span class="pill ultp">' + GAME.ult.name + '</span><span class="lvreq">' +
+    (known ? (left > 0 ? '充能中 ' + mmss(left) : '已充能') : 'Lv.' + GAME.ult.lv + ' 可研讀') + '</span></div>' +
+    '<div class="sm">每 ' + (GAME.ult.chargeSec / 60) + ' 分鐘充能一次（離線也算），只能在戰鬥畫面右上角手動施放</div>' +
+    '<div class="sd">' + U.desc + '</div>' + (known ? '' : bookLine(w, 'u')) + '<div class="sf">「' + U.flavor + '」</div></div>';
+}
 function skillPanel(w, d, mine) {
   const list = GAME.skills[w] || [], sw = st.swordLv[w] || 0;
-  let h = '<div class="sec"><h3>' + wName(w) + '的招式</h3><p class="note">招式每用一次累積熟練度，最高 Lv.' + GAME.mastery.max + '；被動技每擊倒一隻魔物累積一次。→ 後面是熟練滿級時的數值。</p></div>';
+  let h = '<div class="sec"><h3>' + wName(w) + '的招式</h3><p class="note">第一招入門就會；第二、三招要讀技能書才學得會。招式每用一次累積熟練度，最高 Lv.' + GAME.mastery.max + '；被動技每擊倒一隻魔物累積一次。→ 後面是熟練滿級時的數值。</p></div>';
+  h += ultCard(w, d);
+  const order = activeOrder(st, d, w).map(r => r.i);
   list.forEach((s, i) => {
-    const learned = st.lv >= s.lv, [ml, xp] = masteryOf(st, w, i);
+    const known = skillKnown(st, w, i), lvOk = st.lv >= s.lv, learned = known && lvOk, [ml, xp] = masteryOf(st, w, i);
     const cur = resolveSkill(d, sw, s, i, ml), max = resolveSkill(d, sw, s, i, GAME.mastery.max), ty = TYPE_TXT[s.type];
     const need = GAME.mastery.need(ml), maxed = ml >= GAME.mastery.max;
-    h += '<div class="skill' + (learned ? '' : ' lock') + '"><div class="sh"><b>' + s.name + '</b><span class="pill ' + ty[1] + '">' + ty[0] + '</span><span class="lvreq">' + (learned ? '熟練 Lv.' + ml : 'Lv.' + s.lv + ' 學會') + '</span></div>' +
+    h += '<div class="skill' + (learned ? '' : ' lock') + '"><div class="sh"><b>' + s.name + '</b><span class="pill ' + ty[1] + '">' + ty[0] + '</span><span class="lvreq">' + (learned ? '熟練 Lv.' + ml : known ? 'Lv.' + s.lv + ' 學會' : 'Lv.' + s.lv + ' 可研讀') + '</span></div>' +
       '<div class="sm">吃' + s.stat + (s.cd ? '・冷卻 ' + s.cd + ' 秒・耗 ' + s.cost + ' ' + d.enName : '') + '</div>' +
       '<div class="sd">' + skillDesc(s, cur, max) + '</div>' +
       (learned ? '<div class="barrow"><span>熟練</span><div class="bar exp"><i style="width:' + (maxed ? 100 : xp / need * 100) + '%"></i></div><em>' + (maxed ? '已滿' : xp + ' / ' + need) + '</em></div>' : '') +
-      '<div class="sf">「' + s.flavor + '」</div></div>';
+      (!known ? bookLine(w, i) : '');
+    if (mine && learned && s.type === 'active') {
+      const c = skillCfg(st, w, i), k = order.indexOf(i);
+      h += '<div class="scfg"><label><input type="checkbox" data-son="' + i + '"' + (c.on ? ' checked' : '') + '>自動施放</label>' +
+        '<select data-scond="' + i + '"' + (c.on ? '' : ' disabled') + '>' + GAME.conds.map(([v, t]) => '<option value="' + v + '"' + (c.cond === v ? ' selected' : '') + '>' + t + '</option>').join('') + '</select>' +
+        (order.length > 1 ? '<span class="ord">順序 ' + (k + 1) + '<button data-sord="' + i + '" data-dir="-1"' + (k > 0 ? '' : ' disabled') + ' aria-label="提前">↑</button><button data-sord="' + i + '" data-dir="1"' + (k < order.length - 1 ? '' : ' disabled') + ' aria-label="延後">↓</button></span>' : '') + '</div>';
+    }
+    h += '<div class="sf">「' + s.flavor + '」</div></div>';
   });
+  if (mine) h += '<p class="note">主動技照順序判斷：輪到的招式冷卻好了、條件也符合就放，否則看下一招；都不符合就普通攻擊。</p>';
+  return h;
+}
+function bookPanel() {
+  const N = GAME.bookNpc, play = playableWeapons();
+  if (!bookW || !play.includes(bookW)) bookW = st.weapon;
+  let h = '<div class="npc quest"><div class="giver"><span class="seal mid" style="background:#3a3220;color:#f2d58a">' + N.seal + '</span><div><b>' + N.name + '</b><br><span>' + N.title + '</span></div></div><p>' + N.line + '</p></div>';
+  h += '<label class="toggle"><span>看哪一把武器的書</span><select id="bookW">' + play.map(w => '<option value="' + w + '"' + (w === bookW ? ' selected' : '') + '>' + wName(w) + (w === st.weapon ? '（目前）' : '') + '</option>').join('') + '</select></label>';
+  const dw = derive(bookW === st.weapon ? st : Object.assign({}, st, { weapon: bookW }));
+  const row = (i) => {
+    const w = bookW, known = bookKnown(st, w, i), own = hasBook(st, w, i), lv = bookLv(w, i);
+    const title = i === 'u' ? GAME.ult.name + '・' + GAME.ults[w].name : GAME.skills[w][i].name;
+    const desc = i === 'u' ? GAME.ults[w].desc : skillDesc(GAME.skills[w][i], resolveSkill(dw, st.swordLv[w] || 0, GAME.skills[w][i], i, 1));
+    let btn;
+    if (known) btn = '<button disabled>已學會</button>';
+    else if (own) btn = '<button disabled>已持有</button>';
+    else if (i === 'u') btn = '<button data-pages="' + w + '"' + ((st.pages || 0) >= GAME.books.pages ? '' : ' disabled') + '>殘頁換（' + (st.pages || 0) + '／' + GAME.books.pages + '）</button>';
+    else btn = '<button data-buybook="' + w + '" data-i="' + i + '"' + (st.silver >= GAME.books.price[i] ? '' : ' disabled') + '>買（' + fmt(GAME.books.price[i]) + '）</button>';
+    return '<div class="itemrow"><span class="seal bf">' + (i === 'u' ? '御' : '書') + '</span><div><b>' + bookName(w, i) + '<em>Lv.' + lv + '</em></b><small>' + desc + '</small>' +
+      (!known && own ? '<small style="color:var(--gold)">Lv.' + lv + ' 時自動研讀</small>' : '') + '</div><div class="ctl">' + btn + '</div></div>';
+  };
+  h += '<div class="sec"><h3>技能書</h3>' + row(1) + row(2) + '</div>';
+  h += '<div class="sec"><h3>天御書</h3>' + row('u') + '<p class="note" style="margin-top:6px">天御書只有精英和首領會掉；每打倒一隻精英或首領，也有機會撿到天御殘頁，集滿 ' + GAME.books.pages + ' 張可以換任一把武器的天御書。</p></div>';
+  h += '<p class="note">買到的書，等級夠了會馬上研讀，不夠就先收著，升級時自動研讀。魔物偶爾也會掉技能書。</p>';
   return h;
 }
 function rewardText(got) {
@@ -2772,6 +3084,7 @@ function rewardText(got) {
   for (const k in got.items || {}) a.push(k + '×' + got.items[k]);
   for (const k in got.mats || {}) a.push(k + '×' + got.mats[k]);
   if (got.gear) a.push(got.gear);
+  if (got.book) a.push(got.book);
   return a.join('、');
 }
 function zoneTxt(id) { const z = zoneById(id); return z.place + '・' + z.name; }
@@ -2802,7 +3115,7 @@ function stepBody(s) {
   return '<div class="dlg"><div class="who">' + s.npc + '</div>' + s.lines.map(l => '「' + l + '」').join('<br>') + '</div>' +
     '<div class="goalbox">目標：' + s.goalText + (s.zone ? '<small>地點：' + zoneTxt(s.zone) + '（建議 Lv.' + s.lv + '）</small>' : '<small>建議 Lv.' + s.lv + '</small>') +
     (s.hint ? '<small>提示：' + s.hint + '</small>' : '') +
-    '<small>獎勵：' + rewardText({ silver: s.reward.silver, items: s.reward.items, mats: s.reward.mats, gear: s.reward.gear ? GAME.gear.quality[s.reward.gear.q].name + s.reward.gear.slot + '一件' : '' }) + (s.reward.expPct ? '、經驗（目前等級的 ' + Math.round(s.reward.expPct * 100) + '%）' : '') + '</small></div>';
+    '<small>獎勵：' + rewardText({ silver: s.reward.silver, items: s.reward.items, mats: s.reward.mats, gear: s.reward.gear ? GAME.gear.quality[s.reward.gear.q].name + s.reward.gear.slot + '一件' : '', book: s.reward.book ? '目前武器第二招的技能書' : '' }) + (s.reward.expPct ? '、經驗（目前等級的 ' + Math.round(s.reward.expPct * 100) + '%）' : '') + '</small></div>';
 }
 function showStep(prefix) {
   const s = mainStep(st);
@@ -2817,7 +3130,7 @@ function showStep(prefix) {
   }
   $('#modalBody').innerHTML = h; $('#modal').classList.remove('hidden');
 }
-function renderAll() { renderHero(); renderLoc(); lastMain = ''; renderMain(); renderArena(); renderLog(); renderTabs(); renderPanel(); }
+function renderAll() { renderUlt(); renderHero(); renderLoc(); lastMain = ''; renderMain(); renderArena(); renderLog(); renderTabs(); renderPanel(); }
 
 /* ---------- 離線戰報 ---------- */
 function showReport(sum, awaySec) {
@@ -2833,7 +3146,10 @@ function showReport(sum, awaySec) {
     (sum.gear.some(x => x) ? '<p class="note" style="margin-bottom:4px">獲得裝備 ' + sum.gear.reduce((a, b) => a + b, 0) + ' 件：' + sum.gear.map((n, q) => n ? '<span style="color:' + QC(q) + '">' + GAME.gear.quality[q].name + ' ' + n + '</span>' : '').filter(Boolean).reverse().join('、') +
       (sum.equipped.length ? '；自動換上 ' + sum.equipped.length + ' 次（' + [...new Set(sum.equipped)].slice(0, 5).join('、') + (new Set(sum.equipped).size > 5 ? '…' : '') + '）' : '') + (sum.bag ? '；放進行囊 ' + sum.bag + ' 件' : '') + (sum.salv ? '；分解 ' + sum.salv + ' 件，精魄 +' + sum.soul : '') + '</p>' : '') +
     (sum.named.length ? '<p style="margin-bottom:6px;font-family:var(--serif);color:#e6b54a">名器現世：' + sum.named.join('、') + '</p>' : '') +
+    (sum.books.length ? '<p class="note" style="margin-bottom:4px;color:var(--gold)">撿到技能書：' + sum.books.join('、') + '</p>' : '') +
+    (sum.pages ? '<p class="note" style="margin-bottom:4px">撿到天御殘頁 ' + sum.pages + ' 張（共 ' + (st.pages || 0) + ' 張）</p>' : '') +
     (sum.learned.length ? '<p class="note" style="margin-bottom:4px">學會新招式：' + sum.learned.join('、') + '</p>' : '') +
+    (ultKnown(st) && sum.ultFrom < GAME.ult.chargeSec && ultReady(st) ? '<p class="note" style="margin-bottom:4px;color:#f2d58a">天御已經充能完畢，戰鬥時按右上角施放。</p>' : '') +
     (Object.keys(sum.mastery).length ? '<p class="note">熟練度提升：' + Object.entries(sum.mastery).map(([k, v]) => k + ' Lv.' + v).join('、') + '</p>' : '') +
     '<div style="height:14px"></div><button class="btn" id="closeModal">繼續巡守</button>';
   $('#modal').classList.remove('hidden');
@@ -2848,6 +3164,9 @@ document.addEventListener('change', ev => {
   if (ev.target.id === 'autoMove') { st.auto = ev.target.checked; save(); toast(st.auto ? '升級後會自動前往新區' : '會留在目前的狩獵區'); }
   if (ev.target.id === 'gAuto') { st.gearSet.autoEquip = ev.target.checked; save(); toast(st.gearSet.autoEquip ? '撿到更好的會自動換上' : '撿到的裝備都先放進行囊'); }
   if (ev.target.id === 'gOther') { st.gearSet.other = ev.target.checked; save(); }
+  if (ev.target.dataset.son !== undefined) { setSkillCfg(st, st.weapon, +ev.target.dataset.son, { on: ev.target.checked }); rt.d = derive(st); save(); renderPanel(); return; }
+  if (ev.target.dataset.scond !== undefined) { setSkillCfg(st, st.weapon, +ev.target.dataset.scond, { cond: ev.target.value }); save(); toast('施放條件：' + GAME.conds.find(c => c[0] === ev.target.value)[1]); return; }
+  if (ev.target.id === 'bookW') { bookW = ev.target.value; renderPanel(); return; }
   if (ev.target.id === 'fxShake') { st.fx.shake = ev.target.checked; save(); if (st.fx.shake) { const was = arenaSeen; arenaSeen = true; shakeScreen(false); arenaSeen = was; } }
   if (ev.target.id === 'fxBuzz') { st.fx.buzz = ev.target.checked; save(); if (st.fx.buzz && navigator.vibrate) try { navigator.vibrate(45); } catch (e) {} }
   if (ev.target.id === 'autoRevive') { st.autoRevive = ev.target.checked; save(); toast(st.autoRevive ? '重傷時會自動花銀兩恢復' : '重傷時照常休養'); shownMob = null; panelDirty = true; }
@@ -2856,6 +3175,15 @@ document.addEventListener('change', ev => {
 });
 document.addEventListener('click', ev => {
   const t = ev.target.closest('button'); if (!t) return;
+  if (t.id === 'ultBtn') {
+    const r = castUlt(st, rt);
+    if (r) { ultShow(GAME.ult.name + '・' + GAME.ults[st.weapon].name); for (const e of rt.events) handle(e); rt.events.length = 0; save(); renderAll(); }
+    return;
+  }
+  if (t.dataset.sord !== undefined) { if (moveSkill(st, rt.d, +t.dataset.sord, +t.dataset.dir)) { rt.d = derive(st); save(); } renderPanel(); return; }
+  if (t.dataset.gobook) { bookW = t.dataset.gobook; tab = 'quest'; townTab = 'book'; renderTabs(); renderPanel(); animPanel(); return; }
+  if (t.dataset.buybook) { if (buyBook(st, rt, t.dataset.buybook, +t.dataset.i)) { for (const e of rt.events) handle(e); rt.events.length = 0; save(); } renderAll(); return; }
+  if (t.dataset.pages) { if (exchangePages(st, rt, t.dataset.pages)) { for (const e of rt.events) handle(e); rt.events.length = 0; toast('換到' + bookName(t.dataset.pages, 'u')); save(); } renderAll(); return; }
   if (t.dataset.revive) { revive(st, rt); for (const e of rt.events) handle(e); rt.events.length = 0; save(); renderAll(); return; }
   if (t.dataset.t) { if (tab === 'gear' && t.dataset.t !== 'gear') clearNewGear(); if (tab !== t.dataset.t) setTimeout(animPanel, 0); tab = t.dataset.t; if (tab === 'map') viewChap = GAME.chapters[0].id; panelDirty = true; renderTabs(); renderPanel(); if (t.closest('#loc')) $('#tabs').scrollIntoView({ behavior: 'smooth' }); return; }
   if (t.dataset.ch) { viewChap = t.dataset.ch; renderPanel(); animPanel(); return; }
@@ -2978,7 +3306,7 @@ function tick() {
     while (acc >= 0.1) { step(st, rt, 0.1); acc -= 0.1; }
   }
   if (rt.events.length) { for (const e of rt.events) handle(e); rt.events.length = 0; renderLog(); }
-  renderHero(); renderArena(); renderMain();
+  renderHero(); renderArena(); renderMain(); renderUlt();
   if (panelDirty && Date.now() - lastPanelAt > 400 && !(document.activeElement && ['SELECT', 'TEXTAREA'].includes(document.activeElement.tagName))) { renderTabs(); renderPanel(); }
   if (now - lastSaveAt > 5000) save();
   if (cloud.user && !cloud.busy && !cloud.hold && now - cloud.last > CLOUD_EVERY) cloudSync('auto');
