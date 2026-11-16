@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#121315">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>天星界・御劍者 v0.4</title>
+<title>天星界・御劍者 v0.5</title>
 <style>
 :root{
   --bg:#121315;--panel:#1b1d20;--panel2:#23262a;--line:#34373c;--text:#e9e3d6;--muted:#9a958b;--faint:#6d6961;
@@ -112,7 +112,7 @@ header h1 small{font-family:var(--sans);font-size:11px;color:var(--faint);letter
 .epi{font-family:var(--serif);font-size:13px;color:var(--muted);line-height:1.9;border-left:2px solid var(--ver-d);padding-left:10px;margin:4px 0 12px}
 .epi cite{display:block;font-style:normal;font-size:11px;color:var(--faint);margin-top:2px}
 .swordlv{font-family:var(--serif);font-size:28px;font-weight:600;color:var(--gold)}
-.mats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mats{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
 .mat{display:flex;gap:8px;align-items:center;background:var(--panel2);border-radius:8px;padding:8px}
 .mat .seal{background:var(--gold-d);color:#f7e7c2}
 .mat b{font-family:var(--serif);font-weight:600;font-size:14px}
@@ -200,6 +200,31 @@ textarea{width:100%;height:80px;background:#0c0d0e;color:var(--text);border:1px 
 .skill .barrow{margin-top:8px}
 .wskills{margin-top:8px;font-size:12px;line-height:1.7;color:var(--muted)}
 .wskills b{font-family:var(--serif);color:var(--text);font-size:13px}
+.chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:8px}
+.chips:empty{display:none}
+.chips span{font-size:11px;padding:2px 7px;border-radius:5px;background:var(--panel2);color:var(--muted);font-variant-numeric:tabular-nums}
+.chips span.buff{background:#3a3220;color:#f2d58a}
+.chips span.low{background:#3d1f1b;color:#ffb9ad}
+.subtabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-bottom:10px}
+.subtabs button{padding:8px;border-radius:8px;border:1px solid var(--line);font-family:var(--serif);font-size:14px;color:var(--muted)}
+.subtabs button.on{border-color:var(--gold);color:var(--text);background:var(--panel2)}
+.itemrow{display:grid;grid-template-columns:34px 1fr auto;gap:8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}
+.itemrow:last-child{border-bottom:none}
+.itemrow .seal{width:34px;height:34px;font-size:18px;background:#4a2a26;color:#f7d0c6}
+.itemrow .seal.bf{background:#3a3220;color:#f2d58a}
+.itemrow .seal.en{background:#26364a;color:#cfe0f5}
+.itemrow b{font-family:var(--serif);font-size:15px;font-weight:600}
+.itemrow b em{font-family:var(--sans);font-style:normal;font-size:12px;color:var(--gold);margin-left:6px;font-weight:400}
+.itemrow small{display:block;font-size:11px;color:var(--muted);line-height:1.6}
+.itemrow .ctl{display:flex;flex-direction:column;gap:4px;align-items:flex-end}
+.itemrow .ctl button{padding:5px 10px;border-radius:7px;border:1px solid var(--line);background:var(--panel2);font-size:12px;white-space:nowrap}
+.itemrow .ctl button:disabled{opacity:.35;cursor:default}
+.itemrow .ctl label{font-size:11px;color:var(--muted);display:flex;align-items:center;gap:4px;white-space:nowrap}
+.itemrow .ctl input{accent-color:var(--jade);width:16px;height:16px}
+.reccost{font-size:11px;line-height:1.6}
+.reccost .ok{color:#a6e3cd}.reccost .no{color:#ffb9ad}
+select{background:var(--panel2);color:var(--text);border:1px solid var(--line);border-radius:7px;padding:5px 8px;font-size:13px}
+.req .giver .seal{background:var(--gold-d);color:#f7e7c2}
 .hidden{display:none!important}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--panel2);border:1px solid var(--line);padding:8px 14px;border-radius:8px;font-size:13px;z-index:30;transition:opacity .3s}
 </style>
@@ -207,7 +232,7 @@ textarea{width:100%;height:80px;background:#0c0d0e;color:var(--text);border:1px 
 <body>
 <div class="wrap">
   <header>
-    <h1>天星界・御劍者<small>v0.4 暫定名稱</small></h1>
+    <h1>天星界・御劍者<small>v0.5 暫定名稱</small></h1>
     <div class="silver" id="silver">銀兩 0</div>
   </header>
 
@@ -221,6 +246,7 @@ textarea{width:100%;height:80px;background:#0c0d0e;color:var(--text);border:1px 
           <div class="barrow"><span>血量</span><div class="bar hp" id="hpBarWrap"><i id="hpBar"></i></div><em id="hpTxt"></em></div>
           <div class="barrow"><span id="enName">氣力</span><div class="bar en"><i id="enBar"></i></div><em id="enTxt"></em></div>
         </div>
+        <div class="chips" id="pChips"></div>
       </div>
     </div>
   </section>
@@ -236,7 +262,7 @@ textarea{width:100%;height:80px;background:#0c0d0e;color:var(--text);border:1px 
 
   <nav class="tabs" id="tabs">
     <button data-t="map">地圖</button><button data-t="stats">屬性</button><button data-t="skill">技能</button><button data-t="sword">注劍</button><button data-t="bag">背包</button>
-    <button data-t="quest">委託</button><button data-t="weapon">武器</button><button data-t="record">紀錄</button>
+    <button data-t="quest">城鎮</button><button data-t="weapon">武器</button><button data-t="record">紀錄</button>
   </nav>
   <section class="panel card" id="panel"></section>
 </div>
@@ -249,7 +275,7 @@ textarea{width:100%;height:80px;background:#0c0d0e;color:var(--text);border:1px 
 
 /* ---------- 遊戲資料：名稱、數值都集中在這裡，改這裡就好 ---------- */
 const GAME = {
-  meta: { title: '天星界・御劍者', subtitle: '暫定名稱', version: '0.4', era: '仙曆五百餘年' },
+  meta: { title: '天星界・御劍者', subtitle: '暫定名稱', version: '0.5', era: '仙曆五百餘年' },
 
   // 八項資源系統（順序固定，星數陣列照這個順序）
   statNames: ['力量', '抵擋', '體力', '敏捷', '智慧', '守護', '靈力', '控制'],
@@ -511,7 +537,7 @@ GAME.skills = {
   ],
   '銀': [
     { name: '斷嶽', type: 'active', lv: 1, stat: '力量', cd: 6, cost: 15, dmg: [2.2, 3.0], desc: '舉劍下劈，造成 {dmg} 傷害。', flavor: '劍落下之前，風先停了。' },
-    { name: '負重', type: 'passive', lv: 8, stat: '體力', dr: [0.10, 0.25], when: 'hpBelow50', desc: '血量低於一半時，受到的傷害降低 {dr}。', flavor: '劍越沉，腳下越穩。' },
+    { name: '負重', type: 'passive', lv: 8, stat: '體力', dr: [0.10, 0.25], when: 'hpBelow50', desc: '血量低於一半時，受到的傷害降低 {dr}。', flavor: '劍越沉，腳步越紮實。' },
     { name: '順勢', type: 'trigger', lv: 15, stat: '力量', on: 'stance', strike: [1.0, 1.4], critIfCounter: true, icd: 5, desc: '魔物切換架勢的瞬間追斬一記 {strike} 傷害（每 5 秒最多一次）；新架勢被你剋制時必定爆擊。', flavor: '對方換手的那一瞬，劍已經在那裡。' }
   ],
   '弓': [
@@ -541,6 +567,33 @@ GAME.skills = {
   ]
 };
 
+
+/* ---------- 藥品：回復藥用銀兩買，增益藥用材料調製 ---------- */
+GAME.shopNpc = { name: '宋苓', title: '天霖市・百草堂掌櫃', seal: '苓' };
+GAME.items = {
+  '小還丹': { kind: 'hp', heal: 0.25, price: 30, lv: 1, seal: '小', desc: '回復最大血量 25%。' },
+  '中還丹': { kind: 'hp', heal: 0.40, price: 150, lv: 8, seal: '中', desc: '回復最大血量 40%。' },
+  '大還丹': { kind: 'hp', heal: 0.60, price: 400, lv: 15, seal: '大', desc: '回復最大血量 60%。' },
+  '凝神丹': { kind: 'en', restore: 0.5, price: 80, lv: 5, seal: '神', desc: '回復一半的氣力或靈氣。' },
+  '虎骨酒': { kind: 'buff', buff: 'atk', v: 0.15, dur: 1800, seal: '虎', recipe: { silver: 200, mats: { '獸牙': 5 } }, desc: '攻擊提高 15%，持續 30 分鐘。' },
+  '鐵皮散': { kind: 'buff', buff: 'dr', v: 0.12, dur: 1800, seal: '鐵', recipe: { silver: 200, mats: { '甲片': 5 } }, desc: '受到的傷害降低 12%，持續 30 分鐘。' },
+  '明目丹': { kind: 'buff', buff: 'crit', v: 0.06, dur: 1800, seal: '目', recipe: { silver: 300, mats: { '蝠翼': 5, '火燼': 3 } }, desc: '爆擊率提高 6%，持續 30 分鐘。' },
+  '聚魄香': { kind: 'buff', buff: 'exp', v: 0.20, dur: 1800, seal: '香', recipe: { silver: 300, mats: { '草芯': 5, '火燼': 5 } }, desc: '獲得的經驗提高 20%，持續 30 分鐘。' },
+  '拾遺囊': { kind: 'buff', buff: 'drop', v: 0.25, dur: 1800, seal: '囊', recipe: { silver: 400, mats: { '石核': 3, '殘鐵': 3 } }, desc: '材料掉落率提高 25%，持續 30 分鐘。' }
+};
+GAME.potionRules = { hpCd: 4, enCd: 10, buffCap: 4 * 3600, thresholds: [0.3, 0.4, 0.5, 0.6] };
+
+/* ---------- 收集委託：委託板上同時有三張，交付後換新的 ---------- */
+GAME.requests = {
+  '草芯': { giver: '五頓村・農家', text: '麥田邊的草精越來越多，把草芯帶回來，曬乾了可以入藥。' },
+  '獸牙': { giver: '天霖市・骨匠', text: '城裡最近流行獸牙做的墜子，有多少收多少。' },
+  '火燼': { giver: '仙緣鎮・祠堂管事', text: '祠裡的長明燈要靠火燼續著，別讓它熄了。' },
+  '甲片': { giver: '五頓村・鐵匠', text: '甲蟲的殼磨一磨，比鐵片還耐用。' },
+  '石核': { giver: '明臺・守階人', text: '石核可以拿來修補明臺的石階，一階一階補回去。' },
+  '蝠翼': { giver: '冥月鎮・守墓人', text: '蝠翼磨成粉，夜裡點起來，魔物就不太敢靠近墓園。' },
+  '殘鐵': { giver: '梁山城・兵器行', text: '舊兵器的鐵還能回爐，比新鐵更有韌性。' }
+};
+GAME.board = { slots: 3, rerollCost(lv) { return 50 * lv; } };
 
 /* ---------- 工具 ---------- */
 let rng = Math.random;
@@ -607,13 +660,19 @@ function derive(st) {
     interval: GAME.rules.baseInterval / castSpeed,
     skillName: st.weapon + '・初式'
   };
+  const B = st.buffs || {}, bv = k => (B[k] ? GAME.items[B[k].item].v : 0);
+  d.atkBuff = bv('atk'); d.expBuff = bv('exp'); d.dropBuff = bv('drop');
   applySkills(st, d, sw);
+  if (d.atkBuff) d.atk = Math.round(d.atk * (1 + d.atkBuff));
+  if (bv('crit')) d.crit = Math.min(0.7, d.crit + bv('crit'));
+  if (bv('dr')) d.drs.push({ v: bv('dr'), when: 'always' });
   return d;
 }
 
 function newState() {
   return {
-    v: 4, lv: 1, exp: 0, weapon: '銀', swordLv: {}, alloc: {}, resetUsed: {}, mastery: {}, silver: 0, mats: {}, zone: GAME.zones[0].id, auto: true,
+    v: 5, lv: 1, exp: 0, weapon: '銀', swordLv: {}, alloc: {}, resetUsed: {}, mastery: {},
+    items: { '小還丹': 10 }, potion: { auto: { '小還丹': true, '中還丹': true, '大還丹': true, '凝神丹': false }, thr: 0.4 }, buffs: {}, buffAuto: {}, board: [], boardDone: 0, silver: 0, mats: {}, zone: GAME.zones[0].id, auto: true,
     hp: null, en: null,
     quest: { progress: 0, done: 0 },
     stats: { kills: {}, deaths: 0, playSec: 0, offlineSec: 0, totalExp: 0, bossKills: 0 },
@@ -627,7 +686,11 @@ function migrate(st) {
   if (!st.alloc) st.alloc = {};
   if (!st.resetUsed) st.resetUsed = {};
   if (!st.mastery) st.mastery = {};
-  st.v = 4;
+  const base = newState();
+  for (const k of ['items', 'potion', 'buffs', 'buffAuto', 'board']) if (!st[k]) st[k] = base[k];
+  if (st.boardDone === undefined) st.boardDone = 0;
+  fillBoard(st);
+  st.v = 5;
   return st;
 }
 
@@ -677,7 +740,7 @@ function resolveSkill(d, sw, s, i, ml) {
   const sv = d.stats[statIdx(s.stat)];
   const sf = Math.min(1.6, 1 + sv * 0.003); // 吃的屬性越高，非傷害效果越強（最多 1.6 倍）
   const r = { i, s, ml, t, sf };
-  r.atk = Math.round((sv * 2 + 10) * (1 + GAME.sword.atkPerLv * sw)); // 傷害以這項屬性計算
+  r.atk = Math.round((sv * 2 + 10) * (1 + GAME.sword.atkPerLv * sw) * (1 + (d.atkBuff || 0))); // 傷害以這項屬性計算
   r.magic = s.stat === '智慧' ? true : s.stat === '力量' ? false : d.magic;
   for (const k of COEF_KEYS) if (s[k]) r[k] = lerp(s[k], t);
   for (const k of SCALE_KEYS) if (s[k]) r[k] = lerp(s[k], t) * sf;
@@ -719,7 +782,7 @@ function newRuntime(st) {
   const d = derive(st);
   if (st.hp == null || st.hp > d.maxHp) st.hp = d.maxHp;
   if (st.en == null || st.en > d.maxEn) st.en = d.maxEn;
-  return { mode: 'search', wait: GAME.rules.searchSec, mob: null, pTimer: 0.3, cds: {}, icd: {}, per: {}, shield: 0, drBuff: { v: 0, t: 0 }, nextBonus: 0, atkCount: 0, carry: 0, bound: 0, d, events: [] };
+  return { mode: 'search', wait: GAME.rules.searchSec, mob: null, pTimer: 0.3, cds: {}, icd: {}, per: {}, potCd: 0, enCd: 0, shield: 0, drBuff: { v: 0, t: 0 }, nextBonus: 0, atkCount: 0, carry: 0, bound: 0, d, events: [] };
 }
 function emit(rt, e) { if (rt.events) rt.events.push(e); }
 // 防禦減傷：K 隨攻擊方等級成長，同等級時減傷比例維持穩定
@@ -860,13 +923,13 @@ function mobAttack(st, rt) {
 
 function onKill(st, rt) {
   const m = rt.mob;
-  const exp = Math.max(1, Math.round(m.exp * expPenalty(st.lv, m.lv)));
+  const exp = Math.max(1, Math.round(m.exp * expPenalty(st.lv, m.lv) * (1 + rt.d.expBuff)));
   const silver = Math.round(m.silver * (0.8 + rng() * 0.4));
   st.silver += silver;
   st.stats.kills[m.key] = (st.stats.kills[m.key] || 0) + 1;
   if (m.rank === 'boss') st.stats.bossKills = (st.stats.bossKills || 0) + 1;
   const got = {};
-  for (const [mat, p] of m.drops) if (rng() < p) { st.mats[mat] = (st.mats[mat] || 0) + 1; got[mat] = (got[mat] || 0) + 1; }
+  for (const [mat, p] of m.drops) if (rng() < p * (1 + rt.d.dropBuff)) { st.mats[mat] = (st.mats[mat] || 0) + 1; got[mat] = (got[mat] || 0) + 1; }
   if (st.quest.progress < GAME.quest.target) st.quest.progress++;
   emit(rt, { t: 'kill', key: m.key, name: m.name, exp, silver, got, rank: m.rank });
   for (const r of rt.d.triggers) if (r.s.on === 'kill') {
@@ -902,6 +965,9 @@ function step(st, rt, dt) {
   st.en = Math.min(d.maxEn, st.en + R.energyRegen * dt);
   for (const k in rt.cds) rt.cds[k] -= dt;
   for (const k in rt.icd) rt.icd[k] -= dt;
+  rt.potCd -= dt; rt.enCd -= dt;
+  tickBuffs(st, rt, dt);
+  d = rt.d;
   if (rt.drBuff.t > 0) rt.drBuff.t -= dt;
   if (rt.mode === 'down') {
     rt.wait -= dt;
@@ -923,6 +989,7 @@ function step(st, rt, dt) {
     return;
   }
   const m = rt.mob;
+  autoPotions(st, rt);
   st.hp = Math.min(d.maxHp, st.hp + d.maxHp * 0.003 * (1 + d.heal) * dt);
   if (d.lowRegen && st.hp < d.maxHp * 0.3) st.hp += d.maxHp * d.lowRegen * dt;
   // 魔物身上的狀態
@@ -962,7 +1029,7 @@ function step(st, rt, dt) {
 
 /* ---------- 離線結算：用同一套戰鬥規則快轉 ---------- */
 function simulate(st, seconds, rt) {
-  const sum = { seconds, lvFrom: st.lv, lvTo: st.lv, zoneFrom: st.zone, zoneTo: st.zone, exp: 0, silver: 0, kills: {}, mats: {}, deaths: 0, quest: 0, rareKills: 0, mastery: {}, learned: [] };
+  const sum = { seconds, lvFrom: st.lv, lvTo: st.lv, zoneFrom: st.zone, zoneTo: st.zone, exp: 0, silver: 0, kills: {}, mats: {}, deaths: 0, quest: 0, rareKills: 0, mastery: {}, learned: [], used: {} };
   rt = rt || newRuntime(st);
   const saveEvents = rt.events; rt.events = [];
   const silver0 = st.silver, deaths0 = st.stats.deaths, totalExp0 = st.stats.totalExp, q0 = st.quest.progress;
@@ -971,7 +1038,7 @@ function simulate(st, seconds, rt) {
   while (t < seconds) {
     step(st, rt, dt); t += dt;
     if (rt.events.length) {
-      for (const e of rt.events) if (e.t === 'mastery') sum.mastery[e.name] = e.lv; else if (e.t === 'learn') sum.learned.push(e.name); else if (e.t === 'kill') {
+      for (const e of rt.events) if (e.t === 'potion' || e.t === 'buff') sum.used[e.name] = (sum.used[e.name] || 0) + 1; else if (e.t === 'mastery') sum.mastery[e.name] = e.lv; else if (e.t === 'learn') sum.learned.push(e.name); else if (e.t === 'kill') {
         sum.kills[e.name] = (sum.kills[e.name] || 0) + 1;
         if (e.rank) sum.rareKills++;
         for (const k in e.got) sum.mats[k] = (sum.mats[k] || 0) + e.got[k];
@@ -1017,6 +1084,93 @@ function resetPoints(st, w) {
   return true;
 }
 
+/* ---------- 藥品 ---------- */
+function autoPotions(st, rt) {
+  const d = rt.d, P = st.potion;
+  if (rt.potCd <= 0 && st.hp < d.maxHp * P.thr) {
+    const n = ['大還丹', '中還丹', '小還丹'].find(x => P.auto[x] && st.items[x] > 0); // 先用效果最好的
+    if (n) { st.items[n]--; const before = st.hp; healHp(st, rt, d.maxHp * GAME.items[n].heal); rt.potCd = GAME.potionRules.hpCd; emit(rt, { t: 'potion', name: n, v: Math.round(st.hp - before) }); }
+  }
+  if (rt.enCd <= 0 && P.auto['凝神丹'] && st.items['凝神丹'] > 0 && st.en < 15) {
+    st.items['凝神丹']--; st.en = Math.min(d.maxEn, st.en + d.maxEn * GAME.items['凝神丹'].restore); rt.enCd = GAME.potionRules.enCd;
+    emit(rt, { t: 'potion', name: '凝神丹', v: 0 });
+  }
+}
+function tickBuffs(st, rt, dt) {
+  let changed = false;
+  for (const k in st.buffs) {
+    const b = st.buffs[k]; b.t -= dt;
+    if (b.t > 0) continue;
+    if (st.buffAuto[b.item] && st.items[b.item] > 0) { st.items[b.item]--; b.t += GAME.items[b.item].dur; emit(rt, { t: 'buff', name: b.item, auto: true }); }
+    else { delete st.buffs[k]; changed = true; emit(rt, { t: 'buffEnd', name: b.item }); }
+  }
+  if (changed) rt.d = derive(st);
+}
+function useBuff(st, rt, name) {
+  const it = GAME.items[name];
+  if (!it || it.kind !== 'buff' || !(st.items[name] > 0)) return false;
+  const cur = st.buffs[it.buff];
+  if (cur && cur.item !== name) return false; // 同一類增益一次只能有一種
+  st.items[name]--;
+  st.buffs[it.buff] = { item: name, t: Math.min(GAME.potionRules.buffCap, (cur ? cur.t : 0) + it.dur) };
+  if (rt) { rt.d = derive(st); emit(rt, { t: 'buff', name }); }
+  return true;
+}
+function buyItem(st, name, n) {
+  const it = GAME.items[name];
+  if (!it || !it.price || st.lv < it.lv || st.silver < it.price * n) return false;
+  st.silver -= it.price * n; st.items[name] = (st.items[name] || 0) + n;
+  return true;
+}
+function canCraft(st, name, n = 1) {
+  const r = GAME.items[name] && GAME.items[name].recipe;
+  if (!r || st.silver < r.silver * n) return false;
+  for (const k in r.mats) if ((st.mats[k] || 0) < r.mats[k] * n) return false;
+  return true;
+}
+function craftItem(st, name, n = 1) {
+  if (!canCraft(st, name, n)) return false;
+  const r = GAME.items[name].recipe;
+  st.silver -= r.silver * n;
+  for (const k in r.mats) st.mats[k] -= r.mats[k] * n;
+  st.items[name] = (st.items[name] || 0) + n;
+  return true;
+}
+
+/* ---------- 收集委託 ---------- */
+const MAT_LV = {}; // 每種材料最早在幾級能拿到
+for (const z of GAME.zones) for (const [k] of z.spawns) for (const [mat] of GAME.monsters[k].drops) if (GAME.requests[mat]) MAT_LV[mat] = Math.min(MAT_LV[mat] || 99, z.unlock);
+function genRequest(st, exclude) {
+  const ok = Object.keys(GAME.requests).filter(m => (MAT_LV[m] || 99) <= st.lv);
+  const pool = ok.filter(m => !exclude.includes(m));
+  const list = pool.length ? pool : ok.length ? ok : ['草芯'];
+  const mat = list[Math.floor(rng() * list.length)];
+  const n = 4 + Math.floor(st.lv / 3) + randInt(0, 4);
+  return {
+    mat, n, silver: n * (30 + 12 * (MAT_LV[mat] || 1)), expPct: 0.08,
+    item: st.lv >= 15 ? ['大還丹', 2] : st.lv >= 8 ? ['中還丹', 2] : ['小還丹', 3]
+  };
+}
+function fillBoard(st) { while (st.board.length < GAME.board.slots) st.board.push(genRequest(st, st.board.map(r => r.mat))); }
+function turnIn(st, rt, i) {
+  const r = st.board[i];
+  if (!r || (st.mats[r.mat] || 0) < r.n) return null;
+  st.mats[r.mat] -= r.n; st.silver += r.silver;
+  st.items[r.item[0]] = (st.items[r.item[0]] || 0) + r.item[1];
+  const exp = Math.round(expNeed(st.lv) * r.expPct);
+  gainExp(st, rt, exp);
+  st.boardDone++;
+  st.board[i] = genRequest(st, st.board.filter((_, j) => j !== i).map(x => x.mat));
+  return { r, exp };
+}
+function rerollRequest(st, i) {
+  const c = GAME.board.rerollCost(st.lv);
+  if (st.silver < c) return false;
+  st.silver -= c;
+  st.board[i] = genRequest(st, st.board.map(x => x.mat));
+  return true;
+}
+
 /* ---------- 注劍：每級要銀兩和精魄；+5、+10、+15、+20 是突破，要特殊材料 ---------- */
 function swordCost(n) {
   const silver = Math.round(50 * Math.pow(n + 1, 1.7));
@@ -1054,7 +1208,8 @@ function claimQuest(st) {
 if (typeof module !== 'undefined') module.exports = {
   GAME, setRng, posOf, counters, matchup, counterTargets, groupOf, expNeed, derive, newState, migrate, zoneById, zoneUnlocked, bestZone,
   spawn, newRuntime, step, simulate, swordCost, canAfford, upgradeSword, claimQuest,
-  allocOf, pointsTotal, pointsFree, addPoints, autoPoints, resetCostFor, resetPoints, round3, resolveSkill, masteryOf, statIdx
+  allocOf, pointsTotal, pointsFree, addPoints, autoPoints, resetCostFor, resetPoints, round3, resolveSkill, masteryOf, statIdx,
+  useBuff, buyItem, canCraft, craftItem, genRequest, fillBoard, turnIn, rerollRequest, MAT_LV
 };
 
 </script>
@@ -1125,7 +1280,7 @@ function dur(sec) {
 const KIND_TXT = { counter: '剋制', countered: '被剋', neutral: '' };
 const wName = ch => ch + '（' + GAME.weapons[ch].weapon + '）';
 
-let pend = [0, 0, 0, 0, 0, 0, 0, 0], resetPtArm = 0;
+let pend = [0, 0, 0, 0, 0, 0, 0, 0], resetPtArm = 0, townTab = 'quest', lastChips = '';
 const f3 = x => x.toLocaleString('zh-TW', { maximumFractionDigits: 3 });
 let st, rt, tab = 'map', viewChap = 'shou', selWeapon = null, logs = [], lastWall = Date.now(), acc = 0, lastSaveAt = Date.now(), resetArm = 0;
 let shownMob = null, shownStance = -1, panelDirty = true, lastPanelAt = 0, lastMode = '';
@@ -1179,6 +1334,9 @@ function handle(e) {
       break;
     }
     case 'proc': addLog('<span class="k-gold">【' + e.name + '】</span>' + e.text); break;
+    case 'potion': addLog('<span class="k-good">服下' + e.name + (e.v ? '，回復 ' + e.v : '') + '</span>'); break;
+    case 'buff': addLog('<span class="k-gold">' + (e.auto ? e.name + '效果結束，自動補上一份' : '使用' + e.name + '：' + GAME.items[e.name].desc.replace('。', '')) + '</span>'); panelDirty = true; break;
+    case 'buffEnd': addLog(e.name + '的效果結束了'); panelDirty = true; break;
     case 'mastery': addLog('<span class="k-lv">' + e.name + '熟練度提升至 Lv.' + e.lv + '</span>'); toast(e.name + ' 熟練 Lv.' + e.lv); panelDirty = true; break;
     case 'learn': addLog('<span class="k-lv">學會新招式：' + e.name + '</span>'); toast('學會新招式：' + e.name); panelDirty = true; break;
     case 'kill': {
@@ -1217,6 +1375,11 @@ function renderHero() {
   $('#enName').textContent = d.enName;
   $('#enBar').style.width = (st.en / d.maxEn * 100) + '%'; $('#enTxt').textContent = fmt(st.en) + ' / ' + fmt(d.maxEn);
   $('#silver').textContent = '銀兩 ' + fmt(st.silver);
+  const mmss = t => Math.floor(t / 60) + ':' + String(Math.floor(t % 60)).padStart(2, '0');
+  let c = '';
+  for (const n of ['小還丹', '中還丹', '大還丹']) if (st.items[n] > 0 || (n === '小還丹' && st.potion.auto[n])) c += '<span' + ((st.items[n] || 0) < 5 ? ' class="low"' : '') + '>' + n + ' ×' + (st.items[n] || 0) + '</span>';
+  for (const k in st.buffs) c += '<span class="buff">' + st.buffs[k].item + ' ' + mmss(st.buffs[k].t) + '</span>';
+  if (c !== lastChips) { $('#pChips').innerHTML = c; lastChips = c; }
 }
 function zoneLvText(z) { return 'Lv.' + z.lv[0] + '～' + z.lv[1]; }
 function renderLoc() {
@@ -1277,7 +1440,7 @@ function swordReady() { const n = st.swordLv[st.weapon] || 0; return n < GAME.sw
 function renderTabs() {
   document.querySelectorAll('#tabs button').forEach(b => {
     b.classList.toggle('on', b.dataset.t === tab);
-    const dot = (b.dataset.t === 'quest' && questReady()) || (b.dataset.t === 'sword' && swordReady()) || (b.dataset.t === 'stats' && pointsFree(st, st.weapon) > 0);
+    const dot = (b.dataset.t === 'quest' && (questReady() || st.board.some(r => (st.mats[r.mat] || 0) >= r.n))) || (b.dataset.t === 'sword' && swordReady()) || (b.dataset.t === 'stats' && pointsFree(st, st.weapon) > 0);
     const has = b.querySelector('.dot');
     if (dot && !has) b.insertAdjacentHTML('beforeend', '<span class="dot"></span>');
     if (!dot && has) has.remove();
@@ -1357,22 +1520,66 @@ function renderPanel() {
     }
     p.innerHTML = h;
   } else if (tab === 'bag') {
-    let h = '<div class="sec"><h3>銀兩 ' + fmt(st.silver) + '</h3></div><div class="mats">';
+    let h = '<div class="sec"><h3>銀兩 ' + fmt(st.silver) + '</h3></div>';
+    h += '<div class="sec"><h3>藥品</h3><label class="toggle"><span>血量低於多少時，自動服用回復藥</span><select id="potThr">' + GAME.potionRules.thresholds.map(t => '<option value="' + t + '"' + (st.potion.thr === t ? ' selected' : '') + '>' + Math.round(t * 100) + '%</option>').join('') + '</select></label>';
+    for (const [n, it] of Object.entries(GAME.items)) {
+      const have = st.items[n] || 0, active = it.kind === 'buff' && st.buffs[it.buff];
+      if (!have && !active && it.kind === 'buff') continue;
+      if (it.kind === 'buff') {
+        const blocked = active && active.item !== n;
+        h += '<div class="itemrow"><span class="seal bf">' + it.seal + '</span><div><b>' + n + '<em>×' + fmt(have) + '</em></b><small>' + it.desc + (active && !blocked ? '　剩 ' + Math.ceil(active.t / 60) + ' 分鐘' : blocked ? '　（已有' + active.item + '生效中）' : '') + '</small></div>' +
+          '<div class="ctl"><button data-use="' + n + '"' + (have && !blocked ? '' : ' disabled') + '>' + (active && !blocked ? '延長' : '使用') + '</button><label><input type="checkbox" data-bauto="' + n + '"' + (st.buffAuto[n] ? ' checked' : '') + '>用完自動續</label></div></div>';
+      } else {
+        h += '<div class="itemrow"><span class="seal' + (it.kind === 'en' ? ' en' : '') + '">' + it.seal + '</span><div><b>' + n + '<em>×' + fmt(have) + '</em></b><small>' + it.desc + (it.kind === 'en' ? '　戰鬥中氣力不足時使用' : '') + '</small></div>' +
+          '<div class="ctl"><label><input type="checkbox" data-auto="' + n + '"' + (st.potion.auto[n] ? ' checked' : '') + '>自動使用</label></div></div>';
+      }
+    }
+    h += '<p class="note" style="margin-top:6px">回復藥會先用勾選中效果最好的。增益藥在城鎮的百草堂調製，同一類增益一次只能有一種，持續時間可以累加到 4 小時。離線時藥品一樣會照設定使用。</p></div>';
+    h += '<div class="sec"><h3>材料</h3></div><div class="mats">';
     for (const k in GAME.materials) {
       const m = GAME.materials[k];
       h += '<div class="mat"><span class="seal mid">' + m.seal + '</span><div><b>' + k + '</b><small>' + m.desc + '</small></div><em>' + fmt(st.mats[k] || 0) + '</em></div>';
     }
     p.innerHTML = h + '</div>';
   } else if (tab === 'quest') {
-    const q = GAME.quest, r = q.reward(st.lv), ready = questReady(), N = GAME.npcs;
-    p.innerHTML = '<div class="sec"><h3>天霖市</h3></div>' +
-      '<div class="npc quest"><div class="giver"><span class="seal mid">' + N.quest.seal + '</span><div><b>' + N.quest.name + '</b><br><span>' + N.quest.title + '</span></div></div>' +
-      '<h3 class="serif" style="font-size:15px;margin-bottom:6px">' + q.name + '</h3><p>' + q.text + '</p>' +
-      '<div class="barrow"><span>進度</span><div class="bar exp"><i style="width:' + (st.quest.progress / q.target * 100) + '%"></i></div><em>' + st.quest.progress + ' / ' + q.target + '</em></div>' +
-      '<p style="margin-top:10px">報酬：銀兩 ' + fmt(r.silver) + '、' + Object.entries(r.mats).map(([k, n]) => k + '×' + n).join('、') + '（隨等級提高）</p>' +
-      '<button class="btn" id="doQuest"' + (ready ? '' : ' disabled') + '>' + (ready ? '回報巡守司' : '巡守中') + '</button>' +
-      '<p class="note" style="margin-top:8px">已完成 ' + st.quest.done + ' 次。離線時擊倒的魔物也算進度。</p></div>' +
-      '<div class="npc quest locked"><div class="giver"><span class="seal mid" style="background:#3a2f4a;color:#e3d6f5">' + N.fate.seal + '</span><div><b>' + N.fate.name + '</b><br><span>' + N.fate.title + '</span></div></div><p>' + N.fate.text + '</p></div>';
+    let h = '<div class="subtabs"><button data-town="quest" class="' + (townTab === 'quest' ? 'on' : '') + '">委託</button><button data-town="shop" class="' + (townTab === 'shop' ? 'on' : '') + '">百草堂</button></div>';
+    if (townTab === 'quest') {
+      const q = GAME.quest, r = q.reward(st.lv), ready = questReady(), N = GAME.npcs;
+      h += '<div class="npc quest"><div class="giver"><span class="seal mid">' + N.quest.seal + '</span><div><b>' + N.quest.name + '</b><br><span>' + N.quest.title + '</span></div></div>' +
+        '<h3 class="serif" style="font-size:15px;margin-bottom:6px">' + q.name + '</h3><p>' + q.text + '</p>' +
+        '<div class="barrow"><span>進度</span><div class="bar exp"><i style="width:' + (st.quest.progress / q.target * 100) + '%"></i></div><em>' + st.quest.progress + ' / ' + q.target + '</em></div>' +
+        '<p style="margin-top:10px">報酬：銀兩 ' + fmt(r.silver) + '、' + Object.entries(r.mats).map(([k, n]) => k + '×' + n).join('、') + '（隨等級提高）</p>' +
+        '<button class="btn" id="doQuest"' + (ready ? '' : ' disabled') + '>' + (ready ? '回報巡守司' : '巡守中') + '</button>' +
+        '<p class="note" style="margin-top:8px">已完成 ' + st.quest.done + ' 次。離線時擊倒的魔物也算進度。</p></div>';
+      h += '<div class="sec" style="margin-top:14px"><h3>委託板</h3><p class="note">首區各地的人託你收集材料。交付後會貼上新的委託；已交付 ' + st.boardDone + ' 張。</p></div>';
+      st.board.forEach((rq, i) => {
+        const T = GAME.requests[rq.mat], have = st.mats[rq.mat] || 0, ok = have >= rq.n, rc = GAME.board.rerollCost(st.lv);
+        h += '<div class="npc quest req"><div class="giver"><span class="seal mid">' + GAME.materials[rq.mat].seal + '</span><div><b>' + T.giver + '</b><br><span>收集' + rq.mat + ' ×' + rq.n + '</span></div></div>' +
+          '<p>' + T.text + '</p><div class="barrow"><span>持有</span><div class="bar exp"><i style="width:' + Math.min(100, have / rq.n * 100) + '%"></i></div><em>' + fmt(have) + ' / ' + rq.n + '</em></div>' +
+          '<p style="margin-top:8px">報酬：銀兩 ' + fmt(rq.silver) + '、經驗 ' + fmt(Math.round(expNeed(st.lv) * rq.expPct)) + '、' + rq.item[0] + '×' + rq.item[1] + '</p>' +
+          '<div class="ptbar"><button class="btn" data-turnin="' + i + '"' + (ok ? '' : ' disabled') + '>交付</button><button class="btn ghost" data-reroll="' + i + '"' + (st.silver >= rc ? '' : ' disabled') + '>換一張（銀兩 ' + fmt(rc) + '）</button></div></div>';
+      });
+      const N2 = GAME.npcs;
+      h += '<div class="npc quest locked" style="margin-top:14px"><div class="giver"><span class="seal mid" style="background:#3a2f4a;color:#e3d6f5">' + N2.fate.seal + '</span><div><b>' + N2.fate.name + '</b><br><span>' + N2.fate.title + '</span></div></div><p>' + N2.fate.text + '</p></div>';
+    } else {
+      const S = GAME.shopNpc;
+      h += '<div class="npc quest"><div class="giver"><span class="seal mid" style="background:#2f4a3a;color:#d6efe0">' + S.seal + '</span><div><b>' + S.name + '</b><br><span>' + S.title + '</span></div></div><p>回復藥用銀兩買；增益藥要帶材料來，我幫你調。</p></div>';
+      h += '<div class="sec"><h3>回復藥</h3>';
+      for (const [n, it] of Object.entries(GAME.items)) if (it.price) {
+        const lock = st.lv < it.lv;
+        h += '<div class="itemrow"><span class="seal' + (it.kind === 'en' ? ' en' : '') + '">' + it.seal + '</span><div><b>' + n + '<em>持有 ' + fmt(st.items[n] || 0) + '</em></b><small>' + it.desc + (lock ? '　Lv.' + it.lv + ' 開放' : '　每顆 ' + it.price + ' 銀兩') + '</small></div>' +
+          '<div class="ctl"><button data-buy="' + n + '" data-n="1"' + (!lock && st.silver >= it.price ? '' : ' disabled') + '>買 1</button><button data-buy="' + n + '" data-n="10"' + (!lock && st.silver >= it.price * 10 ? '' : ' disabled') + '>買 10</button></div></div>';
+      }
+      h += '</div><div class="sec"><h3>調製增益藥</h3>';
+      for (const [n, it] of Object.entries(GAME.items)) if (it.recipe) {
+        const rc = it.recipe;
+        const cost = '<span class="' + (st.silver >= rc.silver ? 'ok' : 'no') + '">銀兩 ' + rc.silver + '</span>' + Object.entries(rc.mats).map(([k, v]) => '、<span class="' + ((st.mats[k] || 0) >= v ? 'ok' : 'no') + '">' + k + ' ' + v + '（有 ' + fmt(st.mats[k] || 0) + '）</span>').join('');
+        h += '<div class="itemrow"><span class="seal bf">' + it.seal + '</span><div><b>' + n + '<em>持有 ' + fmt(st.items[n] || 0) + '</em></b><small>' + it.desc + '</small><div class="reccost">' + cost + '</div></div>' +
+          '<div class="ctl"><button data-craft="' + n + '" data-n="1"' + (canCraft(st, n, 1) ? '' : ' disabled') + '>調製 1</button><button data-craft="' + n + '" data-n="5"' + (canCraft(st, n, 5) ? '' : ' disabled') + '>調製 5</button></div></div>';
+      }
+      h += '</div>';
+    }
+    p.innerHTML = h;
   } else if (tab === 'weapon') {
     if (!selWeapon) selWeapon = st.weapon;
     let h = '<div class="wgroups">';
@@ -1445,6 +1652,7 @@ function showReport(sum, awaySec) {
     '<div class="kv">' + kills + '<span>經驗</span><span>+' + fmt(sum.exp) + '</span><span>銀兩</span><span>+' + fmt(sum.silver) + '</span>' +
     (sum.rareKills ? '<span>擊倒精英／首領</span><span>' + sum.rareKills + '</span>' : '') + '<span>委託進度</span><span>+' + sum.quest + '</span><span>重傷</span><span>' + sum.deaths + ' 次</span></div>' +
     '<p class="note" style="margin:10px 0 4px">獲得材料：' + mats + '</p>' +
+    (Object.keys(sum.used).length ? '<p class="note" style="margin-bottom:4px">使用藥品：' + Object.entries(sum.used).map(([k, v]) => k + '×' + v).join('、') + '</p>' : '') +
     (sum.learned.length ? '<p class="note" style="margin-bottom:4px">學會新招式：' + sum.learned.join('、') + '</p>' : '') +
     (Object.keys(sum.mastery).length ? '<p class="note">熟練度提升：' + Object.entries(sum.mastery).map(([k, v]) => k + ' Lv.' + v).join('、') + '</p>' : '') +
     '<div style="height:14px"></div><button class="btn" id="closeModal">繼續巡守</button>';
@@ -1454,12 +1662,21 @@ function showReport(sum, awaySec) {
 
 /* ---------- 操作 ---------- */
 document.addEventListener('change', ev => {
+  if (ev.target.dataset.auto) { st.potion.auto[ev.target.dataset.auto] = ev.target.checked; save(); return; }
+  if (ev.target.dataset.bauto) { st.buffAuto[ev.target.dataset.bauto] = ev.target.checked; save(); return; }
+  if (ev.target.id === 'potThr') { st.potion.thr = +ev.target.value; save(); toast('血量低於 ' + Math.round(st.potion.thr * 100) + '% 時自動服藥'); return; }
   if (ev.target.id === 'autoMove') { st.auto = ev.target.checked; save(); toast(st.auto ? '升級後會自動前往新區' : '會留在目前的狩獵區'); }
 });
 document.addEventListener('click', ev => {
   const t = ev.target.closest('button'); if (!t) return;
   if (t.dataset.t) { tab = t.dataset.t; if (tab === 'map') viewChap = GAME.chapters[0].id; panelDirty = true; renderTabs(); renderPanel(); if (t.closest('#loc')) $('#tabs').scrollIntoView({ behavior: 'smooth' }); return; }
   if (t.dataset.ch) { viewChap = t.dataset.ch; renderPanel(); return; }
+  if (t.dataset.town) { townTab = t.dataset.town; renderPanel(); return; }
+  if (t.dataset.buy) { if (buyItem(st, t.dataset.buy, +t.dataset.n)) { toast('買了 ' + t.dataset.buy + ' ×' + t.dataset.n); save(); } renderAll(); return; }
+  if (t.dataset.craft) { if (craftItem(st, t.dataset.craft, +t.dataset.n)) { toast('調製了 ' + t.dataset.craft + ' ×' + t.dataset.n); save(); } renderAll(); return; }
+  if (t.dataset.use) { if (useBuff(st, rt, t.dataset.use)) { for (const e of rt.events) handle(e); rt.events.length = 0; save(); } renderAll(); return; }
+  if (t.dataset.turnin !== undefined) { const r = turnIn(st, rt, +t.dataset.turnin); if (r) { addLog('<span class="k-gold">交付' + r.r.mat + ' ×' + r.r.n + '：銀兩 +' + r.r.silver + '、經驗 +' + r.exp + '、' + r.r.item[0] + '×' + r.r.item[1] + '</span>'); for (const e of rt.events) handle(e); rt.events.length = 0; toast('交付完成'); save(); } renderAll(); return; }
+  if (t.dataset.reroll !== undefined) { if (rerollRequest(st, +t.dataset.reroll)) { toast('換了一張新的委託'); save(); } renderAll(); return; }
   if (t.dataset.pm !== undefined) {
     const i = +t.dataset.pm, dd = +t.dataset.d, left = pointsFree(st, st.weapon) - pend.reduce((x, y) => x + y, 0);
     if (dd > 0 && left > 0) pend[i]++; else if (dd < 0 && pend[i] > 0) pend[i]--;
@@ -1514,7 +1731,7 @@ function tick() {
   }
   if (rt.events.length) { for (const e of rt.events) handle(e); rt.events.length = 0; renderLog(); }
   renderHero(); renderArena();
-  if (panelDirty && Date.now() - lastPanelAt > 400 && document.activeElement?.id !== 'saveBox') { renderTabs(); renderPanel(); }
+  if (panelDirty && Date.now() - lastPanelAt > 400 && !(document.activeElement && ['SELECT', 'TEXTAREA'].includes(document.activeElement.tagName))) { renderTabs(); renderPanel(); }
   if (now - lastSaveAt > 5000) save();
 }
 
