@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#121315">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>天星界・御劍者 v0.2</title>
+<title>天星界・御劍者 v0.4</title>
 <style>
 :root{
   --bg:#121315;--panel:#1b1d20;--panel2:#23262a;--line:#34373c;--text:#e9e3d6;--muted:#9a958b;--faint:#6d6961;
@@ -79,8 +79,8 @@ header h1 small{font-family:var(--sans);font-size:11px;color:var(--faint);letter
 .log div:nth-child(1){color:var(--text)}
 .log div:nth-child(n+6){opacity:.6}
 .log .k-good{color:#8fe0c4}.log .k-bad{color:#ffb199}.log .k-gold{color:var(--gold)}.log .k-lv{color:#f2d58a;font-weight:600}
-.tabs{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:12px;position:sticky;top:0;z-index:5;background:var(--bg);padding:6px 0}
-.tabs button{padding:8px 0;border-radius:8px;font-family:var(--serif);font-size:13px;color:var(--muted);border:1px solid transparent;position:relative}
+.tabs{display:grid;grid-template-columns:repeat(8,1fr);gap:4px;margin-top:12px;position:sticky;top:0;z-index:5;background:var(--bg);padding:6px 0}
+.tabs button{padding:8px 0;border-radius:8px;font-family:var(--serif);font-size:12.5px;color:var(--muted);border:1px solid transparent;position:relative}
 .tabs button.on{color:var(--text);border-color:var(--line);background:var(--panel)}
 .tabs button .dot{position:absolute;top:5px;right:8px;width:6px;height:6px;border-radius:3px;background:var(--ver)}
 .panel{margin-top:6px}
@@ -172,6 +172,34 @@ textarea{width:100%;height:80px;background:#0c0d0e;color:var(--text);border:1px 
 .npc{border:1px solid var(--line);border-radius:10px;padding:10px;margin-bottom:10px;background:var(--panel2)}
 .npc.locked{border-style:dashed;opacity:.7}
 .tag.boss{background:#5a4a1a;color:#ffe9a8}
+.pthead{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px}
+.pthead span{font-size:13px;color:var(--muted)} .pthead b{color:var(--gold);font-size:17px;font-family:var(--serif)}
+.statrow2{display:grid;grid-template-columns:36px 58px 1fr auto;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--line);font-size:13px}
+.statrow2 b{font-family:var(--serif);font-weight:600}
+.sv em{font-style:normal;font-variant-numeric:tabular-nums;font-size:14px;display:block}
+.sv em.up{color:#a6e3cd}
+.sv small{display:block;font-size:10px;color:var(--faint);font-variant-numeric:tabular-nums}
+.pm{display:flex;align-items:center;gap:4px}
+.pm button{width:32px;height:32px;border-radius:8px;border:1px solid var(--line);background:var(--panel2);font-size:17px;line-height:1}
+.pm button:disabled{opacity:.25;cursor:default}
+.pm span{min-width:20px;text-align:center;color:var(--gold);font-variant-numeric:tabular-nums;font-size:13px}
+.ptbar{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:10px 0 6px}
+.ptbar .btn{font-size:14px;letter-spacing:.03em;padding:10px 6px;font-weight:400}
+.legend{display:grid;grid-template-columns:1fr 1fr;gap:2px 10px;font-size:11px;color:var(--faint);margin-top:8px}
+.kv .up{color:#a6e3cd}
+.skill{border:1px solid var(--line);border-radius:10px;padding:10px 12px;margin-bottom:8px;background:var(--panel2)}
+.skill.lock{opacity:.5;border-style:dashed}
+.skill .sh{display:flex;align-items:center;gap:6px;margin-bottom:3px}
+.skill .sh b{font-family:var(--serif);font-size:17px;font-weight:600;letter-spacing:.05em}
+.skill .sh .lvreq{margin-left:auto;font-size:11px;color:var(--muted)}
+.pill.act{background:#4a2a26;color:#f0b6a9}.pill.pas{background:#26364a;color:#a9c6ea}.pill.trg{background:#3a3220;color:#f2d58a}
+.skill .sm{font-size:11px;color:var(--muted);margin-bottom:6px}
+.skill .sd{font-size:13px;line-height:1.75}
+.skill .sd .mx{color:var(--faint);font-size:11px;margin-left:1px}
+.skill .sf{font-family:var(--serif);font-size:12.5px;color:var(--faint);margin-top:6px;letter-spacing:.03em}
+.skill .barrow{margin-top:8px}
+.wskills{margin-top:8px;font-size:12px;line-height:1.7;color:var(--muted)}
+.wskills b{font-family:var(--serif);color:var(--text);font-size:13px}
 .hidden{display:none!important}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--panel2);border:1px solid var(--line);padding:8px 14px;border-radius:8px;font-size:13px;z-index:30;transition:opacity .3s}
 </style>
@@ -179,7 +207,7 @@ textarea{width:100%;height:80px;background:#0c0d0e;color:var(--text);border:1px 
 <body>
 <div class="wrap">
   <header>
-    <h1>天星界・御劍者<small>v0.2 暫定名稱</small></h1>
+    <h1>天星界・御劍者<small>v0.4 暫定名稱</small></h1>
     <div class="silver" id="silver">銀兩 0</div>
   </header>
 
@@ -207,7 +235,7 @@ textarea{width:100%;height:80px;background:#0c0d0e;color:var(--text);border:1px 
   <section class="card log" id="log"></section>
 
   <nav class="tabs" id="tabs">
-    <button data-t="map">地圖</button><button data-t="stats">屬性</button><button data-t="sword">注劍</button><button data-t="bag">背包</button>
+    <button data-t="map">地圖</button><button data-t="stats">屬性</button><button data-t="skill">技能</button><button data-t="sword">注劍</button><button data-t="bag">背包</button>
     <button data-t="quest">委託</button><button data-t="weapon">武器</button><button data-t="record">紀錄</button>
   </nav>
   <section class="panel card" id="panel"></section>
@@ -221,7 +249,7 @@ textarea{width:100%;height:80px;background:#0c0d0e;color:var(--text);border:1px 
 
 /* ---------- 遊戲資料：名稱、數值都集中在這裡，改這裡就好 ---------- */
 const GAME = {
-  meta: { title: '天星界・御劍者', subtitle: '暫定名稱', version: '0.2', era: '仙曆五百餘年' },
+  meta: { title: '天星界・御劍者', subtitle: '暫定名稱', version: '0.4', era: '仙曆五百餘年' },
 
   // 八項資源系統（順序固定，星數陣列照這個順序）
   statNames: ['力量', '抵擋', '體力', '敏捷', '智慧', '守護', '靈力', '控制'],
@@ -396,6 +424,14 @@ const GAME = {
     reward(lv) { return { silver: 20 * (lv + 4), mats: { '精魄': 3 } }; }
   },
 
+  // 加點：每級拿到點數，每把武器各自一套；每點效果照該項星數加權
+  points: {
+    perLevel: 3,
+    exact(stars) { return (stars + 1) / 3; },  // 計算用：1★ 2/3、2★ 1、3★ 4/3、4★ 5/3、5★ 2
+    value(stars) { return Math.round((stars + 1) / 3 * 1000) / 1000; }, // 顯示用，小數三位
+    resetCost(lv) { return 20 * lv * lv; } // 每把武器第一次重置免費
+  },
+
   sword: {
     maxLv: 20, atkPerLv: 0.08, hpPerLv: 0.04, levelName: '豪情',
     breakthroughs: { 5: { '草芯': 8, '獸牙': 8 }, 10: { '甲片': 12, '火燼': 12 }, 15: { '石核': 15, '蝠翼': 15 }, 20: { '殘鐵': 15, '鋒鐵': 3 } }
@@ -404,7 +440,8 @@ const GAME = {
   rules: {
     offlineCapSec: 12 * 3600, restBelow: 0.4, restUntil: 0.95, downSec: 15, searchSec: 1.0,
     skillCoef: 2.2, skillCd: 6, skillCost: 15, energyRegen: 2, baseInterval: 1.2,
-    expBase: 40, expPow: 2.6
+    expBase: 40, expPow: 2.6,
+    mobHp: 1.2, mobAtk: 1.12 // 有加點後魔物整體調強，維持首區節奏
   }
 };
 
@@ -416,10 +453,100 @@ for (const ch of GAME.chapters) if (ch.open) ch.places.forEach((pl, pi) => pl.zo
   GAME.zones.push(z);
 }));
 
+/* ---------- 技能：每把武器三招，Lv.1／Lv.8／Lv.15 學會 ----------
+   type：active 主動（冷卻好就自動放）、passive 被動（一直有效）、trigger 觸發（條件成立時發動）
+   stat：吃的屬性。傷害類以這項屬性計算攻擊力；其他效果隨這項屬性變強
+   數值寫 [熟練 Lv.1, 熟練 Lv.10]；說明裡的 {鍵} 會換成目前數值 */
+GAME.mastery = { max: 10, need(lv) { return Math.round(40 * Math.pow(lv, 1.5)); } }; // 主動技約 7 小時練滿
+GAME.skills = {
+  '萬': [
+    { name: '橫掃', type: 'active', lv: 1, stat: '抵擋', cd: 6, cost: 15, dmg: [2.0, 2.7], desc: '以戟橫掃，造成 {dmg} 傷害（以抵擋計算）。', flavor: '戟桿掃過的地方，草都伏下去。' },
+    { name: '城垣', type: 'passive', lv: 8, stat: '抵擋', pdef: [0.10, 0.25], desc: '物理防禦提高 {pdef}。', flavor: '站定了，就是一面牆。' },
+    { name: '回鋒', type: 'trigger', lv: 15, stat: '抵擋', on: 'hitTaken', chance: [0.25, 0.40], counter: [1.0, 1.5], desc: '受到攻擊時有 {chance} 機率以戟尾反擊，造成 {counter} 傷害（以抵擋計算）。', flavor: '戟尾先到，戟尖才回頭。' }
+  ],
+  '天': [
+    { name: '星墜', type: 'active', lv: 1, stat: '智慧', cd: 6, cost: 15, dmg: [2.0, 2.7], desc: '法球砸落，造成 {dmg} 魔法傷害。', flavor: '球裡的光，落地才散開。' },
+    { name: '天幕', type: 'trigger', lv: 8, stat: '守護', on: 'fightStart', shield: [0.10, 0.20], desc: '每場戰鬥開始時張開護盾，吸收最大血量 {shield} 的傷害。', flavor: '頭頂多了一層看不見的天。' },
+    { name: '周天', type: 'active', lv: 15, stat: '守護', cd: 12, cost: 20, dmg: [1.5, 2.1], selfDr: [0.12, 0.20], dur: 5, desc: '法球繞身一周，造成 {dmg} 魔法傷害（以守護計算），並在 5 秒內受到的傷害降低 {selfDr}。', flavor: '法球繞身一周，像一天過完。' }
+  ],
+  '皇': [
+    { name: '連刺', type: 'active', lv: 1, stat: '敏捷', cd: 5, cost: 15, dmg: [0.70, 0.95], hits: 3, desc: '快速三連刺，每刺造成 {dmg} 傷害（以敏捷計算）。', flavor: '槍影疊在一起，看起來只刺了一下。' },
+    { name: '疾步', type: 'passive', lv: 8, stat: '敏捷', cdr: [0.05, 0.15], desc: '技能冷卻縮減提高 {cdr}。', flavor: '腳比槍更早一步。' },
+    { name: '穿陣', type: 'trigger', lv: 15, stat: '敏捷', on: 'everyN', n: 4, strike: [1.2, 1.7], ignoreDef: 0.3, desc: '每第 4 次普通攻擊，額外刺出一槍 {strike}，無視 30% 防禦（以敏捷計算）。', flavor: '看準甲片之間的那道縫。' }
+  ],
+  '必': [
+    { name: '盾擊', type: 'active', lv: 1, stat: '抵擋', cd: 7, cost: 15, dmg: [1.9, 2.6], stun: [0.25, 0.40], stunDur: 2, desc: '以盾撞擊，造成 {dmg} 傷害（以抵擋計算），並有 {stun} 機率震懾 2 秒。', flavor: '先聽見悶響，才看見盾。' },
+    { name: '格擋', type: 'trigger', lv: 8, stat: '抵擋', on: 'hitTaken', block: true, chance: [0.20, 0.35], desc: '受到攻擊時有 {chance} 機率完全擋下。', flavor: '盾面上又多了一道痕。' },
+    { name: '守誓', type: 'passive', lv: 15, stat: '體力', maxHp: [0.08, 0.20], regen: [0.010, 0.025], desc: '最大血量提高 {maxHp}；血量低於 30% 時，每秒回復 {regen} 血量。', flavor: '答應過的事，倒下前都還算數。' }
+  ],
+  '暗': [
+    { name: '禁文', type: 'active', lv: 1, stat: '智慧', cd: 6, cost: 15, dmg: [2.2, 3.0], desc: '唸出禁文，造成 {dmg} 魔法傷害。', flavor: '字一個一個從書頁上浮起來。' },
+    { name: '封印', type: 'active', lv: 8, stat: '守護', cd: 12, cost: 15, dmg: [1.2, 1.6], slow: [0.25, 0.45], dur: 6, desc: '以文字封住魔物，造成 {dmg} 魔法傷害（以守護計算），並使牠的攻擊間隔延長 {slow}，持續 6 秒。', flavor: '把它的動作，寫慢一點。' },
+    { name: '頁障', type: 'passive', lv: 15, stat: '守護', mdef: [0.15, 0.30], dr: [0.15, 0.25], when: 'countered', desc: '魔法防禦提高 {mdef}；被剋制時受到的傷害再降低 {dr}。', flavor: '書頁一層一層翻開，擋在身前。' }
+  ],
+  '武': [
+    { name: '碎岩', type: 'active', lv: 1, stat: '體力', cd: 7, cost: 15, dmg: [2.2, 2.9], defDown: [0.20, 0.35], dur: 6, desc: '重錘砸下，造成 {dmg} 傷害（以體力計算），並使魔物物理防禦降低 {defDown}，持續 6 秒。', flavor: '錘還沒抬起來，地面就先裂了。' },
+    { name: '震地', type: 'trigger', lv: 8, stat: '控制', on: 'everyN', n: 5, chance: [0.50, 0.80], stunEff: 1.5, desc: '每第 5 次普通攻擊，有 {chance} 機率震懾魔物 1.5 秒。', flavor: '腳底先麻，接著是膝蓋。' },
+    { name: '鐵骨', type: 'passive', lv: 15, stat: '體力', dr: [0.08, 0.18], when: 'phys', desc: '受到的物理傷害降低 {dr}。', flavor: '挨過的錘，都長成了骨頭。' }
+  ],
+  '術': [
+    { name: '引雷', type: 'active', lv: 1, stat: '智慧', cd: 6, cost: 15, dmg: [2.3, 3.1], desc: '引雷落下，造成 {dmg} 魔法傷害。', flavor: '杖頭一亮，雲才開始響。' },
+    { name: '回春', type: 'active', lv: 8, stat: '靈力', cd: 15, cost: 20, heal: [0.15, 0.30], hpBelow: 0.6, desc: '血量低於 60% 時施放，回復最大血量 {heal}（再加上治療提升）。', flavor: '傷口像春天的土，慢慢合起來。' },
+    { name: '靈湧', type: 'trigger', lv: 15, stat: '智慧', on: 'crit', strike: [0.6, 1.0], desc: '爆擊時立刻再補一道 {strike} 魔法傷害。', flavor: '一道光過去，另一道已經跟上。' }
+  ],
+  '神': [
+    { name: '連拳', type: 'active', lv: 1, stat: '敏捷', cd: 6, cost: 15, dmg: [0.55, 0.75], hits: 4, desc: '四連擊，每擊造成 {dmg} 傷害（以敏捷計算）。', flavor: '拳風疊在一起，聽起來像一聲。' },
+    { name: '卸力', type: 'trigger', lv: 8, stat: '守護', on: 'hitTaken', half: true, chance: [0.20, 0.35], counter: [0.8, 1.2], desc: '受到攻擊時有 {chance} 機率只承受一半傷害，並回擊 {counter}（以守護計算）。', flavor: '讓它的力氣，從身側滑過去。' },
+    { name: '鍛身', type: 'passive', lv: 15, stat: '體力', maxHp: [0.06, 0.15], pdef: [0.06, 0.15], mdef: [0.06, 0.15], desc: '最大血量、物理防禦、魔法防禦各提高 {maxHp}。', flavor: '每一拳都先打在自己身上。' }
+  ],
+  '聖': [
+    { name: '撲擊', type: 'trigger', lv: 1, stat: '敏捷', on: 'periodic', period: 2.5, strike: [0.8, 1.2], desc: '機關獸每 2.5 秒自動撲擊一次，造成 {strike} 傷害（以敏捷計算）。', flavor: '齒輪咬合的聲音，比爪子先到。' },
+    { name: '鐵甲', type: 'active', lv: 8, stat: '守護', cd: 15, cost: 20, shield: [0.15, 0.28], desc: '機關獸展開甲片，吸收最大血量 {shield} 的傷害。', flavor: '一片一片扣上，像魚鱗。' },
+    { name: '齊攻', type: 'active', lv: 15, stat: '敏捷', cd: 8, cost: 15, dmg: [1.1, 1.5], hits: 2, desc: '你與機關獸同時出手，造成兩次 {dmg} 傷害（以敏捷計算）。', flavor: '你出手的時候，牠也剛好撲上去。' }
+  ],
+  '霸': [
+    { name: '掄棍', type: 'active', lv: 1, stat: '抵擋', cd: 6, cost: 15, dmg: [1.9, 2.6], desc: '掄棍橫掃，造成 {dmg} 傷害（以抵擋計算）。', flavor: '棍子轉一圈，周圍的空氣都退開。' },
+    { name: '頂天', type: 'passive', lv: 8, stat: '抵擋', pdef: [0.10, 0.22], tough: [0.03, 0.08], desc: '物理防禦提高 {pdef}，韌性提高 {tough}。', flavor: '棍底拄地，人就不會倒。' },
+    { name: '借力', type: 'trigger', lv: 15, stat: '抵擋', on: 'hitTaken', nextBonus: [0.30, 0.60], desc: '受到攻擊後，下一次攻擊傷害提高 {nextBonus}。', flavor: '挨下來的那一棍，原封不動還回去。' }
+  ],
+  '銀': [
+    { name: '斷嶽', type: 'active', lv: 1, stat: '力量', cd: 6, cost: 15, dmg: [2.2, 3.0], desc: '舉劍下劈，造成 {dmg} 傷害。', flavor: '劍落下之前，風先停了。' },
+    { name: '負重', type: 'passive', lv: 8, stat: '體力', dr: [0.10, 0.25], when: 'hpBelow50', desc: '血量低於一半時，受到的傷害降低 {dr}。', flavor: '劍越沉，腳下越穩。' },
+    { name: '順勢', type: 'trigger', lv: 15, stat: '力量', on: 'stance', strike: [1.0, 1.4], critIfCounter: true, icd: 5, desc: '魔物切換架勢的瞬間追斬一記 {strike} 傷害（每 5 秒最多一次）；新架勢被你剋制時必定爆擊。', flavor: '對方換手的那一瞬，劍已經在那裡。' }
+  ],
+  '弓': [
+    { name: '穿楊', type: 'active', lv: 1, stat: '力量', cd: 6, cost: 15, dmg: [2.3, 3.1], critBonus: 0.15, desc: '拉滿弓射出，造成 {dmg} 傷害，這一箭爆擊率提高 15%。', flavor: '風停的那一刻，弦剛好鬆開。' },
+    { name: '先發', type: 'trigger', lv: 8, stat: '敏捷', on: 'fightStart', strike: [1.2, 1.7], desc: '每場戰鬥開始時先射一箭，造成 {strike} 傷害（以敏捷計算）。', flavor: '牠看見你之前，箭已經到了。' },
+    { name: '游射', type: 'passive', lv: 15, stat: '敏捷', dr: [0.08, 0.16], when: 'always', resist: [0.10, 0.25], desc: '受到的傷害降低 {dr}，閃避控制提高 {resist}。', flavor: '射一箭，退一步。' }
+  ],
+  '玉': [
+    { name: '珠落', type: 'active', lv: 1, stat: '智慧', cd: 6, cost: 15, dmg: [0.75, 1.0], hits: 3, desc: '擲出三顆玉珠，每顆造成 {dmg} 魔法傷害。', flavor: '一顆、兩顆、三顆，落在同一個地方。' },
+    { name: '溫玉', type: 'trigger', lv: 8, stat: '靈力', on: 'kill', heal: [0.06, 0.12], desc: '每次擊倒魔物，回復最大血量 {heal}（再加上治療提升）。', flavor: '握久了，玉就有了體溫。' },
+    { name: '玉護', type: 'passive', lv: 15, stat: '守護', mdef: [0.12, 0.25], dr: [0.08, 0.15], when: 'hpAbove70', desc: '魔法防禦提高 {mdef}；血量高於 70% 時受到的傷害降低 {dr}。', flavor: '珠子繞著身子轉，碰到的東西都慢下來。' }
+  ],
+  '慧': [
+    { name: '扇風', type: 'active', lv: 1, stat: '控制', cd: 6, cost: 15, dmg: [1.8, 2.4], stun: [0.30, 0.50], stunDur: 1.5, desc: '扇出一陣風，造成 {dmg} 魔法傷害（以控制計算），並有 {stun} 機率震懾 1.5 秒。', flavor: '扇面一合，風才開始吹。' },
+    { name: '迷霧', type: 'active', lv: 8, stat: '控制', cd: 13, cost: 15, slow: [0.30, 0.50], dur: 6, desc: '扇起迷霧，使魔物攻擊間隔延長 {slow}，持續 6 秒。', flavor: '霧裡看不清是誰在出手。' },
+    { name: '借勢', type: 'passive', lv: 15, stat: '控制', stunnedBonus: [0.25, 0.50], desc: '魔物被震懾時，你造成的傷害提高 {stunnedBonus}。', flavor: '它停下來的時候，就輪到你了。' }
+  ],
+  '降': [
+    { name: '影刺', type: 'active', lv: 1, stat: '敏捷', cd: 7, cost: 15, dmg: [1.4, 1.9], forceCrit: true, desc: '繞到身後一刺，造成 {dmg} 傷害，必定爆擊（以敏捷計算）。', flavor: '影子比人先到。' },
+    { name: '刃息', type: 'passive', lv: 8, stat: '靈力', lifesteal: [0.04, 0.09], desc: '造成傷害的 {lifesteal} 轉為血量。', flavor: '每一刀，都帶回一點溫度。' },
+    { name: '補刀', type: 'trigger', lv: 15, stat: '力量', on: 'mobLow', strike: [1.0, 1.5], desc: '魔物血量第一次低於 25% 時，立刻補上一刀 {strike}。', flavor: '它晃了一下，刀已經在那裡。' }
+  ],
+  '閃': [
+    { name: '放蠱', type: 'active', lv: 1, stat: '智慧', cd: 7, cost: 15, dmg: [1.2, 1.6], dot: [0.25, 0.40], dur: 6, desc: '放出毒蠱，造成 {dmg} 魔法傷害，並使魔物中毒，每秒受到 {dot} 傷害，持續 6 秒。', flavor: '蟲子鑽進去的時候，沒有聲音。' },
+    { name: '蠱噬', type: 'passive', lv: 8, stat: '靈力', leech: [0.02, 0.04], desc: '魔物中毒期間，你每次普通攻擊回復最大血量 {leech}。', flavor: '牠的力氣，一點一點流到你這邊。' },
+    { name: '蠱爆', type: 'trigger', lv: 15, stat: '智慧', on: 'kill', carryPoison: [1.0, 1.5], desc: '擊倒中毒的魔物時，毒蠱轉移到下一隻魔物身上，毒性為 {carryPoison}。', flavor: '蟲子從這一隻，爬到下一隻身上。' }
+  ]
+};
+
+
 /* ---------- 工具 ---------- */
 let rng = Math.random;
 function setRng(f) { rng = f; }
 const randInt = (a, b) => a + Math.floor(rng() * (b - a + 1));
+const round3 = x => Math.round(x * 1000) / 1000;
 
 /* ---------- 四氏輪迴 ---------- */
 function posOf(ch) {
@@ -453,14 +580,17 @@ function expNeed(lv) { return Math.round(GAME.rules.expBase * Math.pow(lv, GAME.
 
 function derive(st) {
   const w = GAME.weapons[st.weapon];
-  const s = w.stars.map(x => x * (st.lv + 4));
+  const al = allocOf(st, st.weapon);
+  const base = w.stars.map(x => x * (st.lv + 4));
+  const bonus = w.stars.map((x, i) => round3(al[i] * GAME.points.exact(x))); // 先用精確值相乘，結果再取小數三位
+  const s = base.map((b, i) => round3(b + bonus[i]));
   const [STR, BLK, VIT, AGI, INT, GRD, SPI, CTL] = s;
   const sw = st.swordLv[st.weapon] || 0;
   const magic = INT > STR; // 同分算物理
   const main = magic ? INT : STR;
   const castSpeed = magic ? 1 + AGI * 0.004 : 1;
-  return {
-    stats: s, magic, main,
+  const d = {
+    stats: s, base, bonus, magic, main,
     atk: Math.round((main * 2 + 10) * (1 + GAME.sword.atkPerLv * sw)),
     crit: Math.min(0.6, 0.05 + main * 0.0015),
     pdef: BLK * 2, mdef: GRD * 2,
@@ -477,11 +607,13 @@ function derive(st) {
     interval: GAME.rules.baseInterval / castSpeed,
     skillName: st.weapon + '・初式'
   };
+  applySkills(st, d, sw);
+  return d;
 }
 
 function newState() {
   return {
-    v: 2, lv: 1, exp: 0, weapon: '銀', swordLv: {}, silver: 0, mats: {}, zone: GAME.zones[0].id, auto: true,
+    v: 4, lv: 1, exp: 0, weapon: '銀', swordLv: {}, alloc: {}, resetUsed: {}, mastery: {}, silver: 0, mats: {}, zone: GAME.zones[0].id, auto: true,
     hp: null, en: null,
     quest: { progress: 0, done: 0 },
     stats: { kills: {}, deaths: 0, playSec: 0, offlineSec: 0, totalExp: 0, bossKills: 0 },
@@ -492,7 +624,10 @@ function newState() {
 function migrate(st) {
   if (!zoneById(st.zone)) st.zone = bestZone(st).id;
   if (st.auto === undefined) st.auto = true;
-  st.v = 2;
+  if (!st.alloc) st.alloc = {};
+  if (!st.resetUsed) st.resetUsed = {};
+  if (!st.mastery) st.mastery = {};
+  st.v = 4;
   return st;
 }
 
@@ -514,11 +649,11 @@ function spawn(st) {
   const b = GAME.monsters[key], a = GAME.archetypes[b.arch];
   const L = b.rank ? z.lv[1] + 1 : randInt(z.lv[0], z.lv[1]);
   const f = lvScale(L), ramp = 1 + 0.02 * (L - 1);
-  const hp = Math.round(a.hp * Math.pow(f, 1.15) * ramp);
+  const hp = Math.round(a.hp * Math.pow(f, 1.15) * ramp * GAME.rules.mobHp);
   return {
     key, name: b.name, rank: b.rank || '', lv: L, attrs: b.attrs.slice(), stance: 0, type: b.type,
     hp, maxHp: hp,
-    atk: Math.round(a.atk * f * (1 + 0.015 * (L - 1))),
+    atk: Math.round(a.atk * f * (1 + 0.015 * (L - 1)) * GAME.rules.mobAtk),
     pdef: Math.round(a.pdef * f), mdef: Math.round(a.mdef * f),
     interval: a.interval, crit: a.crit || 0.05, bind: b.bind || 0,
     exp: Math.round(a.exp * Math.pow(f, 1.6)), silver: Math.round(a.silver * f),
@@ -530,16 +665,66 @@ function expPenalty(plv, mlv) {
   return gap > 3 ? Math.max(0.1, 1 - 0.2 * (gap - 3)) : 1;
 }
 
+/* ---------- 技能解析：把熟練度、屬性換算成實際數值 ---------- */
+const lerp = (r, t) => r[0] + (r[1] - r[0]) * t;
+function statIdx(name) { return GAME.statNames.indexOf(name); }
+function masteryOf(st, w, i) { return (st.mastery && st.mastery[w] && st.mastery[w][i]) || [1, 0]; }
+const SCALE_KEYS = ['dr', 'pdef', 'mdef', 'maxHp', 'cdr', 'tough', 'resist', 'regen', 'lifesteal', 'stunnedBonus', 'leech', 'selfDr', 'shield', 'slow', 'defDown', 'nextBonus'];
+const COEF_KEYS = ['dmg', 'strike', 'counter', 'dot', 'carryPoison'];
+// ml：熟練等級；回傳這一招目前的數值
+function resolveSkill(d, sw, s, i, ml) {
+  const t = (ml - 1) / (GAME.mastery.max - 1);
+  const sv = d.stats[statIdx(s.stat)];
+  const sf = Math.min(1.6, 1 + sv * 0.003); // 吃的屬性越高，非傷害效果越強（最多 1.6 倍）
+  const r = { i, s, ml, t, sf };
+  r.atk = Math.round((sv * 2 + 10) * (1 + GAME.sword.atkPerLv * sw)); // 傷害以這項屬性計算
+  r.magic = s.stat === '智慧' ? true : s.stat === '力量' ? false : d.magic;
+  for (const k of COEF_KEYS) if (s[k]) r[k] = lerp(s[k], t);
+  for (const k of SCALE_KEYS) if (s[k]) r[k] = lerp(s[k], t) * sf;
+  if (s.heal) r.heal = lerp(s.heal, t);
+  if (s.chance) r.chance = Math.min(0.85, lerp(s.chance, t) * sf);
+  if (s.stun) r.stun = Math.min(0.85, lerp(s.stun, t) + d.stun);
+  return r;
+}
+function applySkills(st, d, sw) {
+  d.skills = []; d.actives = []; d.triggers = []; d.drs = [];
+  d.lowRegen = 0; d.lifesteal = 0; d.stunnedBonus = 0; d.leech = 0;
+  (GAME.skills[st.weapon] || []).forEach((s, i) => {
+    if (st.lv < s.lv) return;
+    const r = resolveSkill(d, sw, s, i, masteryOf(st, st.weapon, i)[0]);
+    d.skills.push(r);
+    if (s.type === 'active') d.actives.push(r);
+    else if (s.type === 'trigger') d.triggers.push(r);
+    else {
+      if (r.maxHp) d.maxHp = Math.round(d.maxHp * (1 + r.maxHp));
+      if (r.pdef) d.pdef = Math.round(d.pdef * (1 + r.pdef));
+      if (r.mdef) d.mdef = Math.round(d.mdef * (1 + r.mdef));
+      if (r.cdr) d.cdr = Math.min(0.5, d.cdr + r.cdr);
+      if (r.tough) { d.ptough = Math.min(0.4, d.ptough + r.tough); d.mtough = Math.min(0.4, d.mtough + r.tough); }
+      if (r.resist) d.resist = Math.min(0.9, d.resist + r.resist);
+      if (r.regen) d.lowRegen = r.regen;
+      if (r.lifesteal) d.lifesteal = r.lifesteal;
+      if (r.stunnedBonus) d.stunnedBonus = r.stunnedBonus;
+      if (r.leech) d.leech = r.leech;
+      if (r.dr) d.drs.push({ v: Math.min(0.5, r.dr), when: s.when || 'always' });
+    }
+  });
+  // 補血、護盾、緩速這類輔助招優先判斷，其餘照學會順序
+  const util = r => (r.heal || r.shield || (r.slow && !r.dmg)) ? 0 : 1;
+  d.actives.sort((a, b) => util(a) - util(b) || a.i - b.i);
+}
+
 /* ---------- 戰鬥時間推進 ---------- */
 function newRuntime(st) {
   const d = derive(st);
   if (st.hp == null || st.hp > d.maxHp) st.hp = d.maxHp;
   if (st.en == null || st.en > d.maxEn) st.en = d.maxEn;
-  return { mode: 'search', wait: GAME.rules.searchSec, mob: null, pTimer: 0.3, skillCd: 2, bound: 0, d, events: [] };
+  return { mode: 'search', wait: GAME.rules.searchSec, mob: null, pTimer: 0.3, cds: {}, icd: {}, per: {}, shield: 0, drBuff: { v: 0, t: 0 }, nextBonus: 0, atkCount: 0, carry: 0, bound: 0, d, events: [] };
 }
 function emit(rt, e) { if (rt.events) rt.events.push(e); }
 // 防禦減傷：K 隨攻擊方等級成長，同等級時減傷比例維持穩定
 function dmgCalc(atk, def, mult, lv) { const K = 20 * (lv + 4); return Math.max(1, Math.round(atk * K / (K + def) * mult)); }
+function healHp(st, rt, amt) { st.hp = Math.min(rt.d.maxHp, st.hp + amt); }
 
 function gainExp(st, rt, amount) {
   st.exp += amount; st.stats.totalExp += amount;
@@ -547,34 +732,130 @@ function gainExp(st, rt, amount) {
     st.exp -= expNeed(st.lv); st.lv++;
     rt.d = derive(st); st.hp = rt.d.maxHp; st.en = rt.d.maxEn;
     emit(rt, { t: 'levelup', lv: st.lv });
+    (GAME.skills[st.weapon] || []).forEach(s => { if (s.lv === st.lv) emit(rt, { t: 'learn', name: s.name }); });
   }
 }
+function gainMastery(st, rt, i) {
+  const w = st.weapon;
+  if (!st.mastery[w]) st.mastery[w] = [[1, 0], [1, 0], [1, 0]];
+  const m = st.mastery[w][i];
+  if (m[0] >= GAME.mastery.max) return;
+  if (++m[1] >= GAME.mastery.need(m[0])) { m[1] = 0; m[0]++; rt.d = derive(st); emit(rt, { t: 'mastery', name: GAME.skills[w][i].name, lv: m[0] }); }
+}
 
-function playerAttack(st, rt, useSkill) {
+// 對魔物造成一次傷害（普通攻擊、技能、觸發都走這裡）
+function hitMob(st, rt, atk, magic, coef, o) {
   const d = rt.d, m = rt.mob;
-  if (rng() > d.hit) { emit(rt, { t: 'miss', who: 'p', skill: useSkill, name: m.name }); return; }
+  if (!o.sure && rng() > d.hit) { emit(rt, { t: 'miss', who: 'p', skill: o.skill || '', name: m.name, quiet: o.quiet }); return 0; }
   const kind = matchup(st.weapon, m.attrs[m.stance]);
-  const crit = rng() < d.crit;
-  const dmg = dmgCalc(d.atk, d.magic ? m.mdef : m.pdef, rollMult(kind, crit) * (useSkill ? GAME.rules.skillCoef : 1), st.lv);
+  const crit = !!(o.forceCrit || (o.critIfCounter && kind === 'counter') || rng() < d.crit + (o.critBonus || 0));
+  let def = magic ? m.mdef : m.pdef;
+  if (!magic && m.defDown && m.defDown.t > 0) def *= 1 - m.defDown.v;
+  if (o.ignoreDef) def *= 1 - o.ignoreDef;
+  let mult = rollMult(kind, crit) * coef;
+  if (rt.nextBonus) { mult *= 1 + rt.nextBonus; rt.nextBonus = 0; }
+  if (d.stunnedBonus && m.stunned > 0) mult *= 1 + d.stunnedBonus;
+  const dmg = dmgCalc(atk, def, mult, st.lv);
   m.hp -= dmg;
-  let stun = false;
-  if (useSkill && m.hp > 0 && rng() < d.stun) { m.stunned = 1.5; stun = true; }
-  emit(rt, { t: 'hit', who: 'p', dmg, kind, crit, skill: useSkill, stun, name: m.name });
+  if (d.lifesteal) healHp(st, rt, dmg * d.lifesteal);
+  emit(rt, { t: 'hit', who: 'p', dmg, kind, crit, skill: o.skill || '', name: m.name, proc: !!o.proc, quiet: !!o.quiet });
+  if (crit && !o.proc) for (const r of d.triggers) if (r.s.on === 'crit' && m.hp > 0) procStrike(st, rt, r);
+  if (!m.lowFired && m.hp > 0 && m.hp < m.maxHp * 0.25) { m.lowFired = true; for (const r of d.triggers) if (r.s.on === 'mobLow') procStrike(st, rt, r); }
+  return dmg;
+}
+function procStrike(st, rt, r, coef) {
+  const m = rt.mob; if (!m || m.hp <= 0) return;
+  if (r.s.icd) { if ((rt.icd[r.i] || 0) > 0) return; rt.icd[r.i] = r.s.icd; } // 有內部冷卻的觸發技
+  hitMob(st, rt, r.atk, r.magic, coef || r.strike, { skill: r.s.name, proc: true, sure: true, critIfCounter: r.s.critIfCounter, ignoreDef: r.s.ignoreDef });
+  gainMastery(st, rt, r.i);
+}
+function normalAttack(st, rt) {
+  const d = rt.d, m = rt.mob;
+  rt.atkCount++;
+  hitMob(st, rt, d.atk, d.magic, 1, {});
+  if (d.leech && m.dot && m.dot.t > 0) healHp(st, rt, d.maxHp * d.leech);
+  for (const r of d.triggers) if (r.s.on === 'everyN' && rt.atkCount % r.s.n === 0 && m.hp > 0) {
+    if (r.strike) procStrike(st, rt, r);
+    else if (rng() < r.chance) { m.stunned = Math.max(m.stunned, r.s.stunEff || 1.5); emit(rt, { t: 'proc', name: r.s.name, text: m.name + '被震懾' }); gainMastery(st, rt, r.i); }
+  }
+}
+function pickActive(st, rt) {
+  for (const r of rt.d.actives) {
+    if ((rt.cds[r.i] || 0) > 0 || st.en < r.s.cost) continue;
+    if (r.s.hpBelow && st.hp > rt.d.maxHp * r.s.hpBelow) continue;
+    if (r.shield && rt.shield > 0) continue;
+    if (r.slow && !r.dmg && rt.mob.slow && rt.mob.slow.t > 0) continue;
+    return r;
+  }
+  return null;
+}
+function castActive(st, rt, r) {
+  const d = rt.d, m = rt.mob, s = r.s;
+  st.en -= s.cost; rt.cds[r.i] = s.cd * (1 - d.cdr);
+  let total = 0, crits = 0, kind = 'neutral';
+  if (r.dmg) {
+    const hits = s.hits || 1;
+    for (let h = 0; h < hits && m.hp > 0; h++) {
+      const n = rt.events ? rt.events.length : 0;
+      total += hitMob(st, rt, r.atk, r.magic, r.dmg, { skill: s.name, quiet: true, forceCrit: s.forceCrit, critBonus: s.critBonus });
+      const e = rt.events && rt.events[n]; if (e && e.t === 'hit') { if (e.crit) crits++; kind = e.kind; }
+    }
+  }
+  const fx = [];
+  if (m.hp > 0) {
+    const stunChance = r.stun !== undefined ? r.stun : (r.dmg ? d.stun : 0);
+    if (stunChance && rng() < stunChance) { m.stunned = Math.max(m.stunned, s.stunDur || 1.5); fx.push('震懾'); }
+    if (r.defDown) { m.defDown = { v: Math.min(0.6, r.defDown), t: s.dur || 6 }; fx.push('破防'); }
+    if (r.slow) { m.slow = { v: Math.min(0.8, r.slow), t: s.dur || 6 }; fx.push('遲緩'); }
+    if (r.dot) { m.dot = { dps: dmgCalc(r.atk, m.mdef, r.dot, st.lv), t: s.dur || 6 }; fx.push('中毒'); }
+  }
+  if (r.heal) { const before = st.hp; healHp(st, rt, d.maxHp * r.heal * (1 + d.heal)); fx.push('回復 ' + Math.round(st.hp - before)); }
+  if (r.shield) { rt.shield = Math.max(rt.shield, d.maxHp * r.shield); fx.push('護盾 ' + Math.round(rt.shield)); }
+  if (r.selfDr) { rt.drBuff = { v: Math.min(0.5, r.selfDr), t: s.dur || 5 }; fx.push('減傷'); }
+  emit(rt, { t: 'cast', name: s.name, total, hits: s.hits || 1, crits, kind, fx, dmg: !!r.dmg });
+  gainMastery(st, rt, r.i);
 }
 
 function mobAttack(st, rt) {
   const d = rt.d, m = rt.mob;
-  if (rng() > 0.95) { emit(rt, { t: 'miss', who: 'm', name: m.name }); }
+  if (rng() > 0.95) emit(rt, { t: 'miss', who: 'm', name: m.name });
   else {
     const kind = matchup(m.attrs[m.stance], st.weapon);
     const tough = m.type === 'magic' ? d.mtough : d.ptough;
     const crit = rng() < Math.max(0, m.crit - tough);
-    const dmg = dmgCalc(m.atk, m.type === 'magic' ? d.mdef : d.pdef, rollMult(kind, crit), m.lv);
-    st.hp -= dmg;
-    emit(rt, { t: 'hit', who: 'm', dmg, kind, crit, name: m.name });
-    if (m.bind && st.hp > 0 && rng() < m.bind * (1 - d.resist)) { rt.bound = 1.5; emit(rt, { t: 'bound' }); }
+    let dmg = dmgCalc(m.atk, m.type === 'magic' ? d.mdef : d.pdef, rollMult(kind, crit), m.lv);
+    let blocked = null, half = null;
+    for (const r of d.triggers) if (r.s.on === 'hitTaken') {
+      if (r.s.block && rng() < r.chance) { blocked = r; break; }
+      if (r.s.half && rng() < r.chance) half = r;
+    }
+    if (blocked) { dmg = 0; emit(rt, { t: 'proc', name: blocked.s.name, text: '擋下了' + m.name + '的攻擊' }); gainMastery(st, rt, blocked.i); }
+    else {
+      if (half) dmg *= 0.5;
+      let mul = 1; const frac = st.hp / d.maxHp;
+      for (const x of d.drs) if (x.when === 'always' || (x.when === 'hpBelow50' && frac < 0.5) || (x.when === 'hpAbove70' && frac > 0.7) ||
+        (x.when === 'countered' && kind === 'counter') || (x.when === 'phys' && m.type === 'phys')) mul *= 1 - x.v;
+      if (rt.drBuff.t > 0) mul *= 1 - rt.drBuff.v;
+      dmg = Math.max(1, Math.round(dmg * mul));
+      let absorbed = 0;
+      if (rt.shield > 0) { absorbed = Math.min(rt.shield, dmg); rt.shield -= absorbed; dmg -= absorbed; }
+      st.hp -= dmg;
+      emit(rt, { t: 'hit', who: 'm', dmg, kind, crit, name: m.name, absorbed });
+    }
+    if (st.hp > 0) {
+      if (half) { emit(rt, { t: 'proc', name: half.s.name, text: '卸掉一半力道' }); procStrike(st, rt, half, half.counter); }
+      for (const r of d.triggers) if (r.s.on === 'hitTaken' && !r.s.block && !r.s.half) {
+        if (r.counter && rng() < r.chance) procStrike(st, rt, r, r.counter);
+        if (r.nextBonus && !blocked) { rt.nextBonus = Math.min(1, r.nextBonus); gainMastery(st, rt, r.i); }
+      }
+      if (m.bind && rng() < m.bind * (1 - d.resist)) { rt.bound = 1.5; emit(rt, { t: 'bound' }); }
+    }
   }
-  if (m.attrs.length > 1) { m.stance = (m.stance + 1) % m.attrs.length; emit(rt, { t: 'stance', attr: m.attrs[m.stance], name: m.name }); }
+  if (m.hp > 0 && st.hp > 0 && m.attrs.length > 1) {
+    m.stance = (m.stance + 1) % m.attrs.length;
+    emit(rt, { t: 'stance', attr: m.attrs[m.stance], name: m.name });
+    for (const r of rt.d.triggers) if (r.s.on === 'stance') procStrike(st, rt, r);
+  }
 }
 
 function onKill(st, rt) {
@@ -588,15 +869,40 @@ function onKill(st, rt) {
   for (const [mat, p] of m.drops) if (rng() < p) { st.mats[mat] = (st.mats[mat] || 0) + 1; got[mat] = (got[mat] || 0) + 1; }
   if (st.quest.progress < GAME.quest.target) st.quest.progress++;
   emit(rt, { t: 'kill', key: m.key, name: m.name, exp, silver, got, rank: m.rank });
+  for (const r of rt.d.triggers) if (r.s.on === 'kill') {
+    if (r.heal) { healHp(st, rt, rt.d.maxHp * r.heal * (1 + rt.d.heal)); gainMastery(st, rt, r.i); }
+    if (r.carryPoison && m.dot && m.dot.t > 0) { rt.carry = r.carryPoison; gainMastery(st, rt, r.i); }
+  }
+  for (const r of rt.d.skills) if (r.s.type === 'passive') gainMastery(st, rt, r.i); // 被動技每擊倒一隻累積熟練
   gainExp(st, rt, exp);
   rt.mob = null;
   if (st.hp < rt.d.maxHp * GAME.rules.restBelow) { rt.mode = 'rest'; emit(rt, { t: 'rest' }); }
   else { rt.mode = 'search'; rt.wait = GAME.rules.searchSec; }
 }
 
+function startFight(st, rt) {
+  rt.mob = spawn(st); rt.mode = 'fight'; rt.pTimer = 0.3; rt.atkCount = 0; rt.per = {};
+  const m = rt.mob, d = rt.d;
+  emit(rt, { t: 'spawn', name: m.name, lv: m.lv, rank: m.rank });
+  if (rt.carry) {
+    const src = d.actives.find(r => r.dot);
+    if (src) { m.dot = { dps: dmgCalc(src.atk, m.mdef, src.dot * rt.carry, st.lv), t: src.s.dur || 6 }; emit(rt, { t: 'proc', name: '蠱爆', text: m.name + '一出現就中毒了' }); }
+    rt.carry = 0;
+  }
+  for (const r of d.triggers) if (r.s.on === 'fightStart') {
+    if (r.shield) { rt.shield = Math.max(rt.shield, d.maxHp * r.shield); emit(rt, { t: 'proc', name: r.s.name, text: '護盾 ' + Math.round(rt.shield) }); gainMastery(st, rt, r.i); }
+    if (r.strike) procStrike(st, rt, r);
+  }
+  if (m.hp <= 0) onKill(st, rt);
+}
+
 function step(st, rt, dt) {
-  const d = rt.d, R = GAME.rules;
+  const R = GAME.rules;
+  let d = rt.d;
   st.en = Math.min(d.maxEn, st.en + R.energyRegen * dt);
+  for (const k in rt.cds) rt.cds[k] -= dt;
+  for (const k in rt.icd) rt.icd[k] -= dt;
+  if (rt.drBuff.t > 0) rt.drBuff.t -= dt;
   if (rt.mode === 'down') {
     rt.wait -= dt;
     if (rt.wait <= 0) { st.hp = d.maxHp; rt.mode = 'search'; rt.wait = R.searchSec; emit(rt, { t: 'revive' }); }
@@ -612,42 +918,51 @@ function step(st, rt, dt) {
     rt.wait -= dt;
     if (rt.wait <= 0) {
       if (st.auto) { const b = bestZone(st); if (b.id !== st.zone && b.lv[0] > zoneById(st.zone).lv[0]) { st.zone = b.id; emit(rt, { t: 'move', zone: b.id }); } }
-      rt.mob = spawn(st); rt.mode = 'fight'; rt.pTimer = 0.3;
-      emit(rt, { t: 'spawn', name: rt.mob.name, lv: rt.mob.lv, rank: rt.mob.rank });
+      startFight(st, rt);
     }
     return;
   }
   const m = rt.mob;
   st.hp = Math.min(d.maxHp, st.hp + d.maxHp * 0.003 * (1 + d.heal) * dt);
-  rt.skillCd -= dt;
+  if (d.lowRegen && st.hp < d.maxHp * 0.3) st.hp += d.maxHp * d.lowRegen * dt;
+  // 魔物身上的狀態
+  if (m.dot && m.dot.t > 0) { m.hp -= m.dot.dps * dt; m.dot.t -= dt; if (m.hp <= 0) { onKill(st, rt); return; } }
+  if (m.slow && m.slow.t > 0) m.slow.t -= dt;
+  if (m.defDown && m.defDown.t > 0) m.defDown.t -= dt;
+  // 機關獸這類定時觸發
+  for (const r of d.triggers) if (r.s.on === 'periodic') {
+    rt.per[r.i] = (rt.per[r.i] === undefined ? r.s.period : rt.per[r.i]) - dt;
+    if (rt.per[r.i] <= 0) { rt.per[r.i] += r.s.period * (1 - d.cdr); procStrike(st, rt, r); if (m.hp <= 0) { onKill(st, rt); return; } }
+  }
+  // 玩家出手
   if (rt.bound > 0) rt.bound -= dt;
   else {
     rt.pTimer -= dt;
     if (rt.pTimer <= 0) {
-      const useSkill = rt.skillCd <= 0 && st.en >= R.skillCost;
-      if (useSkill) { st.en -= R.skillCost; rt.skillCd = R.skillCd * (1 - d.cdr); }
-      playerAttack(st, rt, useSkill);
-      rt.pTimer += d.interval;
+      const act = pickActive(st, rt);
+      if (act) castActive(st, rt, act); else normalAttack(st, rt);
+      rt.pTimer += rt.d.interval;
       if (m.hp <= 0) { onKill(st, rt); return; }
     }
   }
+  // 魔物出手
   if (m.stunned > 0) m.stunned -= dt;
   else {
     m.timer -= dt;
     if (m.timer <= 0) {
       mobAttack(st, rt);
-      m.timer += m.interval;
+      m.timer += m.interval * (1 + (m.slow && m.slow.t > 0 ? m.slow.v : 0));
       if (st.hp <= 0) {
-        st.hp = 0; st.stats.deaths++; rt.mode = 'down'; rt.wait = R.downSec; rt.mob = null;
+        st.hp = 0; st.stats.deaths++; rt.mode = 'down'; rt.wait = R.downSec; rt.mob = null; rt.shield = 0;
         emit(rt, { t: 'down', name: m.name });
-      }
+      } else if (m.hp <= 0) onKill(st, rt);
     }
   }
 }
 
 /* ---------- 離線結算：用同一套戰鬥規則快轉 ---------- */
 function simulate(st, seconds, rt) {
-  const sum = { seconds, lvFrom: st.lv, lvTo: st.lv, zoneFrom: st.zone, zoneTo: st.zone, exp: 0, silver: 0, kills: {}, mats: {}, deaths: 0, quest: 0, rareKills: 0 };
+  const sum = { seconds, lvFrom: st.lv, lvTo: st.lv, zoneFrom: st.zone, zoneTo: st.zone, exp: 0, silver: 0, kills: {}, mats: {}, deaths: 0, quest: 0, rareKills: 0, mastery: {}, learned: [] };
   rt = rt || newRuntime(st);
   const saveEvents = rt.events; rt.events = [];
   const silver0 = st.silver, deaths0 = st.stats.deaths, totalExp0 = st.stats.totalExp, q0 = st.quest.progress;
@@ -656,7 +971,7 @@ function simulate(st, seconds, rt) {
   while (t < seconds) {
     step(st, rt, dt); t += dt;
     if (rt.events.length) {
-      for (const e of rt.events) if (e.t === 'kill') {
+      for (const e of rt.events) if (e.t === 'mastery') sum.mastery[e.name] = e.lv; else if (e.t === 'learn') sum.learned.push(e.name); else if (e.t === 'kill') {
         sum.kills[e.name] = (sum.kills[e.name] || 0) + 1;
         if (e.rank) sum.rareKills++;
         for (const k in e.got) sum.mats[k] = (sum.mats[k] || 0) + e.got[k];
@@ -668,6 +983,38 @@ function simulate(st, seconds, rt) {
   sum.lvTo = st.lv; sum.zoneTo = st.zone; sum.silver = st.silver - silver0; sum.deaths = st.stats.deaths - deaths0;
   sum.exp = st.stats.totalExp - totalExp0; sum.quest = st.quest.progress - q0;
   return { sum, rt };
+}
+
+/* ---------- 加點 ---------- */
+function allocOf(st, w) { return (st.alloc && st.alloc[w]) || [0, 0, 0, 0, 0, 0, 0, 0]; }
+function pointsTotal(st) { return GAME.points.perLevel * st.lv; }
+function pointsFree(st, w) { return pointsTotal(st) - allocOf(st, w).reduce((a, b) => a + b, 0); }
+// add 是八項各要加幾點；全部成功才會套用
+function addPoints(st, w, add) {
+  const n = add.reduce((a, b) => a + b, 0);
+  if (n <= 0 || n > pointsFree(st, w) || add.some(x => x < 0)) return false;
+  const cur = allocOf(st, w).slice();
+  add.forEach((x, i) => cur[i] += x);
+  st.alloc[w] = cur;
+  return true;
+}
+// 剩下的點數照星數比例分配（最大餘數法）
+function autoPoints(st, w) {
+  const free = pointsFree(st, w), stars = GAME.weapons[w].stars;
+  if (free <= 0) return null;
+  const tot = stars.reduce((a, b) => a + b, 0);
+  const raw = stars.map(x => free * x / tot), add = raw.map(Math.floor);
+  let left = free - add.reduce((a, b) => a + b, 0);
+  raw.map((x, i) => [x - Math.floor(x), i]).sort((a, b) => b[0] - a[0] || stars[b[1]] - stars[a[1]]).forEach(([, i]) => { if (left > 0) { add[i]++; left--; } });
+  addPoints(st, w, add);
+  return add;
+}
+function resetCostFor(st, w) { return st.resetUsed[w] ? GAME.points.resetCost(st.lv) : 0; }
+function resetPoints(st, w) {
+  const c = resetCostFor(st, w);
+  if (st.silver < c || allocOf(st, w).every(x => x === 0)) return false;
+  st.silver -= c; st.alloc[w] = [0, 0, 0, 0, 0, 0, 0, 0]; st.resetUsed[w] = true;
+  return true;
 }
 
 /* ---------- 注劍：每級要銀兩和精魄；+5、+10、+15、+20 是突破，要特殊材料 ---------- */
@@ -706,7 +1053,8 @@ function claimQuest(st) {
 
 if (typeof module !== 'undefined') module.exports = {
   GAME, setRng, posOf, counters, matchup, counterTargets, groupOf, expNeed, derive, newState, migrate, zoneById, zoneUnlocked, bestZone,
-  spawn, newRuntime, step, simulate, swordCost, canAfford, upgradeSword, claimQuest
+  spawn, newRuntime, step, simulate, swordCost, canAfford, upgradeSword, claimQuest,
+  allocOf, pointsTotal, pointsFree, addPoints, autoPoints, resetCostFor, resetPoints, round3, resolveSkill, masteryOf, statIdx
 };
 
 </script>
@@ -777,6 +1125,8 @@ function dur(sec) {
 const KIND_TXT = { counter: '剋制', countered: '被剋', neutral: '' };
 const wName = ch => ch + '（' + GAME.weapons[ch].weapon + '）';
 
+let pend = [0, 0, 0, 0, 0, 0, 0, 0], resetPtArm = 0;
+const f3 = x => x.toLocaleString('zh-TW', { maximumFractionDigits: 3 });
 let st, rt, tab = 'map', viewChap = 'shou', selWeapon = null, logs = [], lastWall = Date.now(), acc = 0, lastSaveAt = Date.now(), resetArm = 0;
 let shownMob = null, shownStance = -1, panelDirty = true, lastPanelAt = 0, lastMode = '';
 
@@ -808,13 +1158,14 @@ function handle(e) {
     case 'hit':
       if (e.who === 'p') {
         const k = KIND_TXT[e.kind];
-        addLog((e.skill ? '<span class="k-gold">【' + rt.d.skillName + '】</span>' : '') + '你造成 ' + e.dmg +
+        if (e.quiet) { floater(e); shake(); break; }
+        addLog((e.skill ? '<span class="k-gold">【' + e.skill + '】</span>' + (e.proc ? '追擊 ' : '') : '你造成 ') + e.dmg +
           (e.crit ? ' <span class="k-bad">爆擊</span>' : '') + (k ? ' <span class="' + (e.kind === 'counter' ? 'k-good' : 'k-bad') + '">' + k + '</span>' : '') +
           (e.stun ? '，' + e.name + '被震懾' : ''));
         floater(e);
         shake();
       } else {
-        addLog(e.name + '對你造成 ' + e.dmg + (e.crit ? ' <span class="k-bad">爆擊</span>' : '') +
+        addLog(e.name + '對你造成 ' + e.dmg + (e.absorbed ? '（護盾吸收 ' + e.absorbed + '）' : '') + (e.crit ? ' <span class="k-bad">爆擊</span>' : '') +
           (e.kind === 'counter' ? ' <span class="k-bad">剋制你</span>' : e.kind === 'countered' ? ' <span class="k-good">被你剋</span>' : ''));
         const w = $('#hpBarWrap'); w.classList.remove('flash'); void w.offsetWidth; w.classList.add('flash');
       }
@@ -822,12 +1173,20 @@ function handle(e) {
     case 'miss': addLog(e.who === 'p' ? '你的攻擊落空' : e.name + '的攻擊落空'); break;
     case 'stance': addLog(e.name + '切換架勢：' + wName(e.attr)); break;
     case 'bound': addLog('<span class="k-bad">被藤蔓纏住，動彈不得</span>'); break;
+    case 'cast': {
+      const k = KIND_TXT[e.kind];
+      addLog('<span class="k-gold">【' + e.name + '】</span>' + (e.dmg ? (e.total ? '造成 ' + e.total : '落空') + (e.hits > 1 && e.total ? '（' + e.hits + ' 連擊）' : '') + (e.crits ? ' <span class="k-bad">爆擊</span>' : '') + (k && e.total ? ' <span class="' + (e.kind === 'counter' ? 'k-good' : 'k-bad') + '">' + k + '</span>' : '') : '') + (e.fx.length ? (e.dmg ? '，' : '') + e.fx.join('、') : ''));
+      break;
+    }
+    case 'proc': addLog('<span class="k-gold">【' + e.name + '】</span>' + e.text); break;
+    case 'mastery': addLog('<span class="k-lv">' + e.name + '熟練度提升至 Lv.' + e.lv + '</span>'); toast(e.name + ' 熟練 Lv.' + e.lv); panelDirty = true; break;
+    case 'learn': addLog('<span class="k-lv">學會新招式：' + e.name + '</span>'); toast('學會新招式：' + e.name); panelDirty = true; break;
     case 'kill': {
       const got = Object.entries(e.got).map(([k, n]) => k + '×' + n).join('、');
       addLog('擊倒' + e.name + '，經驗 +' + e.exp + '，銀兩 +' + e.silver + (got ? '，<span class="k-gold">獲得 ' + got + '</span>' : ''));
       panelDirty = true; break;
     }
-    case 'levelup': addLog('<span class="k-lv">等級提升！Lv.' + e.lv + '</span>'); toast('等級提升至 Lv.' + e.lv); panelDirty = true; renderLoc(); break;
+    case 'levelup': addLog('<span class="k-lv">等級提升！Lv.' + e.lv + '</span>'); toast('等級提升至 Lv.' + e.lv + '，獲得 ' + GAME.points.perLevel + ' 點屬性點'); panelDirty = true; renderLoc(); break;
     case 'rest': addLog('傷勢不輕，先原地調息'); break;
     case 'down': addLog('<span class="k-bad">你被' + e.name + '擊倒，重傷調養中</span>'); break;
     case 'revive': addLog('傷勢恢復，繼續巡守'); break;
@@ -837,7 +1196,7 @@ function floater(e) {
   const box = $('#floaters'); if (!box) return;
   const el = document.createElement('span');
   el.className = 'fl' + (e.crit ? ' crit' : '') + (e.kind !== 'neutral' ? ' ' + e.kind : '') + (e.skill ? ' skill' : '');
-  el.textContent = (e.skill ? rt.d.skillName + ' ' : '') + e.dmg + (e.kind === 'counter' ? ' 剋' : e.kind === 'countered' ? ' 被剋' : '');
+  el.textContent = (e.skill ? e.skill + ' ' : '') + e.dmg + (e.kind === 'counter' ? ' 剋' : e.kind === 'countered' ? ' 被剋' : '');
   el.style.left = (38 + Math.random() * 24) + '%'; el.style.top = (22 + Math.random() * 20) + '%';
   box.appendChild(el); el.addEventListener('animationend', () => el.remove());
 }
@@ -918,7 +1277,7 @@ function swordReady() { const n = st.swordLv[st.weapon] || 0; return n < GAME.sw
 function renderTabs() {
   document.querySelectorAll('#tabs button').forEach(b => {
     b.classList.toggle('on', b.dataset.t === tab);
-    const dot = (b.dataset.t === 'quest' && questReady()) || (b.dataset.t === 'sword' && swordReady());
+    const dot = (b.dataset.t === 'quest' && questReady()) || (b.dataset.t === 'sword' && swordReady()) || (b.dataset.t === 'stats' && pointsFree(st, st.weapon) > 0);
     const has = b.querySelector('.dot');
     if (dot && !has) b.insertAdjacentHTML('beforeend', '<span class="dot"></span>');
     if (!dot && has) has.remove();
@@ -946,29 +1305,44 @@ function renderPanel() {
     p.innerHTML = h;
   } else if (tab === 'stats') {
     const w = GAME.weapons[st.weapon], ct = counterTargets(st.weapon);
+    const al = allocOf(st, st.weapon), free = pointsFree(st, st.weapon), pn = pend.reduce((x, y) => x + y, 0);
+    const pv = pn ? derive(Object.assign({}, st, { alloc: Object.assign({}, st.alloc, { [st.weapon]: al.map((x, i) => x + pend[i]) }) })) : d;
+    const up = (a, b) => (pn && b > a ? ' class="up"' : '');
     let h = '<div class="sec wcard"><span class="seal big">' + st.weapon + '</span><div class="meta"><b>' + wName(st.weapon) + '</b><br>' +
-      '<span class="pill ' + (w.role === '防' ? 'def' : 'out') + '">' + (w.role === '防' ? '防禦' : '輸出') + '</span>' + groupOf(st.weapon) + '・' + (d.magic ? '魔法攻擊' : '物理攻擊') +
+      '<span class="pill ' + (w.role === '防' ? 'def' : 'out') + '">' + (w.role === '防' ? '防禦' : '輸出') + '</span>' + groupOf(st.weapon) + '・' + (pv.magic ? '魔法攻擊' : '物理攻擊') +
       '<br>剋制 ' + wName(ct.beats) + '・天敵 ' + wName(ct.beatenBy) + '</div></div>';
-    h += '<div class="sec"><h3>八項資源</h3>';
+    h += '<div class="sec"><div class="pthead"><h3>八項資源</h3><span>可分配 <b>' + (free - pn) + '</b> 點</span></div>';
     GAME.statNames.forEach((n, i) => {
-      h += '<div class="statrow"><b>' + n + '</b><span class="stars">' + starHtml(w.stars[i]) + '</span><small>' + GAME.statDesc[n] + '</small><em>' + fmt(d.stats[i]) + '</em></div>';
+      const v = GAME.points.value(w.stars[i]), tot = al[i] + pend[i];
+      h += '<div class="statrow2"><b>' + n + '</b><span class="stars">' + starHtml(w.stars[i]) + '</span><div class="sv"><em' + (pend[i] ? ' class="up"' : '') + '>' + f3(pv.stats[i]) + '</em><small>' +
+        (tot ? '加點 ' + tot + ' × ' + v.toFixed(3) + ' = +' + f3(pv.bonus[i]) : '每點 +' + v.toFixed(3)) + '</small></div>' +
+        '<div class="pm"><button data-pm="' + i + '" data-d="-1"' + (pend[i] ? '' : ' disabled') + ' aria-label="減少' + n + '">−</button><span>' + (pend[i] ? '+' + pend[i] : '') + '</span><button data-pm="' + i + '" data-d="1"' + (free - pn > 0 ? '' : ' disabled') + ' aria-label="增加' + n + '">+</button></div></div>';
     });
-    h += '</div><div class="sec"><h3>戰鬥數值</h3><div class="kv">' +
-      '<span>' + (d.magic ? '魔法' : '物理') + '攻擊</span><span>' + fmt(d.atk) + '</span>' +
-      '<span>爆擊率</span><span>' + pct(d.crit) + '</span>' +
-      '<span>物理防禦／韌性</span><span>' + fmt(d.pdef) + '／' + pct(d.ptough) + '</span>' +
-      '<span>魔法防禦／韌性</span><span>' + fmt(d.mdef) + '／' + pct(d.mtough) + '</span>' +
-      '<span>血量</span><span>' + fmt(d.maxHp) + '</span>' +
-      '<span>' + d.enName + '</span><span>' + fmt(d.maxEn) + '</span>' +
-      '<span>命中</span><span>' + pct(d.hit) + '</span>' +
-      '<span>技能冷卻縮減</span><span>' + pct(d.cdr) + '</span>' +
-      (d.magic ? '<span>吟唱速度</span><span>+' + pct(d.castSpeed - 1) + '</span>' : '') +
-      '<span>治療提升</span><span>+' + pct(d.heal) + '</span>' +
-      '<span>控場機率（技能）</span><span>' + pct(d.stun) + '</span>' +
-      '<span>閃避控制</span><span>' + pct(d.resist) + '</span>' +
-      '<span>武器技</span><span>' + d.skillName + '（' + Math.round(GAME.rules.skillCoef * 100) + '%）</span>' +
+    if (pn) h += '<div class="ptbar"><button class="btn" id="doAlloc">確定加點（' + pn + '）</button><button class="btn ghost" id="cancelAlloc">取消</button></div>';
+    else {
+      const rc = resetCostFor(st, st.weapon), armed = resetPtArm > Date.now();
+      h += '<div class="ptbar"><button class="btn ghost" id="autoAlloc"' + (free > 0 ? '' : ' disabled') + '>照星數比例分配</button>' +
+        '<button class="btn warn" id="resetAlloc"' + (al.some(x => x) && st.silver >= rc ? '' : ' disabled') + '>' + (armed ? '再按一次確定' : '重新分配（' + (rc ? '銀兩 ' + fmt(rc) : '免費') + '）') + '</button></div>';
+    }
+    h += '<p class="note">每點效果照星數加權：1★ 0.667、2★ 1、3★ 1.333、4★ 1.667、5★ 2。點數每把武器各自一套，每把武器第一次重新分配免費。</p>' +
+      '<div class="legend">' + GAME.statNames.map(n => '<span>' + n + '：' + GAME.statDesc[n] + '</span>').join('') + '</div></div>';
+    h += '<div class="sec"><h3>戰鬥數值' + (pn ? '<span class="note">（預覽）</span>' : '') + '</h3><div class="kv">' +
+      '<span>' + (pv.magic ? '魔法' : '物理') + '攻擊</span><span' + up(d.atk, pv.atk) + '>' + fmt(pv.atk) + '</span>' +
+      '<span>爆擊率</span><span' + up(d.crit, pv.crit) + '>' + pct(pv.crit) + '</span>' +
+      '<span>物理防禦／韌性</span><span' + up(d.pdef, pv.pdef) + '>' + fmt(pv.pdef) + '／' + pct(pv.ptough) + '</span>' +
+      '<span>魔法防禦／韌性</span><span' + up(d.mdef, pv.mdef) + '>' + fmt(pv.mdef) + '／' + pct(pv.mtough) + '</span>' +
+      '<span>血量</span><span' + up(d.maxHp, pv.maxHp) + '>' + fmt(pv.maxHp) + '</span>' +
+      '<span>' + pv.enName + '</span><span' + up(d.maxEn, pv.maxEn) + '>' + fmt(pv.maxEn) + '</span>' +
+      '<span>命中</span><span' + up(d.hit, pv.hit) + '>' + pct(pv.hit) + '</span>' +
+      '<span>技能冷卻縮減</span><span' + up(d.cdr, pv.cdr) + '>' + pct(pv.cdr) + '</span>' +
+      (pv.magic ? '<span>吟唱速度</span><span' + up(d.castSpeed, pv.castSpeed) + '>+' + pct(pv.castSpeed - 1) + '</span>' : '') +
+      '<span>治療提升</span><span' + up(d.heal, pv.heal) + '>+' + pct(pv.heal) + '</span>' +
+      '<span>控場機率（技能）</span><span' + up(d.stun, pv.stun) + '>' + pct(pv.stun) + '</span>' +
+      '<span>閃避控制</span><span' + up(d.resist, pv.resist) + '>' + pct(pv.resist) + '</span>' +
       '</div></div>';
     p.innerHTML = h;
+  } else if (tab === 'skill') {
+    p.innerHTML = skillPanel(st.weapon, d, true);
   } else if (tab === 'sword') {
     const n = st.swordLv[st.weapon] || 0, max = n >= GAME.sword.maxLv;
     let h = '<div class="epi">若還有一絲豪情，便將這份豪情注入在這把劍。<cite>── 相傳出自五百多年前的息區區長王倩育</cite></div>' +
@@ -1017,7 +1391,10 @@ function renderPanel() {
       '<br>剋制 ' + wName(ct.beats) + '・天敵 ' + wName(ct.beatenBy) + '</div></div>';
     if (w.stars) {
       h += '<div style="margin-top:8px">' + GAME.statNames.map((n, i) => '<div class="statrow" style="grid-template-columns:40px 1fr;padding:3px 0"><b>' + n + '</b><span class="stars">' + starHtml(w.stars[i]) + '</span></div>').join('') + '</div>';
-      h += selWeapon === st.weapon ? '<p class="note" style="margin-top:8px">目前使用中。</p>' :
+      const dw = derive(Object.assign({}, st, { weapon: selWeapon }));
+      h += '<div class="wskills">' + (GAME.skills[selWeapon] || []).map((s, i) => '<div><b>' + s.name + '</b>　' + TYPE_TXT[s.type][0] + '・Lv.' + s.lv + '　' + skillDesc(s, resolveSkill(dw, st.swordLv[selWeapon] || 0, s, i, masteryOf(st, selWeapon, i)[0])) + '</div>').join('') + '</div>';
+      h += '<p class="note" style="margin-top:8px">已分配 ' + (pointsTotal(st) - pointsFree(st, selWeapon)) + '／' + pointsTotal(st) + ' 點</p>';
+      h += selWeapon === st.weapon ? '<p class="note">目前使用中。</p>' :
         '<button class="btn ghost" id="doSwap" style="margin-top:10px">換成' + wName(selWeapon) + '（' + GAME.sword.levelName + ' +' + (st.swordLv[selWeapon] || 0) + '）</button>';
     } else h += '<p class="note" style="margin-top:8px">這把武器的星數還在設定中。</p>';
     h += '</div><p class="note" style="margin-top:8px">設定上御劍者原則上一人一把武器，遊戲裡先開放更換方便測試。等級共用，' + GAME.sword.levelName + '每把分開。</p>';
@@ -1037,6 +1414,25 @@ function renderPanel() {
   panelDirty = false; lastPanelAt = Date.now();
 }
 
+const TYPE_TXT = { active: ['主動', 'act'], passive: ['被動', 'pas'], trigger: ['觸發', 'trg'] };
+function skillDesc(s, cur, max) {
+  return s.desc.replace(/\{(\w+)\}/g, (_, k) => pct(cur[k]) + (max && Math.abs(max[k] - cur[k]) > 1e-6 ? '<span class="mx">→' + pct(max[k]) + '</span>' : ''));
+}
+function skillPanel(w, d, mine) {
+  const list = GAME.skills[w] || [], sw = st.swordLv[w] || 0;
+  let h = '<div class="sec"><h3>' + wName(w) + '的招式</h3><p class="note">招式每用一次累積熟練度，最高 Lv.' + GAME.mastery.max + '；被動技每擊倒一隻魔物累積一次。→ 後面是熟練滿級時的數值。</p></div>';
+  list.forEach((s, i) => {
+    const learned = st.lv >= s.lv, [ml, xp] = masteryOf(st, w, i);
+    const cur = resolveSkill(d, sw, s, i, ml), max = resolveSkill(d, sw, s, i, GAME.mastery.max), ty = TYPE_TXT[s.type];
+    const need = GAME.mastery.need(ml), maxed = ml >= GAME.mastery.max;
+    h += '<div class="skill' + (learned ? '' : ' lock') + '"><div class="sh"><b>' + s.name + '</b><span class="pill ' + ty[1] + '">' + ty[0] + '</span><span class="lvreq">' + (learned ? '熟練 Lv.' + ml : 'Lv.' + s.lv + ' 學會') + '</span></div>' +
+      '<div class="sm">吃' + s.stat + (s.cd ? '・冷卻 ' + s.cd + ' 秒・耗 ' + s.cost + ' ' + d.enName : '') + '</div>' +
+      '<div class="sd">' + skillDesc(s, cur, max) + '</div>' +
+      (learned ? '<div class="barrow"><span>熟練</span><div class="bar exp"><i style="width:' + (maxed ? 100 : xp / need * 100) + '%"></i></div><em>' + (maxed ? '已滿' : xp + ' / ' + need) + '</em></div>' : '') +
+      '<div class="sf">「' + s.flavor + '」</div></div>';
+  });
+  return h;
+}
 function renderAll() { renderHero(); renderLoc(); renderArena(); renderLog(); renderTabs(); renderPanel(); }
 
 /* ---------- 離線戰報 ---------- */
@@ -1048,7 +1444,10 @@ function showReport(sum, awaySec) {
     (sum.lvTo > sum.lvFrom ? '<div class="big">Lv.' + sum.lvFrom + ' → Lv.' + sum.lvTo + '</div>' : '') +
     '<div class="kv">' + kills + '<span>經驗</span><span>+' + fmt(sum.exp) + '</span><span>銀兩</span><span>+' + fmt(sum.silver) + '</span>' +
     (sum.rareKills ? '<span>擊倒精英／首領</span><span>' + sum.rareKills + '</span>' : '') + '<span>委託進度</span><span>+' + sum.quest + '</span><span>重傷</span><span>' + sum.deaths + ' 次</span></div>' +
-    '<p class="note" style="margin:10px 0 14px">獲得材料：' + mats + '</p><button class="btn" id="closeModal">繼續巡守</button>';
+    '<p class="note" style="margin:10px 0 4px">獲得材料：' + mats + '</p>' +
+    (sum.learned.length ? '<p class="note" style="margin-bottom:4px">學會新招式：' + sum.learned.join('、') + '</p>' : '') +
+    (Object.keys(sum.mastery).length ? '<p class="note">熟練度提升：' + Object.entries(sum.mastery).map(([k, v]) => k + ' Lv.' + v).join('、') + '</p>' : '') +
+    '<div style="height:14px"></div><button class="btn" id="closeModal">繼續巡守</button>';
   $('#modal').classList.remove('hidden');
   panelDirty = true;
 }
@@ -1061,13 +1460,18 @@ document.addEventListener('click', ev => {
   const t = ev.target.closest('button'); if (!t) return;
   if (t.dataset.t) { tab = t.dataset.t; if (tab === 'map') viewChap = GAME.chapters[0].id; panelDirty = true; renderTabs(); renderPanel(); if (t.closest('#loc')) $('#tabs').scrollIntoView({ behavior: 'smooth' }); return; }
   if (t.dataset.ch) { viewChap = t.dataset.ch; renderPanel(); return; }
+  if (t.dataset.pm !== undefined) {
+    const i = +t.dataset.pm, dd = +t.dataset.d, left = pointsFree(st, st.weapon) - pend.reduce((x, y) => x + y, 0);
+    if (dd > 0 && left > 0) pend[i]++; else if (dd < 0 && pend[i] > 0) pend[i]--;
+    renderPanel(); return;
+  }
   if (t.dataset.z) { if (st.zone !== t.dataset.z) { st.zone = t.dataset.z; if (rt.mode === 'fight') { rt.mob = null; rt.mode = 'search'; rt.wait = GAME.rules.searchSec; } const z = zoneById(st.zone); addLog('前往' + z.place + '・' + z.name); shownMob = null; renderLoc(); renderPanel(); save(); } return; }
   if (t.dataset.w) { selWeapon = t.dataset.w; renderPanel(); return; }
   switch (t.id) {
     case 'doSword': if (upgradeSword(st)) { rt.d = derive(st); addLog('<span class="k-gold">豪情注入，' + wName(st.weapon) + ' +' + st.swordLv[st.weapon] + '</span>'); toast(GAME.sword.levelName + ' +' + st.swordLv[st.weapon]); save(); } break;
     case 'doQuest': { const r = claimQuest(st); if (r) { addLog('<span class="k-gold">回報' + GAME.quest.giver + '：銀兩 +' + r.silver + '</span>'); toast('委託完成'); save(); } break; }
     case 'doSwap': {
-      const ratio = st.hp / rt.d.maxHp; st.weapon = selWeapon; rt.d = derive(st);
+      const ratio = st.hp / rt.d.maxHp; st.weapon = selWeapon; pend = [0, 0, 0, 0, 0, 0, 0, 0]; rt.d = derive(st);
       st.hp = Math.max(1, rt.d.maxHp * ratio); st.en = Math.min(st.en, rt.d.maxEn);
       if (rt.mode === 'fight') { rt.mob = null; rt.mode = 'search'; rt.wait = GAME.rules.searchSec; }
       addLog('換上' + wName(st.weapon)); toast('換上' + wName(st.weapon)); save(); break;
@@ -1083,6 +1487,13 @@ document.addEventListener('click', ev => {
       if (resetArm > Date.now()) { st = newState(); rt = newRuntime(st); logs = []; shownMob = null; resetArm = 0; save(); toast('已重新開始'); }
       else { resetArm = Date.now() + 4000; } break;
     case 'closeModal': $('#modal').classList.add('hidden'); break;
+    case 'doAlloc': if (addPoints(st, st.weapon, pend)) { rt.d = derive(st); st.hp = Math.min(st.hp, rt.d.maxHp); addLog('<span class="k-gold">加點完成：' + pend.map((x, i) => x ? GAME.statNames[i] + '+' + x : '').filter(Boolean).join('、') + '</span>'); pend = [0, 0, 0, 0, 0, 0, 0, 0]; toast('加點完成'); save(); } break;
+    case 'cancelAlloc': pend = [0, 0, 0, 0, 0, 0, 0, 0]; break;
+    case 'autoAlloc': { const add = autoPoints(st, st.weapon); if (add) { rt.d = derive(st); addLog('<span class="k-gold">照星數分配：' + add.map((x, i) => x ? GAME.statNames[i] + '+' + x : '').filter(Boolean).join('、') + '</span>'); toast('已分配'); save(); } break; }
+    case 'resetAlloc':
+      if (resetPtArm > Date.now()) { const c = resetCostFor(st, st.weapon); if (resetPoints(st, st.weapon)) { rt.d = derive(st); st.hp = Math.min(st.hp, rt.d.maxHp); resetPtArm = 0; toast('點數已退回' + (c ? '，花費銀兩 ' + fmt(c) : '')); save(); } }
+      else resetPtArm = Date.now() + 4000;
+      break;
   }
   renderAll();
 });
