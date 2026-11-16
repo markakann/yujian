@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#121315">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>天星界・御劍者 v0.8.1</title>
+<title>天星界・御劍者 v0.8.2</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -280,6 +280,40 @@ select{background:var(--panel2);color:var(--text);border:1px solid var(--line);b
 .gset .toggle:last-child{border-bottom:none}
 .bulk{display:grid;grid-template-columns:auto 1fr;gap:8px;align-items:center;margin-top:10px}
 .bulk .btn{font-size:14px;letter-spacing:.03em;padding:10px 6px;font-weight:400}
+/* 互動動畫 */
+button{transition:transform .09s ease,background-color .2s,border-color .2s,color .2s,opacity .2s}
+button:active:not(:disabled){transform:scale(.95)}
+.panel.enter{animation:panelIn .24s ease-out}
+@keyframes panelIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+.modal{animation:fadeIn .18s ease-out}
+.modal .card{animation:popIn .26s cubic-bezier(.2,.9,.3,1.15)}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+@keyframes popIn{from{opacity:0;transform:scale(.92) translateY(10px)}to{opacity:1;transform:none}}
+.toast{animation:toastIn .25s ease-out}
+@keyframes toastIn{from{opacity:0;transform:translate(-50%,12px)}to{opacity:1;transform:translate(-50%,0)}}
+.log div:first-child{animation:logIn .3s ease-out}
+@keyframes logIn{from{opacity:0;transform:translateX(-10px)}to{opacity:1;transform:none}}
+.mobc{animation:mobIn .38s cubic-bezier(.2,.9,.3,1.2)}
+@keyframes mobIn{from{opacity:0;transform:translateY(16px) scale(.85)}to{opacity:1;transform:none}}
+.stage .idle{animation:fadeIn .4s}
+.maincard.ready{animation:readyGlow 1.8s ease-in-out infinite}
+@keyframes readyGlow{50%{box-shadow:0 0 0 3px #c9a45c33}}
+.card.lvup{animation:lvGlow 1.4s ease-out}
+@keyframes lvGlow{0%{box-shadow:0 0 0 0 #f2d58a00}25%{box-shadow:0 0 0 4px #f2d58aaa}100%{box-shadow:0 0 0 0 #f2d58a00}}
+.wdetail.enter{animation:panelIn .24s ease-out}
+.tabs button .dot{animation:dotIn .3s cubic-bezier(.2,.9,.3,1.6)}
+@keyframes dotIn{from{transform:scale(0)}to{transform:scale(1)}}
+/* 爆擊震動 */
+.wrap.shakeL{animation:shakeL .22s linear}
+.wrap.shakeH{animation:shakeH .34s linear}
+@keyframes shakeL{20%{transform:translate(-3px,1px)}40%{transform:translate(3px,-1px)}60%{transform:translate(-2px,0)}80%{transform:translate(2px,1px)}}
+@keyframes shakeH{12%{transform:translate(-7px,2px) rotate(-.3deg)}25%{transform:translate(6px,-3px) rotate(.3deg)}38%{transform:translate(-5px,2px)}52%{transform:translate(4px,-1px)}66%{transform:translate(-3px,1px)}82%{transform:translate(2px,0)}}
+#hurt{position:fixed;inset:0;pointer-events:none;z-index:15;opacity:0;background:radial-gradient(ellipse at center,transparent 55%,#c8553d77 100%)}
+#hurt.on{animation:hurt .45s ease-out}
+@keyframes hurt{0%{opacity:1}100%{opacity:0}}
+.revive{margin-top:12px;padding:8px 16px;border-radius:9px;background:var(--ver);color:#fff6ea;font-family:var(--serif);font-size:14px;letter-spacing:.05em}
+.revive:disabled{background:var(--panel2);color:var(--faint)}
+@media (prefers-reduced-motion: reduce){.panel.enter,.mobc,.log div:first-child,.modal,.modal .card{animation:none}}
 .hidden{display:none!important}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--panel2);border:1px solid var(--line);padding:8px 14px;border-radius:8px;font-size:13px;z-index:30;transition:opacity .3s}
 </style>
@@ -287,7 +321,7 @@ select{background:var(--panel2);color:var(--text);border:1px solid var(--line);b
 <body>
 <div class="wrap">
   <header>
-    <h1>天星界・御劍者<small>v0.8.1 暫定名稱</small></h1>
+    <h1>天星界・御劍者<small>v0.8.2 暫定名稱</small></h1>
     <div class="silver" id="silver">銀兩 0</div>
   </header>
 
@@ -325,13 +359,14 @@ select{background:var(--panel2);color:var(--text);border:1px solid var(--line);b
 
 <div class="modal hidden" id="modal"><div class="card" id="modalBody"></div></div>
 <div class="toast hidden" id="toast"></div>
+<div id="hurt"></div>
 
 <script>
 /* ===== 天星界・御劍者 — 遊戲資料與引擎（不含畫面） ===== */
 
 /* ---------- 遊戲資料：名稱、數值都集中在這裡，改這裡就好 ---------- */
 const GAME = {
-  meta: { title: '天星界・御劍者', subtitle: '暫定名稱', version: '0.8.1', era: '仙曆五百餘年' },
+  meta: { title: '天星界・御劍者', subtitle: '暫定名稱', version: '0.8.2', era: '仙曆五百餘年' },
 
   // 八項資源系統（順序固定，星數陣列照這個順序）
   statNames: ['力量', '抵擋', '體力', '敏捷', '智慧', '守護', '靈力', '控制'],
@@ -529,7 +564,8 @@ const GAME = {
   },
 
   rules: {
-    offlineCapSec: 12 * 3600, restBelow: 0.4, restUntil: 0.95, downSec: 15, searchSec: 1.0,
+    offlineCapSec: 12 * 3600, restBelow: 0.4, restUntil: 0.95, downSec: 15, downSecOnline: 180, searchSec: 1.0,
+    reviveCost(lv) { return Math.round(1.5 * (lv + 4) * (lv + 4)); }, // 線上重傷立即恢復要花的銀兩（照剩下的時間打折）
     skillCoef: 2.2, skillCd: 6, skillCost: 15, energyRegen: 2, baseInterval: 1.2,
     expBase: 40, expPow: 2.6,
     mobHp: 1.62, mobAtk: 1.45 // v0.8 有裝備後魔物整體調強，維持首區節奏
@@ -919,6 +955,7 @@ function newState() {
     quest: { progress: 0, done: 0 },
     stats: { kills: {}, deaths: 0, playSec: 0, offlineSec: 0, totalExp: 0, bossKills: 0, counterKills: 0, crafted: 0, salvaged: 0 },
     equip: { weapons: {} }, gear: [], gearSeq: 0, gearGift: {}, gearSet: { salv: 1, other: false, autoEquip: true },
+    autoRevive: false, fx: { shake: true, buzz: false },
     lastSave: Date.now()
   };
 }
@@ -951,6 +988,8 @@ function migrate(st) {
   if (!st.gearGift) st.gearGift = {};
   if (!st.gearSet) st.gearSet = { salv: 1, other: false, autoEquip: true };
   if (st.stats && st.stats.salvaged === undefined) st.stats.salvaged = 0;
+  if (!st.fx) st.fx = { shake: true, buzz: false };
+  if (st.autoRevive === undefined) st.autoRevive = false;
   ensureWeaponGear(st, st.weapon);
   st.v = 8;
   return st;
@@ -1358,8 +1397,9 @@ function step(st, rt, dt) {
       mobAttack(st, rt, m);
       m.timer += m.interval * (1 + (m.slow && m.slow.t > 0 ? m.slow.v : 0));
       if (st.hp <= 0) {
-        st.hp = 0; st.stats.deaths++; rt.mode = 'down'; rt.wait = R.downSec; rt.mob = null; rt.mobs = []; rt.shield = 0;
+        st.hp = 0; st.stats.deaths++; rt.mode = 'down'; rt.wait = rt.offline ? R.downSec : R.downSecOnline; rt.mob = null; rt.mobs = []; rt.shield = 0;
         emit(rt, { t: 'down', name: m.label });
+        if (!rt.offline && st.autoRevive) { const c = reviveCost(st, rt); if (st.silver >= c) { st.silver -= c; rt.wait = 0.6; emit(rt, { t: 'revivePaid', cost: c, auto: true }); } }
         return;
       }
     }
@@ -1367,11 +1407,26 @@ function step(st, rt, dt) {
   reap(st, rt);
 }
 
+/* ---------- 重傷：線上要休養比較久，可以花銀兩立刻恢復；離線維持原本的速度 ---------- */
+function reviveCost(st, rt) {
+  if (!rt || rt.mode !== 'down') return 0;
+  return Math.max(1, Math.ceil(GAME.rules.reviveCost(st.lv) * Math.min(1, rt.wait / GAME.rules.downSecOnline)));
+}
+function revive(st, rt) {
+  const c = reviveCost(st, rt);
+  if (!c || st.silver < c) return 0;
+  st.silver -= c; st.hp = rt.d.maxHp; rt.mode = 'search'; rt.wait = GAME.rules.searchSec;
+  emit(rt, { t: 'revivePaid', cost: c });
+  return c;
+}
+
 /* ---------- 離線結算：用同一套戰鬥規則快轉 ---------- */
 function simulate(st, seconds, rt) {
   const sum = { seconds, lvFrom: st.lv, lvTo: st.lv, zoneFrom: st.zone, zoneTo: st.zone, exp: 0, silver: 0, kills: {}, mats: {}, deaths: 0, quest: 0, rareKills: 0, mastery: {}, learned: [], used: {}, gear: [0, 0, 0, 0, 0], salv: 0, soul: 0, equipped: [], named: [], bag: 0 };
   rt = rt || newRuntime(st);
   const saveEvents = rt.events; rt.events = [];
+  const wasOffline = rt.offline; rt.offline = true;
+  if (rt.mode === 'down') rt.wait = Math.min(rt.wait, GAME.rules.downSec); // 離線時照原本的速度休養
   const silver0 = st.silver, deaths0 = st.stats.deaths, totalExp0 = st.stats.totalExp, q0 = st.quest.progress;
   const dt = 0.1;
   let t = 0;
@@ -1391,7 +1446,7 @@ function simulate(st, seconds, rt) {
       rt.events.length = 0;
     }
   }
-  rt.events = saveEvents;
+  rt.events = saveEvents; rt.offline = wasOffline;
   sum.lvTo = st.lv; sum.zoneTo = st.zone; sum.silver = st.silver - silver0; sum.deaths = st.stats.deaths - deaths0;
   sum.exp = st.stats.totalExp - totalExp0; sum.quest = st.quest.progress - q0;
   return { sum, rt };
@@ -1768,7 +1823,7 @@ if (typeof module !== 'undefined') module.exports = {
   useBuff, buyItem, canCraft, craftItem, genRequest, fillBoard, turnIn, rerollRequest, MAT_LV,
   mainStep, mainProgress, mainClaim, mainCanSkip, featureOpen, mainBegin,
   freshState, genGear, gearName, gearBase, affixVal, affixText, gearTotals, equippedList, powerWith, powerNow, gearDelta, equipGear, salvageGear,
-  receiveGear, bestGear, ensureWeaponGear, equipCount, rollIdx, playableWeapons, autoSalvageable, gearOwner, salvageValue, namedDir
+  receiveGear, bestGear, ensureWeaponGear, reviveCost, revive, equipCount, rollIdx, playableWeapons, autoSalvageable, gearOwner, salvageValue, namedDir
 };
 
 </script>
@@ -1901,7 +1956,7 @@ function cloudErr(e) {
   const c = (e && e.code) || '', m = (e && e.message) || '';
   if (c === 'auth/popup-closed-by-user' || c === 'auth/cancelled-popup-request') return '已取消登入';
   if (c === 'auth/unauthorized-domain') return '這個網址還沒加進 Firebase 的「已授權網域」';
-  if (c === 'auth/operation-not-allowed') return 'Firebase 還沒啟用 Google 登入';
+  if (c === 'auth/operation-not-allowed' || c === 'auth/configuration-not-found') return 'Firebase 還沒開啟 Authentication 的 Google 登入';
   if (c === 'permission-denied' || c === 'firestore/permission-denied') return '雲端拒絕存取：Firestore 規則還沒加上 yujianSaves';
   if (!navigator.onLine) return '目前離線，連上網路後會自動同步';
   if (c === 'unavailable' || c === 'timeout' || c === 'auth/network-request-failed') return '連不上雲端，稍後會再試';
@@ -2055,6 +2110,22 @@ function cloudPanel() {
   return h + '</div>';
 }
 
+/* ---------- 動畫、震動 ---------- */
+let arenaSeen = true, lastShake = 0;
+try { new IntersectionObserver(es => { arenaSeen = es[0].isIntersecting; }).observe(document.querySelector('.arena')); } catch (e) {}
+function animPanel() { const p = $('#panel'); p.classList.remove('enter'); void p.offsetWidth; p.classList.add('enter'); }
+function pulse(el, cls) { if (!el) return; el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); }
+// 造成爆擊：畫面輕震；被爆擊：畫面重震、四周泛紅（戰鬥畫面不在螢幕上時不震）
+function shakeScreen(heavy) {
+  if (!st.fx || !st.fx.shake || !arenaSeen || document.hidden) return;
+  const now = Date.now();
+  if (now - lastShake < (heavy ? 150 : 350)) return;
+  lastShake = now;
+  const w = $('.wrap'); w.classList.remove('shakeL', 'shakeH'); void w.offsetWidth; w.classList.add(heavy ? 'shakeH' : 'shakeL');
+  if (heavy) { pulse($('#hurt'), 'on'); if (st.fx.buzz && navigator.vibrate) try { navigator.vibrate(45); } catch (e) {} }
+}
+document.addEventListener('animationend', e => { if (e.target.classList && e.target.classList.contains('wrap')) e.target.classList.remove('shakeL', 'shakeH'); });
+
 /* ---------- 戰鬥紀錄 ---------- */
 function addLog(html) { logs.unshift(html); if (logs.length > 9) logs.length = 9; }
 function handle(e) {
@@ -2065,6 +2136,7 @@ function handle(e) {
     case 'hit':
       if (e.who === 'p') {
         const k = KIND_TXT[e.kind];
+        if (e.crit) shakeScreen(false);
         if (e.quiet) { floater(e); shake(e.uid); break; }
         addLog((e.skill ? '<span class="k-gold">【' + e.skill + '】</span>' + (e.proc ? '追擊' + e.name + ' ' : '') : '你對' + e.name + '造成 ') + e.dmg +
           (e.crit ? ' <span class="k-bad">爆擊</span>' : '') + (k ? ' <span class="' + (e.kind === 'counter' ? 'k-good' : 'k-bad') + '">' + k + '</span>' : '') +
@@ -2075,6 +2147,7 @@ function handle(e) {
         addLog(e.name + '對你造成 ' + e.dmg + (e.absorbed ? '（護盾吸收 ' + e.absorbed + '）' : '') + (e.crit ? ' <span class="k-bad">爆擊</span>' : '') +
           (e.kind === 'counter' ? ' <span class="k-bad">剋制你</span>' : e.kind === 'countered' ? ' <span class="k-good">被你剋</span>' : ''));
         const w = $('#hpBarWrap'); w.classList.remove('flash'); void w.offsetWidth; w.classList.add('flash');
+        if (e.crit) shakeScreen(true);
       }
       break;
     case 'miss': addLog(e.who === 'p' ? '你的攻擊落空' : e.name + '的攻擊落空'); break;
@@ -2105,9 +2178,10 @@ function handle(e) {
       if (e.fate === 'equip') { renderHero(); }
       panelDirty = true; break;
     }
-    case 'levelup': addLog('<span class="k-lv">等級提升！Lv.' + e.lv + '</span>'); toast('等級提升至 Lv.' + e.lv + '，獲得 ' + GAME.points.perLevel + ' 點屬性點'); panelDirty = true; renderLoc(); break;
+    case 'levelup': pulse($('.hero').closest('.card'), 'lvup'); addLog('<span class="k-lv">等級提升！Lv.' + e.lv + '</span>'); toast('等級提升至 Lv.' + e.lv + '，獲得 ' + GAME.points.perLevel + ' 點屬性點'); panelDirty = true; renderLoc(); break;
     case 'rest': addLog('傷勢不輕，先原地調息'); break;
-    case 'down': addLog('<span class="k-bad">你被' + e.name + '擊倒，重傷調養中</span>'); break;
+    case 'down': addLog('<span class="k-bad">你被' + e.name + '擊倒，重傷調養中</span>'); shakeScreen(true); break;
+    case 'revivePaid': addLog('<span class="k-gold">花了 ' + fmt(e.cost) + ' 銀兩請人急救，傷勢立刻恢復</span>'); if (!e.auto) toast('花了 ' + fmt(e.cost) + ' 銀兩，傷勢恢復'); resetArena(); break;
     case 'revive': addLog('傷勢恢復，繼續巡守'); break;
   }
 }
@@ -2189,14 +2263,23 @@ function renderArena() {
     }
     const bar = $('#mobHp'); if (bar && m) bar.style.width = Math.max(0, m.hp / m.maxHp * 100) + '%';
   } else {
-    const key = rt.mode + (rt.mode === 'down' ? Math.ceil(rt.wait) : '');
+    const key = rt.mode; // 重傷倒數只更新數字，不重畫整塊（避免一直閃）
     if (shownMob !== key) {
       shownMob = key; shownGroup = ''; shownInfo = '';
       const z = zoneById(st.zone);
       const txt = rt.mode === 'rest' ? ['原地調息', '血量恢復到九成五後繼續巡守'] :
-        rt.mode === 'down' ? ['重傷調養中', Math.ceil(rt.wait) + ' 秒後恢復'] : ['巡守' + z.name, z.place + '・魔物 ' + zoneLvText(z)];
-      stage.innerHTML = '<div class="idle">' + txt[0] + '<small>' + txt[1] + '</small></div>';
-      info.innerHTML = '<div class="note">' + (rt.mode === 'search' ? '搜尋魔物中…' : rt.mode === 'rest' ? '休息時血量恢復較快，靈力越高恢復越快。' : '重傷不會損失任何東西，只是暫時無法戰鬥。') + '</div>';
+        rt.mode === 'down' ? ['重傷調養中', '<span id="downT"></span> 後恢復'] : ['巡守' + z.name, z.place + '・魔物 ' + zoneLvText(z)];
+      stage.innerHTML = '<div class="idle">' + txt[0] + '<small>' + txt[1] + '</small>' + (rt.mode === 'down' ? '<button class="revive" data-revive="1" id="reviveBtn"></button>' : '') + '</div>';
+      info.innerHTML = '<div class="note">' + (rt.mode === 'search' ? '搜尋魔物中…' : rt.mode === 'rest' ? '休息時血量恢復較快，靈力越高恢復越快。' :
+        '重傷不會損失任何東西。線上要休養 ' + (GAME.rules.downSecOnline / 60) + ' 分鐘，越接近恢復，急救越便宜；離線時照原本的 ' + GAME.rules.downSec + ' 秒。') + '</div>' +
+        (rt.mode === 'down' ? '<label class="toggle" style="padding-bottom:0"><span>重傷時自動花銀兩恢復</span><input type="checkbox" id="autoRevive"' + (st.autoRevive ? ' checked' : '') + '></label>' : '');
+    }
+    if (rt.mode === 'down') {
+      const sec = Math.max(0, Math.ceil(rt.wait)), rc = reviveCost(st, rt), ok = st.silver >= rc;
+      const t1 = Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0'), el = $('#downT'), bt = $('#reviveBtn');
+      if (el && el.textContent !== t1) el.textContent = t1;
+      const t2 = ok ? '花 ' + fmt(rc) + ' 銀兩立刻恢復' : '銀兩不足（要 ' + fmt(rc) + '）';
+      if (bt && bt.textContent !== t2) { bt.textContent = t2; bt.disabled = !ok; }
     }
   }
 }
@@ -2397,6 +2480,10 @@ function renderPanel() {
     for (const k in GAME.monsters) { const n = s.kills[k] || 0; if (!n) continue; total += n; rows += '<span>' + GAME.monsters[k].name + '</span><span>' + fmt(n) + '</span>'; }
     p.innerHTML = '<div class="sec"><h3>巡守紀錄</h3><div class="kv"><span>線上時間</span><span>' + dur(s.playSec) + '</span><span>離線結算時間</span><span>' + dur(s.offlineSec) + '</span>' +
       '<span>主線</span><span>' + (st.main.done ? GAME.main.chapter + ' 完成' : stepNo(st.main.step) + '／共 ' + GAME.main.steps.length + ' 步') + '</span><span>總擊倒</span><span>' + fmt(total) + '</span><span>擊倒首領</span><span>' + fmt(s.bossKills || 0) + '</span>' + rows + '<span>分解裝備</span><span>' + fmt(s.salvaged || 0) + ' 件</span><span>重傷次數</span><span>' + fmt(s.deaths) + '</span></div></div>' +
+      '<div class="sec"><h3>設定</h3>' +
+      '<label class="toggle"><span>爆擊時畫面震動<br><span class="note">造成爆擊輕震、被爆擊重震；戰鬥畫面不在螢幕上時不會震</span></span><input type="checkbox" id="fxShake"' + (st.fx.shake ? ' checked' : '') + '></label>' +
+      '<label class="toggle"><span>被爆擊時手機跟著震動</span><input type="checkbox" id="fxBuzz"' + (st.fx.buzz ? ' checked' : '') + '></label>' +
+      '<label class="toggle"><span>重傷時自動花銀兩恢復<br><span class="note">只在線上有效；銀兩不夠時就照常休養</span></span><input type="checkbox" id="autoRevive"' + (st.autoRevive ? ' checked' : '') + '></label></div>' +
       cloudPanel() +
       '<div class="sec"><h3>存檔碼</h3><p class="note" style="margin-bottom:8px">進度存在這個瀏覽器裡。沒有登入雲端的話，換手機或換瀏覽器前，先把存檔碼複製起來。</p>' +
       '<textarea id="saveBox" placeholder="按「匯出」產生存檔碼，或貼上存檔碼後按「匯入」"></textarea>' +
@@ -2410,7 +2497,7 @@ function renderPanel() {
 
 function swordPanel() {
     const n = st.swordLv[st.weapon] || 0, max = n >= GAME.sword.maxLv;
-    let h = '<div class="epi">若還有一絲豪情，便將這份豪情注入在這把劍。<cite>── 相傳出自五百多年前的息區區長王倩育</cite></div>' +
+    let h = '<div class="epi">若還有一絲御心，便將這份御心注入在這把劍。<cite>── 相傳出自五百多年前的息區區長王倩育</cite></div>' +
       '<div class="sec" style="display:flex;justify-content:space-between;align-items:center"><div><div class="note">' + wName(st.weapon) + '的' + GAME.sword.levelName + '</div><div class="swordlv">+' + n + '<span class="note"> / ' + GAME.sword.maxLv + '</span></div></div>' +
       '<div class="kv" style="min-width:150px"><span>攻擊加成</span><span>+' + Math.round(n * GAME.sword.atkPerLv * 100) + '%</span><span>血量加成</span><span>+' + Math.round(n * GAME.sword.hpPerLv * 100) + '%</span></div></div>';
     if (max) h += '<div class="note">這把武器的' + GAME.sword.levelName + '已經到 v0.1 的上限。</div>';
@@ -2584,13 +2671,17 @@ document.addEventListener('change', ev => {
   if (ev.target.id === 'autoMove') { st.auto = ev.target.checked; save(); toast(st.auto ? '升級後會自動前往新區' : '會留在目前的狩獵區'); }
   if (ev.target.id === 'gAuto') { st.gearSet.autoEquip = ev.target.checked; save(); toast(st.gearSet.autoEquip ? '撿到更好的會自動換上' : '撿到的裝備都先放進行囊'); }
   if (ev.target.id === 'gOther') { st.gearSet.other = ev.target.checked; save(); }
+  if (ev.target.id === 'fxShake') { st.fx.shake = ev.target.checked; save(); if (st.fx.shake) { const was = arenaSeen; arenaSeen = true; shakeScreen(false); arenaSeen = was; } }
+  if (ev.target.id === 'fxBuzz') { st.fx.buzz = ev.target.checked; save(); if (st.fx.buzz && navigator.vibrate) try { navigator.vibrate(45); } catch (e) {} }
+  if (ev.target.id === 'autoRevive') { st.autoRevive = ev.target.checked; save(); toast(st.autoRevive ? '重傷時會自動花銀兩恢復' : '重傷時照常休養'); shownMob = null; panelDirty = true; }
   if (ev.target.id === 'gSalv') { st.gearSet.salv = +ev.target.value; save(); toast(st.gearSet.salv ? '撿到' + ['', '凡品', '良品以下', '精品以下'][st.gearSet.salv] + '的裝備會自動分解' : '不自動分解'); }
   if (ev.target.id === 'bulkQ') { bulkQ = +ev.target.value; bulkArm = 0; renderPanel(); }
 });
 document.addEventListener('click', ev => {
   const t = ev.target.closest('button'); if (!t) return;
-  if (t.dataset.t) { if (tab === 'gear' && t.dataset.t !== 'gear') clearNewGear(); tab = t.dataset.t; if (tab === 'map') viewChap = GAME.chapters[0].id; panelDirty = true; renderTabs(); renderPanel(); if (t.closest('#loc')) $('#tabs').scrollIntoView({ behavior: 'smooth' }); return; }
-  if (t.dataset.ch) { viewChap = t.dataset.ch; renderPanel(); return; }
+  if (t.dataset.revive) { revive(st, rt); for (const e of rt.events) handle(e); rt.events.length = 0; save(); renderAll(); return; }
+  if (t.dataset.t) { if (tab === 'gear' && t.dataset.t !== 'gear') clearNewGear(); if (tab !== t.dataset.t) setTimeout(animPanel, 0); tab = t.dataset.t; if (tab === 'map') viewChap = GAME.chapters[0].id; panelDirty = true; renderTabs(); renderPanel(); if (t.closest('#loc')) $('#tabs').scrollIntoView({ behavior: 'smooth' }); return; }
+  if (t.dataset.ch) { viewChap = t.dataset.ch; renderPanel(); animPanel(); return; }
   if (t.dataset.main) {
     const a = t.dataset.main, s = mainStep(st);
     if (a === 'detail') showStep();
@@ -2609,8 +2700,8 @@ document.addEventListener('click', ev => {
     }
     lastMain = ''; renderAll(); return;
   }
-  if (t.dataset.town) { townTab = t.dataset.town; renderPanel(); return; }
-  if (t.dataset.gt) { if (gearTab === 'bag' && t.dataset.gt !== 'bag') clearNewGear(); gearTab = t.dataset.gt; renderPanel(); return; }
+  if (t.dataset.town) { townTab = t.dataset.town; renderPanel(); animPanel(); return; }
+  if (t.dataset.gt) { if (gearTab === 'bag' && t.dataset.gt !== 'bag') clearNewGear(); gearTab = t.dataset.gt; renderPanel(); animPanel(); return; }
   if (t.dataset.gf) { bagFilter = t.dataset.gf; renderPanel(); return; }
   if (t.dataset.eq) {
     const r = equipGear(st, +t.dataset.eq);
@@ -2638,7 +2729,7 @@ document.addEventListener('click', ev => {
     renderPanel(); return;
   }
   if (t.dataset.z) { if (st.zone !== t.dataset.z) { st.zone = t.dataset.z; if (rt.mode === 'fight') { rt.mob = null; rt.mobs = []; rt.mode = 'search'; rt.wait = GAME.rules.searchSec; } const z = zoneById(st.zone); addLog('前往' + z.place + '・' + z.name); resetArena(); renderLoc(); renderPanel(); save(); } return; }
-  if (t.dataset.w) { selWeapon = t.dataset.w; renderPanel(); return; }
+  if (t.dataset.w) { selWeapon = t.dataset.w; renderPanel(); pulse($('.wdetail'), 'enter'); return; }
   switch (t.id) {
     case 'doBest': {
       const ch = bestGear(st);
