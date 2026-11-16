@@ -5,7 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#121315">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>天星界・御劍者 v0.7</title>
+<title>天星界・御劍者 v0.7.1</title>
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-192.png">
 <style>
 :root{
   --bg:#121315;--panel:#1b1d20;--panel2:#23262a;--line:#34373c;--text:#e9e3d6;--muted:#9a958b;--faint:#6d6961;
@@ -262,7 +265,7 @@ select{background:var(--panel2);color:var(--text);border:1px solid var(--line);b
 <body>
 <div class="wrap">
   <header>
-    <h1>天星界・御劍者<small>v0.7 暫定名稱</small></h1>
+    <h1>天星界・御劍者<small>v0.7.1 暫定名稱</small></h1>
     <div class="silver" id="silver">銀兩 0</div>
   </header>
 
@@ -306,7 +309,7 @@ select{background:var(--panel2);color:var(--text);border:1px solid var(--line);b
 
 /* ---------- 遊戲資料：名稱、數值都集中在這裡，改這裡就好 ---------- */
 const GAME = {
-  meta: { title: '天星界・御劍者', subtitle: '暫定名稱', version: '0.7', era: '仙曆五百餘年' },
+  meta: { title: '天星界・御劍者', subtitle: '暫定名稱', version: '0.7.1', era: '仙曆五百餘年' },
 
   // 八項資源系統（順序固定，星數陣列照這個順序）
   statNames: ['力量', '抵擋', '體力', '敏捷', '智慧', '守護', '靈力', '控制'],
@@ -1509,6 +1512,14 @@ function mobSvg(key) { const m = GAME.monsters[key]; return ART[m.art](Object.as
 
 
 const SAVE_KEY = 'tianxing-idle-v1';
+
+/* ---------- 安裝成手機 App（PWA） ---------- */
+let installPrompt = null;
+const standalone = () => matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+window.addEventListener('beforeinstallprompt', e => { e.preventDefault(); installPrompt = e; panelDirty = true; });
+window.addEventListener('appinstalled', () => { installPrompt = null; toast('已安裝到主畫面'); panelDirty = true; });
+// 只在 GitHub Pages 這類一般網頁上註冊離線快取；Claude 連結裡會自動略過
+try { if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol) && window.top === window) navigator.serviceWorker.register('sw.js').catch(() => {}); } catch (e) {}
 const $ = s => document.querySelector(s);
 const fmt = n => Math.floor(n).toLocaleString('zh-TW');
 const pct = x => (x * 100).toFixed(1).replace(/\.0$/, '') + '%';
@@ -1879,6 +1890,7 @@ function renderPanel() {
       '<textarea id="saveBox" placeholder="按「匯出」產生存檔碼，或貼上存檔碼後按「匯入」"></textarea>' +
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px"><button class="btn ghost" id="doExport">匯出</button><button class="btn ghost" id="doImport">匯入</button></div>' +
       '<button class="btn warn" id="doReset" style="margin-top:8px">' + (resetArm > Date.now() ? '再按一次確定刪除進度' : '重新開始') + '</button></div>' +
+      '<div class="sec"><h3>安裝成手機 App</h3>' + (standalone() ? '<p class="note">你現在就是用 App 在玩。存檔跟瀏覽器版是同一份。</p>' : installPrompt ? '<button class="btn ghost" id="doInstall">安裝到主畫面</button>' : '<p class="note">用 GitHub Pages 版開啟遊戲後：Chrome 從右上角選單選「加到主畫面」或「安裝應用程式」；Samsung 網際網路從選單選「新增網頁至」→「主畫面」。裝好之後存檔跟瀏覽器版是同一份。</p>') + '</div>' +
       '<p class="note">離線最多結算 ' + (GAME.rules.offlineCapSec / 3600) + ' 小時。v' + GAME.meta.version + '</p>';
   }
   panelDirty = false; lastPanelAt = Date.now();
@@ -2038,6 +2050,7 @@ document.addEventListener('click', ev => {
       if (resetArm > Date.now()) { st = newState(); rt = newRuntime(st); logs = []; resetArena(); resetArm = 0; save(); toast('已重新開始'); }
       else { resetArm = Date.now() + 4000; } break;
     case 'closeModal': $('#modal').classList.add('hidden'); break;
+    case 'doInstall': if (installPrompt) { installPrompt.prompt(); installPrompt.userChoice.finally(() => { installPrompt = null; panelDirty = true; }); } break;
     case 'doAlloc': if (addPoints(st, st.weapon, pend)) { rt.d = derive(st); st.hp = Math.min(st.hp, rt.d.maxHp); addLog('<span class="k-gold">加點完成：' + pend.map((x, i) => x ? GAME.statNames[i] + '+' + x : '').filter(Boolean).join('、') + '</span>'); pend = [0, 0, 0, 0, 0, 0, 0, 0]; toast('加點完成'); save(); } break;
     case 'cancelAlloc': pend = [0, 0, 0, 0, 0, 0, 0, 0]; break;
     case 'autoAlloc': { const add = autoPoints(st, st.weapon); if (add) { rt.d = derive(st); addLog('<span class="k-gold">照星數分配：' + add.map((x, i) => x ? GAME.statNames[i] + '+' + x : '').filter(Boolean).join('、') + '</span>'); toast('已分配'); save(); } break; }
