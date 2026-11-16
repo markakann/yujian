@@ -1,0 +1,1134 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#121315">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>天星界・御劍者 v0.2</title>
+<style>
+:root{
+  --bg:#121315;--panel:#1b1d20;--panel2:#23262a;--line:#34373c;--text:#e9e3d6;--muted:#9a958b;--faint:#6d6961;
+  --ver:#c8553d;--ver-d:#7a2f22;--jade:#5fa58f;--jade-d:#2f5a4d;--gold:#c9a45c;--gold-d:#6e5a2f;--bad:#d66a5a;
+  --serif:"Noto Serif TC","Source Han Serif TC","Songti TC","PMingLiU",serif;
+  --sans:-apple-system,BlinkMacSystemFont,"PingFang TC","Noto Sans TC","Microsoft JhengHei",sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{background:var(--bg);color:var(--text);font-family:var(--sans);-webkit-tap-highlight-color:transparent}
+body{min-height:100vh;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+.wrap{max-width:520px;margin:0 auto;padding:12px 12px 32px}
+button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
+.serif{font-family:var(--serif)}
+header{display:flex;align-items:baseline;justify-content:space-between;padding:4px 2px 10px}
+header h1{font-family:var(--serif);font-size:20px;font-weight:600;letter-spacing:.12em}
+header h1 small{font-family:var(--sans);font-size:11px;color:var(--faint);letter-spacing:0;margin-left:6px;font-weight:400}
+.silver{font-size:14px;color:var(--gold)}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:12px}
+.seal{display:inline-flex;align-items:center;justify-content:center;font-family:var(--serif);font-weight:700;border-radius:6px;line-height:1;flex-shrink:0}
+.seal.big{width:52px;height:52px;font-size:30px;background:var(--ver);color:#f6eee0;box-shadow:inset 0 0 0 2px #f6eee033}
+.seal.mid{width:36px;height:36px;font-size:20px}
+.seal.sm{width:24px;height:24px;font-size:14px;border-radius:4px}
+.hero{display:flex;gap:12px;align-items:center}
+.hero .info{flex:1;min-width:0}
+.hero .name{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.hero .name b{font-family:var(--serif);font-size:16px;font-weight:600}
+.hero .name span{font-size:12px;color:var(--muted);white-space:nowrap}
+.bar{height:8px;background:#0c0d0e;border-radius:4px;overflow:hidden;margin-top:6px;position:relative}
+.bar i{display:block;height:100%;border-radius:4px;transition:width .15s linear}
+.bar.hp i{background:var(--ver)} .bar.en i{background:var(--gold)} .bar.exp i{background:var(--jade)}
+.bar.flash{animation:flash .25s}
+@keyframes flash{0%{box-shadow:0 0 0 2px var(--bad)}100%{box-shadow:0 0 0 0 transparent}}
+.barrow{display:flex;align-items:center;gap:8px;font-size:11px;color:var(--muted)}
+.barrow .bar{flex:1;margin-top:0}
+.barrow em{font-style:normal;min-width:78px;text-align:right;font-variant-numeric:tabular-nums}
+.bars{margin-top:8px;display:grid;gap:5px}
+.zones{display:flex;gap:6px;margin:10px 0}
+.zones button{flex:1;padding:8px 4px;border:1px solid var(--line);border-radius:8px;background:var(--panel);font-size:13px;font-family:var(--serif)}
+.zones button.on{border-color:var(--jade);background:var(--jade-d);color:#e6f3ee}
+.zones button:disabled{opacity:.45;cursor:default}
+.zones button small{display:block;font-family:var(--sans);font-size:10px;color:var(--muted);margin-top:1px}
+.zones button.on small{color:#b9dccf}
+.arena{position:relative;overflow:hidden;padding:0}
+.stage{position:relative;height:190px;display:flex;align-items:center;justify-content:center;
+  background:radial-gradient(ellipse at 50% 85%,#2c3a2f 0%,#1b1d20 62%)}
+.stage svg{width:150px;height:150px;filter:drop-shadow(0 6px 10px #0008)}
+.stage .mob{transition:transform .08s}
+.stage .mob.hit{transform:translateX(4px) rotate(2deg)}
+.stage .mob.elite{animation:breathe 2.4s ease-in-out infinite}
+.stage .mob.dead{opacity:0;transform:translateY(12px) scale(.88);transition:opacity .7s,transform .7s;animation:none}
+@keyframes breathe{50%{transform:scale(1.04)}}
+.stage .idle{font-family:var(--serif);color:var(--muted);font-size:15px;letter-spacing:.1em;text-align:center}
+.stage .idle small{display:block;font-family:var(--sans);font-size:12px;color:var(--faint);letter-spacing:0;margin-top:6px}
+.floaters{position:absolute;inset:0;pointer-events:none}
+.fl{position:absolute;font-weight:700;font-size:16px;text-shadow:0 2px 4px #000c;animation:up .9s ease-out forwards;white-space:nowrap}
+.fl.crit{font-size:22px;color:#ffb199}.fl.counter{color:#8fe0c4}.fl.countered{color:#aaa49a}.fl.skill{font-family:var(--serif)}
+@keyframes up{0%{opacity:0;transform:translateY(8px) scale(.8)}15%{opacity:1;transform:translateY(0) scale(1.1)}100%{opacity:0;transform:translateY(-46px)}}
+.mobinfo{padding:10px 12px 12px;border-top:1px solid var(--line)}
+.mobhead{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.mobhead b{font-family:var(--serif);font-size:16px;font-weight:600}
+.tag{font-size:11px;padding:2px 6px;border-radius:4px;background:var(--panel2);color:var(--muted)}
+.tag.elite{background:var(--ver-d);color:#ffd9cf}
+.stances{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.chip{display:flex;align-items:center;gap:5px;padding:3px 8px 3px 3px;border-radius:6px;border:1px solid var(--line);font-size:12px;color:var(--muted);opacity:.55}
+.chip.on{opacity:1;color:var(--text);border-color:var(--text)}
+.chip.good .seal{background:var(--jade);color:#0e1f19}.chip.bad .seal{background:var(--bad);color:#2a0e0a}.chip .seal{background:var(--panel2);color:var(--text)}
+.match{margin-top:8px;font-size:12px;padding:6px 8px;border-radius:6px;background:var(--panel2);color:var(--muted)}
+.match.good{background:#1f3a31;color:#a6e3cd}.match.bad{background:#3d1f1b;color:#ffb9ad}
+.log{margin-top:10px;padding:8px 12px;font-size:12px;line-height:1.75;min-height:150px}
+.log div{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--muted)}
+.log div:nth-child(1){color:var(--text)}
+.log div:nth-child(n+6){opacity:.6}
+.log .k-good{color:#8fe0c4}.log .k-bad{color:#ffb199}.log .k-gold{color:var(--gold)}.log .k-lv{color:#f2d58a;font-weight:600}
+.tabs{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:12px;position:sticky;top:0;z-index:5;background:var(--bg);padding:6px 0}
+.tabs button{padding:8px 0;border-radius:8px;font-family:var(--serif);font-size:13px;color:var(--muted);border:1px solid transparent;position:relative}
+.tabs button.on{color:var(--text);border-color:var(--line);background:var(--panel)}
+.tabs button .dot{position:absolute;top:5px;right:8px;width:6px;height:6px;border-radius:3px;background:var(--ver)}
+.panel{margin-top:6px}
+.sec{margin-bottom:10px}
+.sec h3{font-family:var(--serif);font-size:15px;font-weight:600;margin-bottom:8px;letter-spacing:.05em}
+.kv{display:grid;grid-template-columns:1fr auto;gap:4px 12px;font-size:13px}
+.kv span:nth-child(odd){color:var(--muted)}
+.kv span:nth-child(even){text-align:right;font-variant-numeric:tabular-nums}
+.statrow{display:grid;grid-template-columns:40px 64px 1fr auto;align-items:center;gap:8px;padding:6px 0;border-bottom:1px solid var(--line);font-size:13px}
+.statrow:last-child{border-bottom:none}
+.statrow b{font-family:var(--serif);font-weight:600}
+.stars{color:var(--gold);letter-spacing:-1px;font-size:12px}
+.stars i{font-style:normal;color:#3e3a33}
+.statrow small{color:var(--faint);font-size:11px}
+.statrow em{font-style:normal;font-variant-numeric:tabular-nums;text-align:right}
+.wcard{display:flex;gap:12px;align-items:center}
+.wcard .meta{font-size:12px;color:var(--muted);line-height:1.7}
+.wcard .meta b{font-family:var(--serif);font-size:17px;color:var(--text);font-weight:600}
+.pill{display:inline-block;font-size:11px;padding:1px 6px;border-radius:4px;margin-right:4px}
+.pill.def{background:#26364a;color:#a9c6ea}.pill.out{background:#4a2a26;color:#f0b6a9}
+.cost{display:grid;gap:6px;margin:10px 0}
+.costrow{display:flex;align-items:center;gap:8px;font-size:13px}
+.costrow .n{margin-left:auto;font-variant-numeric:tabular-nums}
+.costrow .n.ok{color:#a6e3cd}.costrow .n.no{color:#ffb199}
+.btn{display:block;width:100%;padding:12px;border-radius:10px;background:var(--ver);color:#fff6ea;font-family:var(--serif);font-size:16px;letter-spacing:.15em;font-weight:600}
+.btn:disabled{background:var(--panel2);color:var(--faint);cursor:default}
+.btn.ghost{background:transparent;border:1px solid var(--line);color:var(--text);letter-spacing:.05em;font-size:14px;font-weight:400}
+.btn.warn{background:transparent;border:1px solid var(--ver-d);color:#ffb9ad;letter-spacing:.05em;font-size:14px;font-weight:400}
+.epi{font-family:var(--serif);font-size:13px;color:var(--muted);line-height:1.9;border-left:2px solid var(--ver-d);padding-left:10px;margin:4px 0 12px}
+.epi cite{display:block;font-style:normal;font-size:11px;color:var(--faint);margin-top:2px}
+.swordlv{font-family:var(--serif);font-size:28px;font-weight:600;color:var(--gold)}
+.mats{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mat{display:flex;gap:8px;align-items:center;background:var(--panel2);border-radius:8px;padding:8px}
+.mat .seal{background:var(--gold-d);color:#f7e7c2}
+.mat b{font-family:var(--serif);font-weight:600;font-size:14px}
+.mat div{min-width:0;flex:1}
+.mat small{display:block;font-size:11px;color:var(--faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mat em{font-style:normal;font-variant-numeric:tabular-nums;font-size:15px}
+.quest .giver{display:flex;gap:10px;align-items:center;margin-bottom:8px}
+.quest .giver .seal{background:var(--jade-d);color:#d6efe6}
+.quest .giver b{font-family:var(--serif);font-size:15px}
+.quest .giver span{font-size:12px;color:var(--muted)}
+.quest p{font-size:13px;line-height:1.8;color:var(--muted);margin-bottom:8px}
+.wgroups{display:grid;gap:10px}
+.wgroup h4{font-family:var(--serif);font-size:13px;color:var(--muted);font-weight:600;margin-bottom:6px;letter-spacing:.1em}
+.wrow{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.wt{display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 0 6px;border-radius:8px;border:1px solid var(--line);background:var(--panel2);font-size:10px;color:var(--muted)}
+.wt .seal{width:30px;height:30px;font-size:18px;background:#3a3d42;color:var(--text)}
+.wt.def .seal{background:#26364a;color:#cfe0f5}.wt.out .seal{background:#4a2a26;color:#f7d0c6}
+.wt.cur{border-color:var(--gold)} .wt.sel{outline:2px solid var(--text);outline-offset:1px}
+.wt.todo{border-style:dashed;opacity:.5}
+.wt.todo .seal{background:transparent;border:1px dashed var(--faint);color:var(--faint)}
+.wdetail{margin-top:10px}
+.note{font-size:12px;color:var(--faint);line-height:1.7}
+textarea{width:100%;height:80px;background:#0c0d0e;color:var(--text);border:1px solid var(--line);border-radius:8px;padding:8px;font-size:11px;font-family:ui-monospace,monospace}
+.modal{position:fixed;inset:0;background:#000b;display:flex;align-items:center;justify-content:center;padding:20px;z-index:20}
+.modal .card{width:100%;max-width:420px;max-height:85vh;overflow:auto;padding:18px}
+.modal h2{font-family:var(--serif);font-size:20px;font-weight:600;letter-spacing:.1em;margin-bottom:4px}
+.modal .sub{font-size:12px;color:var(--muted);margin-bottom:12px}
+.big{font-family:var(--serif);font-size:22px;color:#f2d58a;margin:4px 0 10px}
+.loc{display:flex;align-items:center;gap:10px;margin:10px 0;padding:10px 12px;background:var(--panel);border:1px solid var(--line);border-radius:12px}
+.loc .where{flex:1;min-width:0}
+.loc .where small{display:block;font-size:11px;color:var(--muted)}
+.loc .where b{font-family:var(--serif);font-size:17px;font-weight:600;letter-spacing:.05em}
+.loc .where em{font-style:normal;font-size:12px;color:var(--muted);margin-left:6px}
+.loc button{padding:7px 12px;border:1px solid var(--line);border-radius:8px;font-family:var(--serif);font-size:14px;background:var(--panel2)}
+.chaps{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;margin-bottom:10px}
+.chaps button{padding:6px 0;border-radius:8px;border:1px solid var(--line);font-family:var(--serif);font-size:13px;line-height:1.3;color:var(--muted)}
+.chaps button small{display:block;font-size:10px;font-family:var(--sans)}
+.chaps button.on{border-color:var(--gold);color:var(--text);background:var(--panel2)}
+.chaps button.lock{opacity:.55}
+.place{border:1px solid var(--line);border-radius:10px;padding:8px 10px;margin-bottom:8px;background:var(--panel2)}
+.place.cur{border-color:var(--jade)}
+.place .ph{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px}
+.place .ph b{font-family:var(--serif);font-size:15px;font-weight:600}
+.place .ph span{font-size:11px;color:var(--muted)}
+.place .subs{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.place .subs button{padding:6px 2px;border-radius:7px;border:1px solid var(--line);background:var(--panel);font-size:12px;line-height:1.35}
+.place .subs button small{display:block;font-size:10px;color:var(--muted)}
+.place .subs button.on{border-color:var(--jade);background:var(--jade-d);color:#e6f3ee}
+.place .subs button.on small{color:#b9dccf}
+.place .subs button:disabled{opacity:.4;cursor:default}
+.place.locked{opacity:.5}
+.place .rare{font-size:10px;color:#ffb9ad;margin-left:4px}
+.lockplaces{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.lockplaces span{font-family:var(--serif);font-size:13px;padding:4px 8px;border:1px dashed var(--line);border-radius:6px;color:var(--muted)}
+.toggle{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:13px;padding:8px 0 10px}
+.toggle input{width:40px;height:22px;accent-color:var(--jade)}
+.npc{border:1px solid var(--line);border-radius:10px;padding:10px;margin-bottom:10px;background:var(--panel2)}
+.npc.locked{border-style:dashed;opacity:.7}
+.tag.boss{background:#5a4a1a;color:#ffe9a8}
+.hidden{display:none!important}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--panel2);border:1px solid var(--line);padding:8px 14px;border-radius:8px;font-size:13px;z-index:30;transition:opacity .3s}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <h1>天星界・御劍者<small>v0.2 暫定名稱</small></h1>
+    <div class="silver" id="silver">銀兩 0</div>
+  </header>
+
+  <section class="card">
+    <div class="hero">
+      <div class="seal big" id="pSeal">銀</div>
+      <div class="info">
+        <div class="name"><b id="pName">御劍者</b><span id="pLv">Lv.1</span></div>
+        <div class="bars">
+          <div class="barrow"><span>經驗</span><div class="bar exp"><i id="expBar"></i></div><em id="expTxt"></em></div>
+          <div class="barrow"><span>血量</span><div class="bar hp" id="hpBarWrap"><i id="hpBar"></i></div><em id="hpTxt"></em></div>
+          <div class="barrow"><span id="enName">氣力</span><div class="bar en"><i id="enBar"></i></div><em id="enTxt"></em></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <div class="loc" id="loc"></div>
+
+  <section class="card arena">
+    <div class="stage" id="stage"><div class="floaters" id="floaters"></div></div>
+    <div class="mobinfo" id="mobinfo"></div>
+  </section>
+
+  <section class="card log" id="log"></section>
+
+  <nav class="tabs" id="tabs">
+    <button data-t="map">地圖</button><button data-t="stats">屬性</button><button data-t="sword">注劍</button><button data-t="bag">背包</button>
+    <button data-t="quest">委託</button><button data-t="weapon">武器</button><button data-t="record">紀錄</button>
+  </nav>
+  <section class="panel card" id="panel"></section>
+</div>
+
+<div class="modal hidden" id="modal"><div class="card" id="modalBody"></div></div>
+<div class="toast hidden" id="toast"></div>
+
+<script>
+/* ===== 天星界・御劍者 v0.2 — 遊戲資料與引擎（不含畫面） ===== */
+
+/* ---------- 遊戲資料：名稱、數值都集中在這裡，改這裡就好 ---------- */
+const GAME = {
+  meta: { title: '天星界・御劍者', subtitle: '暫定名稱', version: '0.2', era: '仙曆五百餘年' },
+
+  // 八項資源系統（順序固定，星數陣列照這個順序）
+  statNames: ['力量', '抵擋', '體力', '敏捷', '智慧', '守護', '靈力', '控制'],
+  statDesc: {
+    '力量': '物理攻擊、爆擊', '抵擋': '物理防禦、韌性', '體力': '血量、氣力', '敏捷': '技能冷卻、命中、吟唱速度',
+    '智慧': '魔法攻擊、爆擊', '守護': '魔法防禦、韌性', '靈力': '靈氣、治療提升', '控制': '控場、閃避控制'
+  },
+
+  // 四氏輪迴：每組第 N 個剋下一組第 N+1 個（第 5 個繞回第 1 個）
+  groups: [
+    { name: '鳳炎', members: ['萬', '天', '皇', '必', '暗'] },
+    { name: '真言', members: ['武', '術', '神', '聖', '霸'] },
+    { name: '樊柳', members: ['銀', '弓', '玉', '慧', '降'] },
+    { name: '靈月', members: ['閃', '星', '誅', '闇', '仙'] }
+  ],
+
+  // 武器職業：星數順序同 statNames；null 代表設定中
+  weapons: {
+    '萬': { weapon: '戟', role: '防', stars: [1, 5, 3, 1, 1, 3, 1, 1] },
+    '天': { weapon: '法球', role: '防', stars: [1, 1, 2, 1, 3, 5, 2, 1] },
+    '皇': { weapon: '長槍', role: '防', stars: [1, 4, 2, 5, 1, 1, 1, 1] },
+    '必': { weapon: '劍、盾', role: '防', stars: [1, 4, 4, 1, 1, 1, 1, 3] },
+    '暗': { weapon: '法典', role: '防', stars: [1, 3, 3, 1, 2, 4, 1, 1] },
+    '武': { weapon: '錘', role: '防', stars: [2, 3, 4, 1, 1, 1, 1, 3] },
+    '術': { weapon: '杖', role: '輸', stars: [1, 1, 1, 2, 5, 1, 4, 1] },
+    '神': { weapon: '拳', role: '防', stars: [1, 1, 3, 3, 1, 4, 1, 2] },
+    '聖': { weapon: '機關獸', role: '防', stars: [1, 3, 2, 3, 1, 4, 1, 1] },
+    '霸': { weapon: '棍', role: '防', stars: [2, 5, 2, 1, 1, 3, 1, 1] },
+    '銀': { weapon: '大劍', role: '輸', stars: [4, 2, 4, 1, 1, 2, 1, 1] },
+    '弓': { weapon: '弓箭', role: '輸', stars: [5, 1, 1, 4, 1, 1, 1, 2] },
+    '玉': { weapon: '玉珠', role: '輸', stars: [1, 1, 1, 1, 4, 3, 4, 1] },
+    '慧': { weapon: '團扇', role: '輸', stars: [1, 1, 1, 1, 3, 1, 3, 5] },
+    '降': { weapon: '匕首', role: '輸', stars: [4, 1, 1, 4, 1, 1, 3, 1] },
+    '閃': { weapon: '毒蠱', role: '輸', stars: [4, 1, 1, 1, 4, 1, 3, 1] },
+    '星': { weapon: '寶輪', role: '輸', stars: null },
+    '誅': { weapon: '短雙劍', role: '輸', stars: null },
+    '闇': { weapon: '丹爐', role: '防', stars: null },
+    '仙': { weapon: '箏', role: '輸', stars: null }
+  },
+
+  // 四氏輪迴傷害倍率（基礎傷害的百分比範圍）
+  multipliers: {
+    neutral: [0.85, 1.05], neutralCrit: [1.35, 2.00],
+    counter: [1.65, 1.85], counterCrit: [2.15, 2.80],
+    countered: [0.45, 0.65], counteredCrit: [0.95, 1.60]
+  },
+
+  materials: {
+    '精魄': { seal: '魄', desc: '魔物倒下後留下的一點精氣，注劍的主要材料' },
+    '草芯': { seal: '芯', desc: '草木精怪的芯，摸起來還是溫的' },
+    '獸牙': { seal: '牙', desc: '野獸類魔物的牙' },
+    '甲片': { seal: '甲', desc: '甲蟲類魔物的硬殼碎片' },
+    '火燼': { seal: '燼', desc: '鬼火熄滅後留下的灰' },
+    '石核': { seal: '核', desc: '傀儡體內的發熱石核' },
+    '蝠翼': { seal: '翼', desc: '薄而韌的翼膜' },
+    '殘鐵': { seal: '鐵', desc: '舊時兵器的碎片，鏽得很深' },
+    '鋒鐵': { seal: '鋒', desc: '劍塚深處取得的鐵，仍帶著鋒芒' },
+    // 息區（第五章）材料，先保留
+    '瘴晶': { seal: '晶', desc: '瘴氣凝成的晶塊' }
+  },
+
+  // 魔物原型：同等級時的強度，等級越高照同一條曲線放大
+  archetypes: {
+    weak:   { hp: 140, atk: 14, pdef: 8, mdef: 8, interval: 1.6, exp: 6, silver: 2 },
+    fast:   { hp: 140, atk: 11, pdef: 8, mdef: 6, interval: 1.1, exp: 7, silver: 3 },
+    caster: { hp: 150, atk: 16, pdef: 6, mdef: 16, interval: 1.7, exp: 8, silver: 3 },
+    tank:   { hp: 210, atk: 15, pdef: 24, mdef: 10, interval: 1.6, exp: 10, silver: 4 },
+    brute:  { hp: 250, atk: 20, pdef: 26, mdef: 14, interval: 1.9, exp: 13, silver: 5 },
+    elite:  { hp: 700, atk: 24, pdef: 22, mdef: 22, interval: 1.4, crit: 0.12, exp: 60, silver: 25 },
+    boss:   { hp: 1100, atk: 22, pdef: 24, mdef: 24, interval: 1.5, crit: 0.15, exp: 150, silver: 60 }
+  },
+
+  // 魔物：art 是造型，pal 是配色，attrs 是架勢（1～4 種，每回合輪流切換）
+  // 規則：前期 1 個架勢，中期 2 個，後期 3 個，精英、首領最多 4 個
+  monsters: {
+    qingmiao: { name: '青苗靈', art: 'sprite', pal: 'green', arch: 'weak', attrs: ['神'], type: 'phys', drops: [['草芯', 0.10], ['精魄', 0.12]] },
+    yequan:   { name: '野犬', art: 'hound', pal: 'brown', arch: 'fast', attrs: ['降'], type: 'phys', drops: [['獸牙', 0.10], ['精魄', 0.10]] },
+    youhuo:   { name: '遊火', art: 'wisp', pal: 'orange', arch: 'caster', attrs: ['術'], type: 'magic', drops: [['火燼', 0.10], ['精魄', 0.10]] },
+    maisui:   { name: '麥穗靈', art: 'sprite', pal: 'gold', arch: 'weak', attrs: ['神'], type: 'phys', drops: [['草芯', 0.12], ['精魄', 0.10]] },
+    tianjia:  { name: '田甲蟲', art: 'beetle', pal: 'field', arch: 'tank', attrs: ['武'], type: 'phys', drops: [['甲片', 0.10], ['精魄', 0.10]] },
+    chihu:    { name: '赤狐', art: 'hound', pal: 'fox', arch: 'fast', attrs: ['弓'], type: 'phys', drops: [['獸牙', 0.12], ['精魄', 0.10]] },
+    xiwu:     { name: '溪霧靈', art: 'wisp', pal: 'river', arch: 'caster', attrs: ['閃'], type: 'magic', drops: [['火燼', 0.08], ['精魄', 0.10]] },
+    fengye:   { name: '楓葉靈', art: 'sprite', pal: 'maple', arch: 'caster', attrs: ['慧'], type: 'magic', drops: [['草芯', 0.12], ['精魄', 0.10]] },
+    cideng:   { name: '祠燈火', art: 'wisp', pal: 'amber', arch: 'caster', attrs: ['術', '玉'], type: 'magic', drops: [['火燼', 0.10], ['精魄', 0.10]] },
+    heizong:  { name: '黑鬃狼', art: 'hound', pal: 'black', arch: 'fast', attrs: ['誅', '降'], type: 'phys', drops: [['獸牙', 0.12], ['精魄', 0.10]] },
+    shijie:   { name: '石階傀儡', art: 'golem', pal: 'slate', arch: 'brute', attrs: ['武', '聖'], type: 'phys', drops: [['石核', 0.08], ['精魄', 0.10]] },
+    yefu:     { name: '夜蝠', art: 'bat', pal: 'night', arch: 'fast', attrs: ['弓', '閃'], type: 'phys', drops: [['蝠翼', 0.10], ['精魄', 0.10]] },
+    muyuan:   { name: '墓園鬼火', art: 'wisp', pal: 'violet', arch: 'caster', attrs: ['暗', '闇'], type: 'magic', drops: [['火燼', 0.12], ['精魄', 0.10]] },
+    yueying:  { name: '月影狼', art: 'hound', pal: 'moon', arch: 'fast', attrs: ['誅', '星'], type: 'phys', drops: [['獸牙', 0.12], ['精魄', 0.10]] },
+    jingdi:   { name: '井底蟲', art: 'beetle', pal: 'well', arch: 'tank', attrs: ['霸', '武'], type: 'phys', drops: [['甲片', 0.12], ['精魄', 0.10]] },
+    lanhua:   { name: '蘭花妖', art: 'vine', pal: 'orchid', arch: 'caster', attrs: ['慧', '仙'], type: 'magic', drops: [['草芯', 0.12], ['精魄', 0.10]] },
+    kuangkeng:{ name: '礦坑石魔', art: 'golem', pal: 'rust', arch: 'brute', attrs: ['武', '霸'], type: 'phys', drops: [['石核', 0.10], ['精魄', 0.10]] },
+    shanfu:   { name: '山蝠', art: 'bat', pal: 'cave', arch: 'fast', attrs: ['弓', '降'], type: 'phys', drops: [['蝠翼', 0.12], ['精魄', 0.10]] },
+    huangpo:  { name: '荒坡狼', art: 'hound', pal: 'sand', arch: 'fast', attrs: ['誅', '降', '皇'], type: 'phys', drops: [['獸牙', 0.12], ['精魄', 0.10]] },
+    suishi:   { name: '碎石傀儡', art: 'golem', pal: 'gravel', arch: 'brute', attrs: ['武', '聖', '皇'], type: 'phys', drops: [['石核', 0.12], ['精魄', 0.10]] },
+    canbing:  { name: '關隘殘兵', art: 'hood', pal: 'rust', arch: 'brute', attrs: ['必', '皇', '武'], type: 'phys', drops: [['殘鐵', 0.12], ['精魄', 0.10]] },
+    zhuling:  { name: '竹靈', art: 'sprite', pal: 'bamboo', arch: 'caster', attrs: ['慧', '仙'], type: 'magic', drops: [['草芯', 0.12], ['精魄', 0.10]] },
+    quanling: { name: '泉靈', art: 'wisp', pal: 'spring', arch: 'caster', attrs: ['玉', '術', '天'], type: 'magic', drops: [['火燼', 0.12], ['精魄', 0.10]] },
+    fengfu:   { name: '峰頂白蝠', art: 'bat', pal: 'snow', arch: 'fast', attrs: ['弓', '閃', '星'], type: 'phys', drops: [['蝠翼', 0.12], ['精魄', 0.10]] },
+    fengya:   { name: '鋒崖殘兵', art: 'hood', pal: 'steel', arch: 'brute', attrs: ['必', '誅', '萬'], type: 'phys', drops: [['殘鐵', 0.12], ['精魄', 0.12]] },
+    // 精英與首領
+    jiuling:  { name: '楓緣舊靈', rank: 'elite', art: 'vine', pal: 'crimson', arch: 'elite', attrs: ['慧', '玉', '仙'], type: 'magic', drops: [['草芯', 1], ['精魄', 1]] },
+    hunjiang: { name: '冥月遊魂將', rank: 'elite', art: 'hood', pal: 'violet', arch: 'elite', attrs: ['暗', '闇', '仙'], type: 'magic', drops: [['火燼', 1], ['精魄', 1]] },
+    canjiang: { name: '梁山殘將', rank: 'elite', art: 'hood', pal: 'iron', arch: 'elite', attrs: ['必', '皇', '武', '霸'], type: 'phys', drops: [['殘鐵', 1], ['精魄', 1]] },
+    fenghun:  { name: '劍塚・鋒魂', rank: 'boss', art: 'blade', pal: 'soul', arch: 'boss', attrs: ['必', '銀', '誅', '萬'], type: 'phys', drops: [['鋒鐵', 1], ['精魄', 1]] },
+    // 息區（第五章）魔物：v0.1 做的，先保留，之後開放息區再用
+    zhangwu:  { name: '瘴霧靈', art: 'wisp', pal: 'miasma', arch: 'caster', attrs: ['閃'], type: 'magic', drops: [['瘴晶', 0.12]] },
+    shigu:    { name: '噬骨犬', art: 'hound', pal: 'bone', arch: 'fast', attrs: ['降'], type: 'phys', drops: [['瘴晶', 0.05]] },
+    kuteng:   { name: '枯藤妖', art: 'vine', pal: 'wither', arch: 'caster', attrs: ['慧', '玉'], type: 'magic', bind: 0.12, drops: [['瘴晶', 0.06]] },
+    lunjia:   { name: '輪甲蟲', art: 'beetle', pal: 'wheel', arch: 'tank', attrs: ['星'], type: 'phys', drops: [['瘴晶', 0.06]] },
+    yanji:    { name: '岩脊魔', art: 'golem', pal: 'rock', arch: 'brute', attrs: ['霸', '武'], type: 'phys', drops: [['瘴晶', 0.07]] },
+    chihou:   { name: '魔界斥候', rank: 'elite', art: 'hood', pal: 'demon', arch: 'elite', attrs: ['暗', '誅', '星', '霸'], type: 'phys', drops: [['瘴晶', 0.5]] }
+  },
+
+  // 天霖國六區：首區先開放，其他區先列出地名
+  chapters: [
+    { id: 'shou', no: '一', name: '首區', open: true, desc: '天霖國人口最多的地方，城鎮之間的路大多還算平靜。', places: [
+      { name: '天霖市', hub: true, bg: '#3a3226', zones: [
+        { id: 'tl1', name: '城郊田野', lv: [1, 2], spawns: [['qingmiao', 70], ['yequan', 30]] },
+        { id: 'tl2', name: '南門河堤', lv: [2, 3], spawns: [['yequan', 60], ['qingmiao', 40]] },
+        { id: 'tl3', name: '舊驛道', lv: [3, 4], spawns: [['yequan', 50], ['youhuo', 50]] }] },
+      { name: '五頓村', bg: '#3b3420', zones: [
+        { id: 'wd1', name: '麥田', lv: [4, 5], spawns: [['maisui', 60], ['tianjia', 40]] },
+        { id: 'wd2', name: '穀倉後林', lv: [5, 6], spawns: [['tianjia', 50], ['chihu', 50]] },
+        { id: 'wd3', name: '溪畔', lv: [6, 7], spawns: [['chihu', 50], ['xiwu', 50]] }] },
+      { name: '仙緣鎮', bg: '#3d2522', zones: [
+        { id: 'xy1', name: '楓林道', lv: [7, 8], spawns: [['fengye', 60], ['chihu', 40]] },
+        { id: 'xy2', name: '鎮外古祠', lv: [8, 9], spawns: [['fengye', 40], ['cideng', 60]] },
+        { id: 'xy3', name: '楓緣舊址', lv: [9, 10], spawns: [['cideng', 45], ['heizong', 50], ['jiuling', 5]] }] },
+      { name: '明臺', bg: '#28303a', zones: [
+        { id: 'mt1', name: '明臺石階', lv: [10, 11], spawns: [['shijie', 60], ['heizong', 40]] },
+        { id: 'mt2', name: '觀星坪', lv: [10, 12], spawns: [['yefu', 60], ['shijie', 40]] },
+        { id: 'mt3', name: '斷崖', lv: [11, 12], spawns: [['yefu', 50], ['heizong', 50]] }] },
+      { name: '冥月鎮', bg: '#2e2638', zones: [
+        { id: 'my1', name: '鎮外墓園', lv: [12, 13], spawns: [['muyuan', 70], ['yefu', 30]] },
+        { id: 'my2', name: '月影林', lv: [12, 14], spawns: [['yueying', 70], ['muyuan', 30]] },
+        { id: 'my3', name: '枯井', lv: [13, 14], spawns: [['jingdi', 55], ['muyuan', 40], ['hunjiang', 5]] }] },
+      { name: '夜蘭山城', bg: '#2a2a3c', zones: [
+        { id: 'yl1', name: '山道', lv: [14, 15], spawns: [['shanfu', 60], ['yueying', 40]] },
+        { id: 'yl2', name: '蘭谷', lv: [14, 16], spawns: [['lanhua', 70], ['shanfu', 30]] },
+        { id: 'yl3', name: '城下礦坑', lv: [15, 16], spawns: [['kuangkeng', 70], ['jingdi', 30]] }] },
+      { name: '梁山城', bg: '#3a2e24', zones: [
+        { id: 'ls1', name: '城外荒坡', lv: [16, 17], spawns: [['huangpo', 70], ['shanfu', 30]] },
+        { id: 'ls2', name: '碎石坡', lv: [16, 18], spawns: [['suishi', 70], ['huangpo', 30]] },
+        { id: 'ls3', name: '廢棄關隘', lv: [17, 18], spawns: [['canbing', 60], ['suishi', 35], ['canjiang', 5]] }] },
+      { name: '月靈峰', bg: '#22363a', zones: [
+        { id: 'yf1', name: '峰腰竹林', lv: [18, 19], spawns: [['zhuling', 70], ['huangpo', 30]] },
+        { id: 'yf2', name: '靈泉', lv: [18, 20], spawns: [['quanling', 70], ['zhuling', 30]] },
+        { id: 'yf3', name: '峰頂', lv: [19, 20], spawns: [['fengfu', 60], ['quanling', 40]] }] },
+      { name: '凝鋒頂城', bg: '#2c3238', zones: [
+        { id: 'nf1', name: '鋒崖棧道', lv: [20, 21], spawns: [['fengfu', 40], ['fengya', 60]] },
+        { id: 'nf2', name: '頂城舊壘', lv: [20, 22], spawns: [['fengya', 60], ['canbing', 40]] },
+        { id: 'nf3', name: '劍塚', lv: [21, 22], spawns: [['fengya', 85], ['fenghun', 15]] }] }
+    ] },
+    { id: 'qing', no: '二', name: '青區', open: false, places: ['靜宇村', '柳青臺', '華月村', '古道', '鳳城', '冷遠道', '烈血譚'] },
+    { id: 'liu', no: '三', name: '柳區', open: false, places: ['思曲村', '水清臺', '鷲鋒區', '龍掠山村', '履風譚', '神參道', '燮影鎮', '蓮凝楓臺', '寒霜村', '冷繁城', '陰籐道'] },
+    { id: 'gu', no: '四', name: '孤區', open: false, places: ['獨古城', '崙閭譚', '寒迭村', '殤陽區', '蟬風御村', '葉城', '秋逢鎮', '穎譚', '夢華江區', '影界臺'] },
+    { id: 'xi', no: '五', name: '息區', open: false, places: ['明羽村', '燎原山', '姑息大地', '星夜大地', '汐萬臺', '降靈臺', '初始大地', '風臺', '古丹城', '蓮清臺', '百花大地', '宿月區'] },
+    { id: 'yin', no: '六', name: '陰區', open: false, places: ['魔峰區', '遙玥譚', '江水霞臺', '孤照村', '小淩村', '蕭獨凜道', '幽蘊鎮', '天陰區', '寮山區', '凍原大地'], note: '魔峰區是天霖國最後一張地圖' }
+  ],
+
+  // 天霖市的人（暫代，可以改）
+  npcs: {
+    quest: { name: '溫遲', title: '天霖市巡守司・執事', seal: '溫' },
+    fate: { name: '尋命者', title: '天霖市・城南星盤館', seal: '命', locked: true,
+      text: '尋命者能重組一個人的星盤、調整命格，但改動不會立即見效。（之後的版本開放）' }
+  },
+
+  quest: {
+    name: '巡守委託', target: 30,
+    text: '首區各地都有魔物越過界線。在任何地方擊倒魔物都算數，滿額後回巡守司回報。',
+    reward(lv) { return { silver: 20 * (lv + 4), mats: { '精魄': 3 } }; }
+  },
+
+  sword: {
+    maxLv: 20, atkPerLv: 0.08, hpPerLv: 0.04, levelName: '豪情',
+    breakthroughs: { 5: { '草芯': 8, '獸牙': 8 }, 10: { '甲片': 12, '火燼': 12 }, 15: { '石核': 15, '蝠翼': 15 }, 20: { '殘鐵': 15, '鋒鐵': 3 } }
+  },
+
+  rules: {
+    offlineCapSec: 12 * 3600, restBelow: 0.4, restUntil: 0.95, downSec: 15, searchSec: 1.0,
+    skillCoef: 2.2, skillCd: 6, skillCost: 15, energyRegen: 2, baseInterval: 1.2,
+    expBase: 40, expPow: 2.6
+  }
+};
+
+// 把章節攤平成狩獵區清單
+GAME.zones = [];
+for (const ch of GAME.chapters) if (ch.open) ch.places.forEach((pl, pi) => pl.zones.forEach(z => {
+  z.chapter = ch.name; z.place = pl.name; z.placeIndex = pi; z.bg = pl.bg;
+  z.unlock = Math.max(1, z.lv[0] - 1);
+  GAME.zones.push(z);
+}));
+
+/* ---------- 工具 ---------- */
+let rng = Math.random;
+function setRng(f) { rng = f; }
+const randInt = (a, b) => a + Math.floor(rng() * (b - a + 1));
+
+/* ---------- 四氏輪迴 ---------- */
+function posOf(ch) {
+  for (let g = 0; g < 4; g++) { const p = GAME.groups[g].members.indexOf(ch); if (p >= 0) return { g, p }; }
+  return null;
+}
+function counters(a, b) { // a 剋 b
+  const A = posOf(a), B = posOf(b);
+  return !!(A && B && B.g === (A.g + 1) % 4 && B.p === (A.p + 1) % 5);
+}
+function matchup(att, def) {
+  if (counters(att, def)) return 'counter';
+  if (counters(def, att)) return 'countered';
+  return 'neutral';
+}
+function counterTargets(ch) {
+  const A = posOf(ch);
+  return {
+    beats: GAME.groups[(A.g + 1) % 4].members[(A.p + 1) % 5],
+    beatenBy: GAME.groups[(A.g + 3) % 4].members[(A.p + 4) % 5]
+  };
+}
+function groupOf(ch) { return GAME.groups[posOf(ch).g].name; }
+function rollMult(kind, crit) {
+  const r = GAME.multipliers[crit ? kind + 'Crit' : kind];
+  return r[0] + rng() * (r[1] - r[0]);
+}
+
+/* ---------- 角色 ---------- */
+function expNeed(lv) { return Math.round(GAME.rules.expBase * Math.pow(lv, GAME.rules.expPow)); }
+
+function derive(st) {
+  const w = GAME.weapons[st.weapon];
+  const s = w.stars.map(x => x * (st.lv + 4));
+  const [STR, BLK, VIT, AGI, INT, GRD, SPI, CTL] = s;
+  const sw = st.swordLv[st.weapon] || 0;
+  const magic = INT > STR; // 同分算物理
+  const main = magic ? INT : STR;
+  const castSpeed = magic ? 1 + AGI * 0.004 : 1;
+  return {
+    stats: s, magic, main,
+    atk: Math.round((main * 2 + 10) * (1 + GAME.sword.atkPerLv * sw)),
+    crit: Math.min(0.6, 0.05 + main * 0.0015),
+    pdef: BLK * 2, mdef: GRD * 2,
+    ptough: Math.min(0.3, BLK * 0.001), mtough: Math.min(0.3, GRD * 0.001),
+    maxHp: Math.round((VIT * 12 + 60) * (1 + GAME.sword.hpPerLv * sw)),
+    maxEn: (magic ? SPI : VIT) + 20,
+    enName: magic ? '靈氣' : '氣力',
+    hit: Math.min(1, 0.9 + AGI * 0.002),
+    cdr: Math.min(0.4, AGI * 0.005),
+    castSpeed,
+    heal: SPI * 0.01,
+    stun: Math.min(0.5, CTL * 0.003),
+    resist: Math.min(0.8, CTL * 0.005),
+    interval: GAME.rules.baseInterval / castSpeed,
+    skillName: st.weapon + '・初式'
+  };
+}
+
+function newState() {
+  return {
+    v: 2, lv: 1, exp: 0, weapon: '銀', swordLv: {}, silver: 0, mats: {}, zone: GAME.zones[0].id, auto: true,
+    hp: null, en: null,
+    quest: { progress: 0, done: 0 },
+    stats: { kills: {}, deaths: 0, playSec: 0, offlineSec: 0, totalExp: 0, bossKills: 0 },
+    lastSave: Date.now()
+  };
+}
+// 舊存檔升級：v0.1 的息區狩獵區已移到第五章
+function migrate(st) {
+  if (!zoneById(st.zone)) st.zone = bestZone(st).id;
+  if (st.auto === undefined) st.auto = true;
+  st.v = 2;
+  return st;
+}
+
+function zoneById(id) { return GAME.zones.find(z => z.id === id); }
+function zoneUnlocked(st, id) { return st.lv >= zoneById(id).unlock; }
+function bestZone(st) { // 怪物最低等級不超過自己等級的最後一區
+  let best = GAME.zones[0];
+  for (const z of GAME.zones) if (z.lv[0] <= st.lv) best = z;
+  return best;
+}
+
+/* ---------- 魔物 ---------- */
+function lvScale(L) { return (L + 4) / 5; } // 玩家屬性是 星數×(等級+4)，魔物用同一條曲線
+function spawn(st) {
+  const z = zoneById(st.zone);
+  const total = z.spawns.reduce((a, s) => a + s[1], 0);
+  let r = rng() * total, key = z.spawns[0][0];
+  for (const [k, w] of z.spawns) { if ((r -= w) < 0) { key = k; break; } }
+  const b = GAME.monsters[key], a = GAME.archetypes[b.arch];
+  const L = b.rank ? z.lv[1] + 1 : randInt(z.lv[0], z.lv[1]);
+  const f = lvScale(L), ramp = 1 + 0.02 * (L - 1);
+  const hp = Math.round(a.hp * Math.pow(f, 1.15) * ramp);
+  return {
+    key, name: b.name, rank: b.rank || '', lv: L, attrs: b.attrs.slice(), stance: 0, type: b.type,
+    hp, maxHp: hp,
+    atk: Math.round(a.atk * f * (1 + 0.015 * (L - 1))),
+    pdef: Math.round(a.pdef * f), mdef: Math.round(a.mdef * f),
+    interval: a.interval, crit: a.crit || 0.05, bind: b.bind || 0,
+    exp: Math.round(a.exp * Math.pow(f, 1.6)), silver: Math.round(a.silver * f),
+    drops: b.drops, timer: a.interval * 0.6, stunned: 0
+  };
+}
+function expPenalty(plv, mlv) {
+  const gap = plv - mlv;
+  return gap > 3 ? Math.max(0.1, 1 - 0.2 * (gap - 3)) : 1;
+}
+
+/* ---------- 戰鬥時間推進 ---------- */
+function newRuntime(st) {
+  const d = derive(st);
+  if (st.hp == null || st.hp > d.maxHp) st.hp = d.maxHp;
+  if (st.en == null || st.en > d.maxEn) st.en = d.maxEn;
+  return { mode: 'search', wait: GAME.rules.searchSec, mob: null, pTimer: 0.3, skillCd: 2, bound: 0, d, events: [] };
+}
+function emit(rt, e) { if (rt.events) rt.events.push(e); }
+// 防禦減傷：K 隨攻擊方等級成長，同等級時減傷比例維持穩定
+function dmgCalc(atk, def, mult, lv) { const K = 20 * (lv + 4); return Math.max(1, Math.round(atk * K / (K + def) * mult)); }
+
+function gainExp(st, rt, amount) {
+  st.exp += amount; st.stats.totalExp += amount;
+  while (st.exp >= expNeed(st.lv)) {
+    st.exp -= expNeed(st.lv); st.lv++;
+    rt.d = derive(st); st.hp = rt.d.maxHp; st.en = rt.d.maxEn;
+    emit(rt, { t: 'levelup', lv: st.lv });
+  }
+}
+
+function playerAttack(st, rt, useSkill) {
+  const d = rt.d, m = rt.mob;
+  if (rng() > d.hit) { emit(rt, { t: 'miss', who: 'p', skill: useSkill, name: m.name }); return; }
+  const kind = matchup(st.weapon, m.attrs[m.stance]);
+  const crit = rng() < d.crit;
+  const dmg = dmgCalc(d.atk, d.magic ? m.mdef : m.pdef, rollMult(kind, crit) * (useSkill ? GAME.rules.skillCoef : 1), st.lv);
+  m.hp -= dmg;
+  let stun = false;
+  if (useSkill && m.hp > 0 && rng() < d.stun) { m.stunned = 1.5; stun = true; }
+  emit(rt, { t: 'hit', who: 'p', dmg, kind, crit, skill: useSkill, stun, name: m.name });
+}
+
+function mobAttack(st, rt) {
+  const d = rt.d, m = rt.mob;
+  if (rng() > 0.95) { emit(rt, { t: 'miss', who: 'm', name: m.name }); }
+  else {
+    const kind = matchup(m.attrs[m.stance], st.weapon);
+    const tough = m.type === 'magic' ? d.mtough : d.ptough;
+    const crit = rng() < Math.max(0, m.crit - tough);
+    const dmg = dmgCalc(m.atk, m.type === 'magic' ? d.mdef : d.pdef, rollMult(kind, crit), m.lv);
+    st.hp -= dmg;
+    emit(rt, { t: 'hit', who: 'm', dmg, kind, crit, name: m.name });
+    if (m.bind && st.hp > 0 && rng() < m.bind * (1 - d.resist)) { rt.bound = 1.5; emit(rt, { t: 'bound' }); }
+  }
+  if (m.attrs.length > 1) { m.stance = (m.stance + 1) % m.attrs.length; emit(rt, { t: 'stance', attr: m.attrs[m.stance], name: m.name }); }
+}
+
+function onKill(st, rt) {
+  const m = rt.mob;
+  const exp = Math.max(1, Math.round(m.exp * expPenalty(st.lv, m.lv)));
+  const silver = Math.round(m.silver * (0.8 + rng() * 0.4));
+  st.silver += silver;
+  st.stats.kills[m.key] = (st.stats.kills[m.key] || 0) + 1;
+  if (m.rank === 'boss') st.stats.bossKills = (st.stats.bossKills || 0) + 1;
+  const got = {};
+  for (const [mat, p] of m.drops) if (rng() < p) { st.mats[mat] = (st.mats[mat] || 0) + 1; got[mat] = (got[mat] || 0) + 1; }
+  if (st.quest.progress < GAME.quest.target) st.quest.progress++;
+  emit(rt, { t: 'kill', key: m.key, name: m.name, exp, silver, got, rank: m.rank });
+  gainExp(st, rt, exp);
+  rt.mob = null;
+  if (st.hp < rt.d.maxHp * GAME.rules.restBelow) { rt.mode = 'rest'; emit(rt, { t: 'rest' }); }
+  else { rt.mode = 'search'; rt.wait = GAME.rules.searchSec; }
+}
+
+function step(st, rt, dt) {
+  const d = rt.d, R = GAME.rules;
+  st.en = Math.min(d.maxEn, st.en + R.energyRegen * dt);
+  if (rt.mode === 'down') {
+    rt.wait -= dt;
+    if (rt.wait <= 0) { st.hp = d.maxHp; rt.mode = 'search'; rt.wait = R.searchSec; emit(rt, { t: 'revive' }); }
+    return;
+  }
+  if (rt.mode === 'rest') {
+    st.hp = Math.min(d.maxHp, st.hp + d.maxHp * 0.06 * (1 + d.heal) * dt);
+    if (st.hp >= d.maxHp * R.restUntil) { rt.mode = 'search'; rt.wait = R.searchSec; }
+    return;
+  }
+  if (rt.mode === 'search') {
+    st.hp = Math.min(d.maxHp, st.hp + d.maxHp * 0.01 * (1 + d.heal) * dt);
+    rt.wait -= dt;
+    if (rt.wait <= 0) {
+      if (st.auto) { const b = bestZone(st); if (b.id !== st.zone && b.lv[0] > zoneById(st.zone).lv[0]) { st.zone = b.id; emit(rt, { t: 'move', zone: b.id }); } }
+      rt.mob = spawn(st); rt.mode = 'fight'; rt.pTimer = 0.3;
+      emit(rt, { t: 'spawn', name: rt.mob.name, lv: rt.mob.lv, rank: rt.mob.rank });
+    }
+    return;
+  }
+  const m = rt.mob;
+  st.hp = Math.min(d.maxHp, st.hp + d.maxHp * 0.003 * (1 + d.heal) * dt);
+  rt.skillCd -= dt;
+  if (rt.bound > 0) rt.bound -= dt;
+  else {
+    rt.pTimer -= dt;
+    if (rt.pTimer <= 0) {
+      const useSkill = rt.skillCd <= 0 && st.en >= R.skillCost;
+      if (useSkill) { st.en -= R.skillCost; rt.skillCd = R.skillCd * (1 - d.cdr); }
+      playerAttack(st, rt, useSkill);
+      rt.pTimer += d.interval;
+      if (m.hp <= 0) { onKill(st, rt); return; }
+    }
+  }
+  if (m.stunned > 0) m.stunned -= dt;
+  else {
+    m.timer -= dt;
+    if (m.timer <= 0) {
+      mobAttack(st, rt);
+      m.timer += m.interval;
+      if (st.hp <= 0) {
+        st.hp = 0; st.stats.deaths++; rt.mode = 'down'; rt.wait = R.downSec; rt.mob = null;
+        emit(rt, { t: 'down', name: m.name });
+      }
+    }
+  }
+}
+
+/* ---------- 離線結算：用同一套戰鬥規則快轉 ---------- */
+function simulate(st, seconds, rt) {
+  const sum = { seconds, lvFrom: st.lv, lvTo: st.lv, zoneFrom: st.zone, zoneTo: st.zone, exp: 0, silver: 0, kills: {}, mats: {}, deaths: 0, quest: 0, rareKills: 0 };
+  rt = rt || newRuntime(st);
+  const saveEvents = rt.events; rt.events = [];
+  const silver0 = st.silver, deaths0 = st.stats.deaths, totalExp0 = st.stats.totalExp, q0 = st.quest.progress;
+  const dt = 0.1;
+  let t = 0;
+  while (t < seconds) {
+    step(st, rt, dt); t += dt;
+    if (rt.events.length) {
+      for (const e of rt.events) if (e.t === 'kill') {
+        sum.kills[e.name] = (sum.kills[e.name] || 0) + 1;
+        if (e.rank) sum.rareKills++;
+        for (const k in e.got) sum.mats[k] = (sum.mats[k] || 0) + e.got[k];
+      }
+      rt.events.length = 0;
+    }
+  }
+  rt.events = saveEvents;
+  sum.lvTo = st.lv; sum.zoneTo = st.zone; sum.silver = st.silver - silver0; sum.deaths = st.stats.deaths - deaths0;
+  sum.exp = st.stats.totalExp - totalExp0; sum.quest = st.quest.progress - q0;
+  return { sum, rt };
+}
+
+/* ---------- 注劍：每級要銀兩和精魄；+5、+10、+15、+20 是突破，要特殊材料 ---------- */
+function swordCost(n) {
+  const silver = Math.round(50 * Math.pow(n + 1, 1.7));
+  const mats = { '精魄': Math.round(3 * Math.pow(n + 1, 1.6)) };
+  const bt = GAME.sword.breakthroughs[n + 1];
+  if (bt) Object.assign(mats, bt);
+  return { silver, mats, breakthrough: !!bt };
+}
+function canAfford(st, cost) {
+  if (st.silver < cost.silver) return false;
+  for (const k in cost.mats) if ((st.mats[k] || 0) < cost.mats[k]) return false;
+  return true;
+}
+function upgradeSword(st) {
+  const n = st.swordLv[st.weapon] || 0;
+  if (n >= GAME.sword.maxLv) return false;
+  const c = swordCost(n);
+  if (!canAfford(st, c)) return false;
+  st.silver -= c.silver;
+  for (const k in c.mats) st.mats[k] -= c.mats[k];
+  st.swordLv[st.weapon] = n + 1;
+  return true;
+}
+
+/* ---------- 委託 ---------- */
+function claimQuest(st) {
+  if (st.quest.progress < GAME.quest.target) return null;
+  const r = GAME.quest.reward(st.lv);
+  st.silver += r.silver;
+  for (const k in r.mats) st.mats[k] = (st.mats[k] || 0) + r.mats[k];
+  st.quest.done++; st.quest.progress = 0;
+  return r;
+}
+
+if (typeof module !== 'undefined') module.exports = {
+  GAME, setRng, posOf, counters, matchup, counterTargets, groupOf, expNeed, derive, newState, migrate, zoneById, zoneUnlocked, bestZone,
+  spawn, newRuntime, step, simulate, swordCost, canAfford, upgradeSword, claimQuest
+};
+
+</script>
+<script>
+/* ===== 畫面 ===== */
+const ART = {
+  wisp: p => `<svg viewBox="0 0 120 120"><circle cx="100" cy="36" r="4" fill="${p.body}" stroke="#1d1a17" stroke-width="1.5"/><circle cx="106" cy="24" r="2.5" fill="${p.body}"/><circle cx="18" cy="62" r="3.5" fill="${p.body}" stroke="#1d1a17" stroke-width="1.5"/><path d="M60 16C83 16 95 34 93 55C92 69 85 78 88 91C81 87 77 96 70 89C66 98 58 93 55 102C51 93 44 98 41 89C35 93 30 85 33 76C24 67 25 49 31 37C38 24 48 16 60 16Z" fill="${p.body}" stroke="#1d1a17" stroke-width="2.5" stroke-linejoin="round"/><path d="M42 38C49 30 62 28 71 32" stroke="${p.light}" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M36 70C42 76 46 74 50 80" stroke="${p.dark}" stroke-width="2" fill="none" stroke-linecap="round"/><ellipse cx="49" cy="55" rx="7.5" ry="10.5" fill="#1d1a17"/><ellipse cx="72" cy="55" rx="7.5" ry="10.5" fill="#1d1a17"/><circle cx="50" cy="52" r="2.2" fill="${p.eye}"/><circle cx="73" cy="52" r="2.2" fill="${p.eye}"/><path d="M53 75Q61 69 69 75" stroke="#1d1a17" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>`,
+  hound: p => `<svg viewBox="0 0 120 120"><path d="M95 58C106 52 111 41 104 31" stroke="#1d1a17" stroke-width="5" fill="none" stroke-linecap="round"/><path d="M95 58C106 52 111 41 104 31" stroke="${p.body}" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M46 72L41 98L48 98L53 74Z M58 73L58 98L65 98L66 74Z M80 72L84 98L91 98L89 71Z M88 70L96 95L102 94L96 68Z" fill="${p.dark}" stroke="#1d1a17" stroke-width="2" stroke-linejoin="round"/><path d="M32 58C35 46 51 41 67 43C81 44 93 48 99 56C102 62 99 70 92 73L42 75C33 73 30 66 32 58Z" fill="${p.body}" stroke="#1d1a17" stroke-width="2.5" stroke-linejoin="round"/><path d="M57 50Q60 60 57 70M65 49Q68 60 65 71M73 50Q76 60 73 71" stroke="${p.deep}" stroke-width="2" fill="none" stroke-linecap="round"/><circle cx="52" cy="44" r="2.5" fill="${p.bone}"/><circle cx="62" cy="42.5" r="2.5" fill="${p.bone}"/><circle cx="72" cy="43" r="2.5" fill="${p.bone}"/><circle cx="82" cy="45" r="2.5" fill="${p.bone}"/><path d="M38 51C29 42 15 44 8 53L5 60L19 63C27 65 34 62 38 58Z" fill="${p.body}" stroke="#1d1a17" stroke-width="2.5" stroke-linejoin="round"/><path d="M27 46L32 30L37 47Z" fill="${p.dark}" stroke="#1d1a17" stroke-width="2" stroke-linejoin="round"/><circle cx="22" cy="51" r="3" fill="${p.eye}"/><path d="M7 58L9 62.5L11.5 58.5L14 63L16.5 59L19 63" stroke="#eee6d6" stroke-width="1.6" fill="none" stroke-linejoin="round"/></svg>`,
+  vine: p => `<svg viewBox="0 0 120 120"><path d="M48 104C42 106 34 104 27 109M72 104C80 106 88 104 95 109M60 105L60 112" stroke="#1d1a17" stroke-width="6" fill="none" stroke-linecap="round"/><path d="M48 104C42 106 34 104 27 109M72 104C80 106 88 104 95 109" stroke="${p.body}" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M49 56C37 50 27 57 19 48C15 43 18 37 24 38" stroke="#1d1a17" stroke-width="7" fill="none" stroke-linecap="round"/><path d="M49 56C37 50 27 57 19 48C15 43 18 37 24 38" stroke="${p.vine}" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M73 54C85 46 95 55 101 44C105 37 100 31 94 33" stroke="#1d1a17" stroke-width="7" fill="none" stroke-linecap="round"/><path d="M73 54C85 46 95 55 101 44C105 37 100 31 94 33" stroke="${p.vine}" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M50 104C46 88 44 72 48 58C50 46 45 36 51 26C57 17 70 17 74 27C78 38 72 48 74 60C76 74 72 90 70 104Z" fill="${p.body}" stroke="#1d1a17" stroke-width="2.5" stroke-linejoin="round"/><path d="M55 30C58 26 64 25 67 28M53 82C56 88 55 94 57 99M66 78C64 86 67 92 65 99" stroke="${p.deep}" stroke-width="2" fill="none" stroke-linecap="round"/><ellipse cx="56" cy="44" rx="4.5" ry="5.5" fill="#1d1a17"/><ellipse cx="68" cy="44" rx="4.5" ry="5.5" fill="#1d1a17"/><circle cx="56.5" cy="43" r="1.6" fill="${p.eye}"/><circle cx="68.5" cy="43" r="1.6" fill="${p.eye}"/><path d="M55 61Q62 68 69 61" stroke="#1d1a17" stroke-width="2.5" fill="none" stroke-linecap="round"/><path d="M24 38C20 30 26 26 30 30C30 35 27 37 24 38Z M94 33C96 25 103 25 103 30C101 33 97 34 94 33Z M19 48C11 47 10 41 15 40C18 42 19 45 19 48Z" fill="${p.leaf}" stroke="#1d1a17" stroke-width="1.5" stroke-linejoin="round"/></svg>`,
+  beetle: p => `<svg viewBox="0 0 120 120"><path d="M32 40L14 30M28 56L8 56M32 72L14 84M88 40L106 30M92 56L112 56M88 72L106 84" stroke="#1d1a17" stroke-width="4" stroke-linecap="round"/><path d="M32 40L14 30M28 56L8 56M32 72L14 84M88 40L106 30M92 56L112 56M88 72L106 84" stroke="${p.dark}" stroke-width="2" stroke-linecap="round"/><path d="M50 95L44 106M70 95L76 106" stroke="#1d1a17" stroke-width="3.5" stroke-linecap="round"/><ellipse cx="60" cy="92" rx="13" ry="10" fill="${p.dark}" stroke="#1d1a17" stroke-width="2.5"/><circle cx="55" cy="91" r="2.4" fill="${p.eye}"/><circle cx="65" cy="91" r="2.4" fill="${p.eye}"/><circle cx="60" cy="54" r="35" fill="${p.body}" stroke="#1d1a17" stroke-width="2.5"/><circle cx="60" cy="54" r="23" fill="${p.light}" stroke="#1d1a17" stroke-width="2"/><g stroke="#1d1a17" stroke-width="2.5"><path d="M60 31V19M60 77V89M37 54H25M83 54H95M44 38L35 29M76 70L85 79M76 38L85 29M44 70L35 79"/></g><circle cx="60" cy="54" r="9" fill="${p.accent}" stroke="#1d1a17" stroke-width="2"/><circle cx="60" cy="54" r="3" fill="#1d1a17"/><path d="M42 44A22 22 0 0 1 56 33" stroke="${p.hl}" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>`,
+  golem: p => `<svg viewBox="0 0 120 120"><path d="M38 38L44 14L53 34Z M53 32L62 7L70 31Z M70 33L81 14L84 39Z" fill="${p.dark}" stroke="#1d1a17" stroke-width="2.5" stroke-linejoin="round"/><path d="M28 102L22 72L30 47L44 35L64 30L82 36L96 52L100 76L94 102Z" fill="${p.body}" stroke="#1d1a17" stroke-width="2.5" stroke-linejoin="round"/><path d="M30 47L44 52L64 46L82 50L96 52M22 72L38 76M100 76L84 80" stroke="${p.deep}" stroke-width="2" fill="none"/><ellipse cx="17" cy="89" rx="11" ry="13" fill="${p.dark}" stroke="#1d1a17" stroke-width="2.5"/><ellipse cx="104" cy="89" rx="11" ry="13" fill="${p.dark}" stroke="#1d1a17" stroke-width="2.5"/><path d="M47 62L55 70L51 80L57 90M73 58L66 67L74 75" stroke="#1d1a17" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M47 62L55 70L51 80L57 90M73 58L66 67L74 75" stroke="${p.crack}" stroke-width="2.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M47 52L56 54.5M67 54.5L76 52" stroke="${p.eye}" stroke-width="3.5" stroke-linecap="round"/></svg>`,
+  hood: p => `<svg viewBox="0 0 120 120"><circle cx="18" cy="40" r="6" fill="#26364a" stroke="#1d1a17" stroke-width="1.5"/><circle cx="102" cy="40" r="6" fill="#4a2a26" stroke="#1d1a17" stroke-width="1.5"/><circle cx="14" cy="64" r="5" fill="${p.body}" stroke="#c9a45c" stroke-width="1.5"/><circle cx="106" cy="64" r="5" fill="${p.body}" stroke="${p.mark}" stroke-width="1.5"/><path d="M60 12C77 12 87 27 87 44L97 106L23 106L33 44C33 27 43 12 60 12Z" fill="${p.body}" stroke="#1d1a17" stroke-width="2.5" stroke-linejoin="round"/><path d="M46 70L40 104M60 66V104M74 70L80 104" stroke="${p.dark}" stroke-width="2.5" fill="none"/><path d="M60 22C71 22 77 31 77 43C77 56 69 63 60 63C51 63 43 56 43 43C43 31 49 22 60 22Z" fill="#14111a"/><path d="M60 29C68 29 72 36 72 44C72 52 66 58 60 58C54 58 48 52 48 44C48 36 52 29 60 29Z" fill="${p.mask}" stroke="#1d1a17" stroke-width="2"/><path d="M51 43H69" stroke="${p.mark}" stroke-width="3.5" stroke-linecap="round"/><path d="M60 48V55" stroke="${p.mark}" stroke-width="2" stroke-linecap="round"/><path d="M34 92L52 78M86 92L68 78" stroke="#1d1a17" stroke-width="5" stroke-linecap="round"/><path d="M34 92L52 78M86 92L68 78" stroke="${p.blade}" stroke-width="2.5" stroke-linecap="round"/></svg>`,
+  sprite: p => `<svg viewBox="0 0 120 120"><ellipse cx="45" cy="99" rx="10" ry="5.5" fill="${p.dark}" stroke="#1d1a17" stroke-width="2"/><ellipse cx="75" cy="99" rx="10" ry="5.5" fill="${p.dark}" stroke="#1d1a17" stroke-width="2"/><path d="M60 38C83 38 95 56 93 74C91 91 77 99 60 99C43 99 29 91 27 74C25 56 37 38 60 38Z" fill="${p.body}" stroke="#1d1a17" stroke-width="2.5"/><path d="M40 62C44 52 52 47 61 47" stroke="${p.light}" stroke-width="3.5" fill="none" stroke-linecap="round"/><path d="M60 38C60 30 58 23 55 17" stroke="#1d1a17" stroke-width="6" fill="none" stroke-linecap="round"/><path d="M60 38C60 30 58 23 55 17" stroke="${p.deep}" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M55 19C43 10 32 14 30 23C41 27 49 25 55 19Z" fill="${p.leaf}" stroke="#1d1a17" stroke-width="2" stroke-linejoin="round"/><path d="M56 21C65 8 80 7 85 15C78 24 67 27 56 21Z" fill="${p.leaf}" stroke="#1d1a17" stroke-width="2" stroke-linejoin="round"/><path d="M36 22C42 21 48 20 53 19M60 18C68 14 75 13 80 14" stroke="${p.deep}" stroke-width="1.5" fill="none"/><path d="M43 60L53 64M77 60L67 64" stroke="#1d1a17" stroke-width="2.4" stroke-linecap="round"/><ellipse cx="49" cy="70" rx="4.5" ry="6" fill="#1d1a17"/><ellipse cx="71" cy="70" rx="4.5" ry="6" fill="#1d1a17"/><circle cx="50.5" cy="67.5" r="1.6" fill="#fff"/><circle cx="72.5" cy="67.5" r="1.6" fill="#fff"/><ellipse cx="39" cy="81" rx="5.5" ry="3" fill="${p.accent}" opacity=".55"/><ellipse cx="81" cy="81" rx="5.5" ry="3" fill="${p.accent}" opacity=".55"/><path d="M54 84Q60 80 66 84" stroke="#1d1a17" stroke-width="2.2" fill="none" stroke-linecap="round"/></svg>`,
+  bat: p => `<svg viewBox="0 0 120 120"><path d="M58 54C47 37 29 30 8 33C16 40 18 48 15 57C24 52 31 56 33 63C39 58 47 60 51 66Z" fill="${p.dark}" stroke="#1d1a17" stroke-width="2.5" stroke-linejoin="round"/><path d="M62 54C73 37 91 30 112 33C104 40 102 48 105 57C96 52 89 56 87 63C81 58 73 60 69 66Z" fill="${p.dark}" stroke="#1d1a17" stroke-width="2.5" stroke-linejoin="round"/><path d="M54 54L20 38M52 58L28 56M52 62L38 62M66 54L100 38M68 58L92 56M68 62L82 62" stroke="${p.deep}" stroke-width="1.8" stroke-linecap="round"/><path d="M50 48L47 30L57 43Z M70 48L73 30L63 43Z" fill="${p.body}" stroke="#1d1a17" stroke-width="2" stroke-linejoin="round"/><ellipse cx="60" cy="62" rx="13" ry="17" fill="${p.body}" stroke="#1d1a17" stroke-width="2.5"/><path d="M53 71C56 75 64 75 67 71" stroke="${p.dark}" stroke-width="1.5" fill="none"/><circle cx="54.5" cy="56" r="3.2" fill="${p.eye}" stroke="#1d1a17" stroke-width="1"/><circle cx="65.5" cy="56" r="3.2" fill="${p.eye}" stroke="#1d1a17" stroke-width="1"/><path d="M56 64L57.5 69L59 64M61 64L62.5 69L64 64" fill="#f1ece2" stroke="#1d1a17" stroke-width="1" stroke-linejoin="round"/><path d="M55 78L53 86M65 78L67 86" stroke="#1d1a17" stroke-width="3" stroke-linecap="round"/></svg>`,
+  blade: p => `<svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="46" fill="none" stroke="${p.light}" stroke-width="2" stroke-dasharray="3 7" opacity=".6"/><g fill="${p.accent}" stroke="#1d1a17" stroke-width="1.8" stroke-linejoin="round"><path d="M20 34L27 30L30 48L24 50Z"/><path d="M100 34L93 30L90 48L96 50Z"/><path d="M16 82L22 78L32 92L27 96Z"/><path d="M104 82L98 78L88 92L93 96Z"/></g><path d="M60 32L69 40L66 100L60 113L54 100L51 40Z" fill="${p.body}" stroke="#1d1a17" stroke-width="2.5" stroke-linejoin="round"/><path d="M60 42V104" stroke="${p.light}" stroke-width="2.5" stroke-linecap="round"/><path d="M54 60L58 66M64 76L61 82" stroke="${p.dark}" stroke-width="1.5" stroke-linecap="round"/><path d="M34 34H86L81 43H39Z" fill="${p.dark}" stroke="#1d1a17" stroke-width="2.5" stroke-linejoin="round"/><ellipse cx="60" cy="38.5" rx="7.5" ry="4.5" fill="#14171a"/><circle cx="60" cy="38.5" r="2.6" fill="${p.eye}"/><rect x="56" y="13" width="8" height="21" rx="2" fill="${p.deep}" stroke="#1d1a17" stroke-width="2"/><path d="M56 18L64 21M56 24L64 27M56 30L64 33" stroke="${p.dark}" stroke-width="1.5"/><circle cx="60" cy="10" r="5" fill="${p.accent}" stroke="#1d1a17" stroke-width="2"/></svg>`
+
+};
+const PAL_DEF = { body: '#888780', light: '#b4b2a9', dark: '#5f5e5a', deep: '#444441', eye: '#f0b04a', leaf: '#8fbf5a', accent: '#c9a45c', bone: '#cfc6b6', vine: '#5b6e41', crack: '#e8823f', mask: '#ddd5c5', mark: '#c8553d', blade: '#b9bdc4', hl: '#9fb3bf' };
+const PAL = {
+  green:   { body: '#7fa35a', light: '#b8d68f', dark: '#56743c', deep: '#3e5a2a', leaf: '#9ccc5e', accent: '#e8a49a' },
+  gold:    { body: '#c9a24a', light: '#ecd28b', dark: '#8d6f2c', deep: '#6a5220', leaf: '#d8b850', accent: '#e8a49a' },
+  maple:   { body: '#c2553f', light: '#e89a7f', dark: '#8a3527', deep: '#5e2219', leaf: '#e07a3f', accent: '#f2c6a0' },
+  bamboo:  { body: '#8fae6a', light: '#cfe3a8', dark: '#5e7a40', deep: '#40592a', leaf: '#b9d46a', accent: '#e8d49a' },
+  brown:   { body: '#7a6a58', dark: '#5a4d40', deep: '#403629', bone: '#d8cbb3', eye: '#e2563f' },
+  fox:     { body: '#c46a3a', dark: '#8e4724', deep: '#6a3218', bone: '#f1e6d2', eye: '#f0d24a' },
+  black:   { body: '#45403d', dark: '#2e2a28', deep: '#1f1c1a', bone: '#bdb3a2', eye: '#e2563f' },
+  moon:    { body: '#6f7c96', dark: '#4f5a70', deep: '#3a4253', bone: '#dde3ee', eye: '#bfe4ff' },
+  sand:    { body: '#a88d62', dark: '#7c6644', deep: '#5a492f', bone: '#efe2c6', eye: '#e2563f' },
+  bone:    { body: '#6b6259', dark: '#544c45', deep: '#3e3832', bone: '#cfc6b6', eye: '#e2563f' },
+  orange:  { body: '#d7864a', light: '#f2b67e', dark: '#a85f2c', eye: '#fff0b3' },
+  river:   { body: '#6f9ab0', light: '#a8cadb', dark: '#4e7487', eye: '#e6fbff' },
+  amber:   { body: '#d6a24a', light: '#f2d08a', dark: '#a07428', eye: '#fff6d6' },
+  violet:  { body: '#7a5c9a', light: '#a98bc8', dark: '#58407a', eye: '#e9d6ff', mask: '#e6dcf2', mark: '#9a6ad0', blade: '#c8b8e0' },
+  spring:  { body: '#5fb0a6', light: '#9edcd2', dark: '#3f857c', eye: '#f0fffb' },
+  miasma:  { body: '#7d8a6a', light: '#aebd93', dark: '#5e6a4f', eye: '#d9f0a0' },
+  field:   { body: '#6b7a3e', light: '#879852', dark: '#4a5629', accent: '#c9a45c', hl: '#a9b878', eye: '#f0b04a' },
+  well:    { body: '#3e4a52', light: '#4f5d66', dark: '#2c353b', accent: '#8a6a3a', hl: '#6f808a', eye: '#e2563f' },
+  wheel:   { body: '#4e6a78', light: '#58788a', dark: '#3a4f5a', accent: '#c9a45c', hl: '#86a5b5', eye: '#f0b04a' },
+  slate:   { body: '#6c7480', dark: '#545b66', deep: '#4a505a', crack: '#7fc8e8', eye: '#bfe9ff' },
+  rust:    { body: '#7a5a45', dark: '#5e4434', deep: '#4f392b', crack: '#f08a3f', eye: '#ffc35a', mask: '#d9cbb3', mark: '#c8553d', blade: '#9a8f84' },
+  gravel:  { body: '#8a857c', dark: '#6b665e', deep: '#5a554e', crack: '#e8c35a', eye: '#fff0a0' },
+  rock:    { body: '#6f6a63', dark: '#57524c', deep: '#55504a', crack: '#e8823f', eye: '#f5b24a' },
+  night:   { body: '#4f4263', dark: '#382d4a', deep: '#241c30', eye: '#f0d24a' },
+  cave:    { body: '#5e4a3a', dark: '#43342a', deep: '#2e231c', eye: '#e2563f' },
+  snow:    { body: '#d6dbe2', dark: '#a9b1bd', deep: '#7d8794', eye: '#c8553d' },
+  orchid:  { body: '#5e4a6a', deep: '#43334d', vine: '#8a5fa8', leaf: '#d39ad8', eye: '#f8d0ff' },
+  crimson: { body: '#6a2e2a', deep: '#4a1d1a', vine: '#b5442f', leaf: '#e86a3a', eye: '#ffd9a0' },
+  wither:  { body: '#6e5a43', deep: '#4f3f2f', vine: '#5b6e41', leaf: '#a08a4a', eye: '#f0b04a' },
+  iron:    { body: '#3e4248', dark: '#2c2f34', mask: '#c9cdd3', mark: '#c8553d', blade: '#b9bdc4' },
+  steel:   { body: '#4a5560', dark: '#36404a', mask: '#d6dde4', mark: '#5fa5c8', blade: '#d0d6dc' },
+  soul:    { body: '#c9d2da', light: '#eef3f7', dark: '#4a5560', deep: '#2c333a', accent: '#7fb8d8', eye: '#7fe0ff' },
+  demon:   { body: '#3b2f45', dark: '#2c2334', mask: '#ddd5c5', mark: '#c8553d', blade: '#b9bdc4' }
+};
+function mobSvg(key) { const m = GAME.monsters[key]; return ART[m.art](Object.assign({}, PAL_DEF, PAL[m.pal] || {})); }
+
+
+const SAVE_KEY = 'tianxing-idle-v1';
+const $ = s => document.querySelector(s);
+const fmt = n => Math.floor(n).toLocaleString('zh-TW');
+const pct = x => (x * 100).toFixed(1).replace(/\.0$/, '') + '%';
+function dur(sec) {
+  sec = Math.floor(sec);
+  const h = Math.floor(sec / 3600), m = Math.floor(sec % 3600 / 60), s = sec % 60;
+  if (h) return h + ' 小時 ' + m + ' 分';
+  if (m) return m + ' 分 ' + s + ' 秒';
+  return s + ' 秒';
+}
+const KIND_TXT = { counter: '剋制', countered: '被剋', neutral: '' };
+const wName = ch => ch + '（' + GAME.weapons[ch].weapon + '）';
+
+let st, rt, tab = 'map', viewChap = 'shou', selWeapon = null, logs = [], lastWall = Date.now(), acc = 0, lastSaveAt = Date.now(), resetArm = 0;
+let shownMob = null, shownStance = -1, panelDirty = true, lastPanelAt = 0, lastMode = '';
+
+function load() {
+  try {
+    const raw = localStorage.getItem(SAVE_KEY);
+    if (!raw) return null;
+    const o = JSON.parse(raw), base = newState();
+    return migrate(Object.assign(base, o, { stats: Object.assign(base.stats, o.stats || {}), quest: Object.assign(base.quest, o.quest || {}) }));
+  } catch (e) { return null; }
+}
+function save() {
+  st.lastSave = Date.now();
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(st)); } catch (e) {}
+  lastSaveAt = Date.now();
+}
+function toast(t) {
+  const el = $('#toast'); el.textContent = t; el.classList.remove('hidden'); el.style.opacity = 1;
+  clearTimeout(toast.t); toast.t = setTimeout(() => { el.style.opacity = 0; setTimeout(() => el.classList.add('hidden'), 300); }, 1600);
+}
+
+/* ---------- 戰鬥紀錄 ---------- */
+function addLog(html) { logs.unshift(html); if (logs.length > 9) logs.length = 9; }
+function handle(e) {
+  const m = rt.mob;
+  switch (e.t) {
+    case 'spawn': addLog((e.rank === 'boss' ? '<span class="k-lv">【首領】</span>' : e.rank === 'elite' ? '<span class="k-bad">【精英】</span>' : '') + e.name + ' Lv.' + e.lv + ' 出現了'); break;
+    case 'move': { const z = zoneById(e.zone); addLog('<span class="k-good">前往' + z.place + '・' + z.name + '</span>'); renderLoc(); panelDirty = true; break; }
+    case 'hit':
+      if (e.who === 'p') {
+        const k = KIND_TXT[e.kind];
+        addLog((e.skill ? '<span class="k-gold">【' + rt.d.skillName + '】</span>' : '') + '你造成 ' + e.dmg +
+          (e.crit ? ' <span class="k-bad">爆擊</span>' : '') + (k ? ' <span class="' + (e.kind === 'counter' ? 'k-good' : 'k-bad') + '">' + k + '</span>' : '') +
+          (e.stun ? '，' + e.name + '被震懾' : ''));
+        floater(e);
+        shake();
+      } else {
+        addLog(e.name + '對你造成 ' + e.dmg + (e.crit ? ' <span class="k-bad">爆擊</span>' : '') +
+          (e.kind === 'counter' ? ' <span class="k-bad">剋制你</span>' : e.kind === 'countered' ? ' <span class="k-good">被你剋</span>' : ''));
+        const w = $('#hpBarWrap'); w.classList.remove('flash'); void w.offsetWidth; w.classList.add('flash');
+      }
+      break;
+    case 'miss': addLog(e.who === 'p' ? '你的攻擊落空' : e.name + '的攻擊落空'); break;
+    case 'stance': addLog(e.name + '切換架勢：' + wName(e.attr)); break;
+    case 'bound': addLog('<span class="k-bad">被藤蔓纏住，動彈不得</span>'); break;
+    case 'kill': {
+      const got = Object.entries(e.got).map(([k, n]) => k + '×' + n).join('、');
+      addLog('擊倒' + e.name + '，經驗 +' + e.exp + '，銀兩 +' + e.silver + (got ? '，<span class="k-gold">獲得 ' + got + '</span>' : ''));
+      panelDirty = true; break;
+    }
+    case 'levelup': addLog('<span class="k-lv">等級提升！Lv.' + e.lv + '</span>'); toast('等級提升至 Lv.' + e.lv); panelDirty = true; renderLoc(); break;
+    case 'rest': addLog('傷勢不輕，先原地調息'); break;
+    case 'down': addLog('<span class="k-bad">你被' + e.name + '擊倒，重傷調養中</span>'); break;
+    case 'revive': addLog('傷勢恢復，繼續巡守'); break;
+  }
+}
+function floater(e) {
+  const box = $('#floaters'); if (!box) return;
+  const el = document.createElement('span');
+  el.className = 'fl' + (e.crit ? ' crit' : '') + (e.kind !== 'neutral' ? ' ' + e.kind : '') + (e.skill ? ' skill' : '');
+  el.textContent = (e.skill ? rt.d.skillName + ' ' : '') + e.dmg + (e.kind === 'counter' ? ' 剋' : e.kind === 'countered' ? ' 被剋' : '');
+  el.style.left = (38 + Math.random() * 24) + '%'; el.style.top = (22 + Math.random() * 20) + '%';
+  box.appendChild(el); el.addEventListener('animationend', () => el.remove());
+}
+function shake() {
+  const el = document.querySelector('.stage .mob'); if (!el) return;
+  el.classList.add('hit'); setTimeout(() => el.classList.remove('hit'), 90);
+}
+
+/* ---------- 畫面更新 ---------- */
+function renderHero() {
+  const d = rt.d, w = GAME.weapons[st.weapon];
+  $('#pSeal').textContent = st.weapon;
+  $('#pName').textContent = '御劍者・' + wName(st.weapon);
+  $('#pLv').textContent = 'Lv.' + st.lv + '　' + GAME.sword.levelName + ' +' + (st.swordLv[st.weapon] || 0);
+  const need = expNeed(st.lv);
+  $('#expBar').style.width = Math.min(100, st.exp / need * 100) + '%'; $('#expTxt').textContent = fmt(st.exp) + ' / ' + fmt(need);
+  $('#hpBar').style.width = (st.hp / d.maxHp * 100) + '%'; $('#hpTxt').textContent = fmt(Math.ceil(st.hp)) + ' / ' + fmt(d.maxHp);
+  $('#enName').textContent = d.enName;
+  $('#enBar').style.width = (st.en / d.maxEn * 100) + '%'; $('#enTxt').textContent = fmt(st.en) + ' / ' + fmt(d.maxEn);
+  $('#silver').textContent = '銀兩 ' + fmt(st.silver);
+}
+function zoneLvText(z) { return 'Lv.' + z.lv[0] + '～' + z.lv[1]; }
+function renderLoc() {
+  const z = zoneById(st.zone);
+  $('#loc').innerHTML = '<div class="where"><small>' + z.chapter + '・' + z.place + '</small><b>' + z.name + '</b><em>魔物 ' + zoneLvText(z) + '</em></div><button data-t="map">地圖</button>';
+}
+function renderArena() {
+  const stage = $('#stage'), info = $('#mobinfo'), m = rt.mob;
+  const zz = zoneById(st.zone); stage.className = 'stage'; stage.style.background = 'radial-gradient(ellipse at 50% 85%,' + zz.bg + ' 0%,#1b1d20 62%)';
+  if (rt.mode === 'fight' && m) {
+    if (shownMob !== m) {
+      stage.innerHTML = '<div class="mob' + (m.rank ? ' elite' : '') + '">' + mobSvg(m.key) + '</div><div class="floaters" id="floaters"></div>';
+      shownMob = m; shownStance = -1;
+    }
+    if (shownStance !== m.stance) {
+      shownStance = m.stance;
+      const cur = m.attrs[m.stance], kind = matchup(st.weapon, cur);
+      const chips = m.attrs.map((a, i) => {
+        const k = matchup(st.weapon, a);
+        return '<span class="chip' + (i === m.stance ? ' on' : '') + (k === 'counter' ? ' good' : k === 'countered' ? ' bad' : '') + '"><span class="seal sm">' + a + '</span>' + GAME.weapons[a].weapon + '</span>';
+      }).join('');
+      const mt = kind === 'counter' ? ['good', '目前架勢「' + cur + '」被你的「' + st.weapon + '」剋制：你造成約 175% 傷害，牠只造成約 55%'] :
+        kind === 'countered' ? ['bad', '目前架勢「' + cur + '」剋制你的「' + st.weapon + '」：你只造成約 55% 傷害，牠造成約 175%'] :
+        ['', '目前架勢「' + cur + '」與你互不剋制'];
+      info.innerHTML = '<div class="mobhead"><b>' + m.name + '</b><span>' + (m.rank === 'boss' ? '<span class="tag boss">首領</span> ' : m.rank === 'elite' ? '<span class="tag elite">精英</span> ' : '') + '<span class="tag">Lv.' + m.lv + '</span></span></div>' +
+        '<div class="bar hp"><i id="mobHp"></i></div><div class="stances">' + chips + '</div><div class="match ' + mt[0] + '">' + mt[1] + '</div>';
+    }
+    const bar = $('#mobHp'); if (bar) bar.style.width = Math.max(0, m.hp / m.maxHp * 100) + '%';
+  } else if (rt.mode === 'search' && shownMob && typeof shownMob === 'object' && shownMob.hp <= 0) {
+    const el = document.querySelector('.stage .mob'); if (el && !el.classList.contains('dead')) el.classList.add('dead');
+    const bar = $('#mobHp'); if (bar) bar.style.width = '0%';
+  } else {
+    const key = rt.mode + (rt.mode === 'down' ? Math.ceil(rt.wait) : '');
+    if (shownMob !== key) {
+      shownMob = key; shownStance = -1;
+      const z = zoneById(st.zone);
+      const txt = rt.mode === 'rest' ? ['原地調息', '血量恢復到九成五後繼續巡守'] :
+        rt.mode === 'down' ? ['重傷調養中', Math.ceil(rt.wait) + ' 秒後恢復'] : ['巡守' + z.name, z.place + '・魔物 ' + zoneLvText(z)];
+      stage.innerHTML = '<div class="idle">' + txt[0] + '<small>' + txt[1] + '</small></div><div class="floaters" id="floaters"></div>';
+      info.innerHTML = '<div class="note">' + (rt.mode === 'search' ? '搜尋魔物中…' : rt.mode === 'rest' ? '休息時血量恢復較快，靈力越高恢復越快。' : '重傷不會損失任何東西，只是暫時無法戰鬥。') + '</div>';
+    }
+  }
+}
+function renderLog() { $('#log').innerHTML = logs.map(l => '<div>' + l + '</div>').join(''); }
+
+function starHtml(n) { return '★'.repeat(n) + '<i>' + '★'.repeat(5 - n) + '</i>'; }
+function costRows(cost) {
+  let h = '<div class="costrow"><span class="seal sm" style="background:var(--gold-d);color:#f7e7c2">銀</span>銀兩<span class="n ' + (st.silver >= cost.silver ? 'ok' : 'no') + '">' + fmt(st.silver) + ' / ' + fmt(cost.silver) + '</span></div>';
+  for (const k in cost.mats) {
+    const have = st.mats[k] || 0;
+    h += '<div class="costrow"><span class="seal sm" style="background:var(--gold-d);color:#f7e7c2">' + GAME.materials[k].seal + '</span>' + k +
+      '<span class="n ' + (have >= cost.mats[k] ? 'ok' : 'no') + '">' + fmt(have) + ' / ' + fmt(cost.mats[k]) + '</span></div>';
+  }
+  return h;
+}
+function questReady() { return st.quest.progress >= GAME.quest.target; }
+function swordReady() { const n = st.swordLv[st.weapon] || 0; return n < GAME.sword.maxLv && canAfford(st, swordCost(n)); }
+function renderTabs() {
+  document.querySelectorAll('#tabs button').forEach(b => {
+    b.classList.toggle('on', b.dataset.t === tab);
+    const dot = (b.dataset.t === 'quest' && questReady()) || (b.dataset.t === 'sword' && swordReady());
+    const has = b.querySelector('.dot');
+    if (dot && !has) b.insertAdjacentHTML('beforeend', '<span class="dot"></span>');
+    if (!dot && has) has.remove();
+  });
+}
+
+function renderPanel() {
+  const d = rt.d, p = $('#panel');
+  if (tab === 'map') {
+    let h = '<label class="toggle"><span>升級後自動前往新的狩獵區<br><span class="note">離線時也會照這個設定移動</span></span><input type="checkbox" id="autoMove"' + (st.auto ? ' checked' : '') + '></label>';
+    h += '<div class="chaps">' + GAME.chapters.map(c => '<button data-ch="' + c.id + '" class="' + (c.id === viewChap ? 'on' : '') + (c.open ? '' : ' lock') + '">' + c.no + '<small>' + c.name + '</small></button>').join('') + '</div>';
+    const ch = GAME.chapters.find(c => c.id === viewChap);
+    if (ch.open) {
+      h += '<p class="note" style="margin-bottom:8px">' + ch.desc + '</p>';
+      for (const pl of ch.places) {
+        const cur = pl.zones.some(z => z.id === st.zone), lock = !zoneUnlocked(st, pl.zones[0].id);
+        const rare = pl.zones.some(z => z.spawns.some(([k]) => GAME.monsters[k].rank === 'boss')) ? '首領' : pl.zones.some(z => z.spawns.some(([k]) => GAME.monsters[k].rank === 'elite')) ? '精英' : '';
+        h += '<div class="place' + (cur ? ' cur' : '') + (lock ? ' locked' : '') + '"><div class="ph"><b>' + pl.name + (pl.hub ? '<span class="tag" style="margin-left:6px">主城</span>' : '') + (rare ? '<span class="rare">有' + rare + '</span>' : '') + '</b><span>Lv.' + pl.zones[0].lv[0] + '～' + pl.zones[pl.zones.length - 1].lv[1] + '</span></div><div class="subs">' +
+          pl.zones.map(z => { const zl = !zoneUnlocked(st, z.id);
+            return '<button data-z="' + z.id + '" class="' + (z.id === st.zone ? 'on' : '') + '"' + (zl ? ' disabled' : '') + '>' + z.name + '<small>' + (zl ? 'Lv.' + z.unlock + ' 解鎖' : zoneLvText(z)) + '</small></button>'; }).join('') + '</div></div>';
+      }
+    } else {
+      h += '<p class="note">' + ch.name + '尚未開放。' + (ch.note ? ch.note + '。' : '') + '</p><div class="lockplaces">' + ch.places.map(n => '<span>' + n + '</span>').join('') + '</div>';
+    }
+    p.innerHTML = h;
+  } else if (tab === 'stats') {
+    const w = GAME.weapons[st.weapon], ct = counterTargets(st.weapon);
+    let h = '<div class="sec wcard"><span class="seal big">' + st.weapon + '</span><div class="meta"><b>' + wName(st.weapon) + '</b><br>' +
+      '<span class="pill ' + (w.role === '防' ? 'def' : 'out') + '">' + (w.role === '防' ? '防禦' : '輸出') + '</span>' + groupOf(st.weapon) + '・' + (d.magic ? '魔法攻擊' : '物理攻擊') +
+      '<br>剋制 ' + wName(ct.beats) + '・天敵 ' + wName(ct.beatenBy) + '</div></div>';
+    h += '<div class="sec"><h3>八項資源</h3>';
+    GAME.statNames.forEach((n, i) => {
+      h += '<div class="statrow"><b>' + n + '</b><span class="stars">' + starHtml(w.stars[i]) + '</span><small>' + GAME.statDesc[n] + '</small><em>' + fmt(d.stats[i]) + '</em></div>';
+    });
+    h += '</div><div class="sec"><h3>戰鬥數值</h3><div class="kv">' +
+      '<span>' + (d.magic ? '魔法' : '物理') + '攻擊</span><span>' + fmt(d.atk) + '</span>' +
+      '<span>爆擊率</span><span>' + pct(d.crit) + '</span>' +
+      '<span>物理防禦／韌性</span><span>' + fmt(d.pdef) + '／' + pct(d.ptough) + '</span>' +
+      '<span>魔法防禦／韌性</span><span>' + fmt(d.mdef) + '／' + pct(d.mtough) + '</span>' +
+      '<span>血量</span><span>' + fmt(d.maxHp) + '</span>' +
+      '<span>' + d.enName + '</span><span>' + fmt(d.maxEn) + '</span>' +
+      '<span>命中</span><span>' + pct(d.hit) + '</span>' +
+      '<span>技能冷卻縮減</span><span>' + pct(d.cdr) + '</span>' +
+      (d.magic ? '<span>吟唱速度</span><span>+' + pct(d.castSpeed - 1) + '</span>' : '') +
+      '<span>治療提升</span><span>+' + pct(d.heal) + '</span>' +
+      '<span>控場機率（技能）</span><span>' + pct(d.stun) + '</span>' +
+      '<span>閃避控制</span><span>' + pct(d.resist) + '</span>' +
+      '<span>武器技</span><span>' + d.skillName + '（' + Math.round(GAME.rules.skillCoef * 100) + '%）</span>' +
+      '</div></div>';
+    p.innerHTML = h;
+  } else if (tab === 'sword') {
+    const n = st.swordLv[st.weapon] || 0, max = n >= GAME.sword.maxLv;
+    let h = '<div class="epi">若還有一絲豪情，便將這份豪情注入在這把劍。<cite>── 相傳出自五百多年前的息區區長王倩育</cite></div>' +
+      '<div class="sec" style="display:flex;justify-content:space-between;align-items:center"><div><div class="note">' + wName(st.weapon) + '的' + GAME.sword.levelName + '</div><div class="swordlv">+' + n + '<span class="note"> / ' + GAME.sword.maxLv + '</span></div></div>' +
+      '<div class="kv" style="min-width:150px"><span>攻擊加成</span><span>+' + Math.round(n * GAME.sword.atkPerLv * 100) + '%</span><span>血量加成</span><span>+' + Math.round(n * GAME.sword.hpPerLv * 100) + '%</span></div></div>';
+    if (max) h += '<div class="note">這把武器的' + GAME.sword.levelName + '已經到 v0.1 的上限。</div>';
+    else {
+      const c = swordCost(n);
+      h += '<h3 class="serif" style="font-size:14px;margin-top:6px">' + (c.breakthrough ? '突破至 +' + (n + 1) + '（需要特殊材料）' : '注入至 +' + (n + 1)) + '</h3>' +
+        '<div class="cost">' + costRows(c) + '</div><button class="btn" id="doSword"' + (canAfford(st, c) ? '' : ' disabled') + '>注入豪情</button>' +
+        '<p class="note" style="margin-top:8px">每升一級：攻擊 +' + Math.round(GAME.sword.atkPerLv * 100) + '%、血量 +' + Math.round(GAME.sword.hpPerLv * 100) + '%。每把武器的' + GAME.sword.levelName + '分開計算。</p>';
+    }
+    p.innerHTML = h;
+  } else if (tab === 'bag') {
+    let h = '<div class="sec"><h3>銀兩 ' + fmt(st.silver) + '</h3></div><div class="mats">';
+    for (const k in GAME.materials) {
+      const m = GAME.materials[k];
+      h += '<div class="mat"><span class="seal mid">' + m.seal + '</span><div><b>' + k + '</b><small>' + m.desc + '</small></div><em>' + fmt(st.mats[k] || 0) + '</em></div>';
+    }
+    p.innerHTML = h + '</div>';
+  } else if (tab === 'quest') {
+    const q = GAME.quest, r = q.reward(st.lv), ready = questReady(), N = GAME.npcs;
+    p.innerHTML = '<div class="sec"><h3>天霖市</h3></div>' +
+      '<div class="npc quest"><div class="giver"><span class="seal mid">' + N.quest.seal + '</span><div><b>' + N.quest.name + '</b><br><span>' + N.quest.title + '</span></div></div>' +
+      '<h3 class="serif" style="font-size:15px;margin-bottom:6px">' + q.name + '</h3><p>' + q.text + '</p>' +
+      '<div class="barrow"><span>進度</span><div class="bar exp"><i style="width:' + (st.quest.progress / q.target * 100) + '%"></i></div><em>' + st.quest.progress + ' / ' + q.target + '</em></div>' +
+      '<p style="margin-top:10px">報酬：銀兩 ' + fmt(r.silver) + '、' + Object.entries(r.mats).map(([k, n]) => k + '×' + n).join('、') + '（隨等級提高）</p>' +
+      '<button class="btn" id="doQuest"' + (ready ? '' : ' disabled') + '>' + (ready ? '回報巡守司' : '巡守中') + '</button>' +
+      '<p class="note" style="margin-top:8px">已完成 ' + st.quest.done + ' 次。離線時擊倒的魔物也算進度。</p></div>' +
+      '<div class="npc quest locked"><div class="giver"><span class="seal mid" style="background:#3a2f4a;color:#e3d6f5">' + N.fate.seal + '</span><div><b>' + N.fate.name + '</b><br><span>' + N.fate.title + '</span></div></div><p>' + N.fate.text + '</p></div>';
+  } else if (tab === 'weapon') {
+    if (!selWeapon) selWeapon = st.weapon;
+    let h = '<div class="wgroups">';
+    for (const g of GAME.groups) {
+      h += '<div class="wgroup"><h4>' + g.name + '</h4><div class="wrow">';
+      for (const ch of g.members) {
+        const w = GAME.weapons[ch], todo = !w.stars;
+        h += '<button class="wt ' + (todo ? 'todo' : w.role === '防' ? 'def' : 'out') + (ch === st.weapon ? ' cur' : '') + (ch === selWeapon ? ' sel' : '') + '" data-w="' + ch + '"><span class="seal">' + ch + '</span>' + w.weapon + '</button>';
+      }
+      h += '</div></div>';
+    }
+    h += '</div>';
+    const w = GAME.weapons[selWeapon], ct = counterTargets(selWeapon);
+    h += '<div class="wdetail card" style="background:var(--panel2)"><div class="wcard"><span class="seal mid" style="background:var(--ver);color:#f6eee0">' + selWeapon + '</span><div class="meta"><b>' + wName(selWeapon) + '</b>　' +
+      '<span class="pill ' + (w.role === '防' ? 'def' : 'out') + '">' + (w.role === '防' ? '防禦' : '輸出') + '</span>' + groupOf(selWeapon) +
+      '<br>剋制 ' + wName(ct.beats) + '・天敵 ' + wName(ct.beatenBy) + '</div></div>';
+    if (w.stars) {
+      h += '<div style="margin-top:8px">' + GAME.statNames.map((n, i) => '<div class="statrow" style="grid-template-columns:40px 1fr;padding:3px 0"><b>' + n + '</b><span class="stars">' + starHtml(w.stars[i]) + '</span></div>').join('') + '</div>';
+      h += selWeapon === st.weapon ? '<p class="note" style="margin-top:8px">目前使用中。</p>' :
+        '<button class="btn ghost" id="doSwap" style="margin-top:10px">換成' + wName(selWeapon) + '（' + GAME.sword.levelName + ' +' + (st.swordLv[selWeapon] || 0) + '）</button>';
+    } else h += '<p class="note" style="margin-top:8px">這把武器的星數還在設定中。</p>';
+    h += '</div><p class="note" style="margin-top:8px">設定上御劍者原則上一人一把武器，遊戲裡先開放更換方便測試。等級共用，' + GAME.sword.levelName + '每把分開。</p>';
+    p.innerHTML = h;
+  } else if (tab === 'record') {
+    const s = st.stats;
+    let total = 0, rows = '';
+    for (const k in GAME.monsters) { const n = s.kills[k] || 0; if (!n) continue; total += n; rows += '<span>' + GAME.monsters[k].name + '</span><span>' + fmt(n) + '</span>'; }
+    p.innerHTML = '<div class="sec"><h3>巡守紀錄</h3><div class="kv"><span>線上時間</span><span>' + dur(s.playSec) + '</span><span>離線結算時間</span><span>' + dur(s.offlineSec) + '</span>' +
+      '<span>總擊倒</span><span>' + fmt(total) + '</span><span>擊倒首領</span><span>' + fmt(s.bossKills || 0) + '</span>' + rows + '<span>重傷次數</span><span>' + fmt(s.deaths) + '</span></div></div>' +
+      '<div class="sec"><h3>存檔</h3><p class="note" style="margin-bottom:8px">進度存在這個瀏覽器裡。換手機或換瀏覽器前，先把存檔碼複製起來。</p>' +
+      '<textarea id="saveBox" placeholder="按「匯出」產生存檔碼，或貼上存檔碼後按「匯入」"></textarea>' +
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px"><button class="btn ghost" id="doExport">匯出</button><button class="btn ghost" id="doImport">匯入</button></div>' +
+      '<button class="btn warn" id="doReset" style="margin-top:8px">' + (resetArm > Date.now() ? '再按一次確定刪除進度' : '重新開始') + '</button></div>' +
+      '<p class="note">離線最多結算 ' + (GAME.rules.offlineCapSec / 3600) + ' 小時。v' + GAME.meta.version + '</p>';
+  }
+  panelDirty = false; lastPanelAt = Date.now();
+}
+
+function renderAll() { renderHero(); renderLoc(); renderArena(); renderLog(); renderTabs(); renderPanel(); }
+
+/* ---------- 離線戰報 ---------- */
+function showReport(sum, awaySec) {
+  const kills = Object.entries(sum.kills).map(([k, n]) => '<span>' + k + '</span><span>' + fmt(n) + '</span>').join('');
+  const mats = Object.entries(sum.mats).map(([k, n]) => k + '×' + fmt(n)).join('、') || '無';
+  const capped = awaySec > GAME.rules.offlineCapSec;
+  $('#modalBody').innerHTML = '<h2>你不在的時候</h2><div class="sub">離開了 ' + dur(awaySec) + (capped ? '，結算上限 ' + (GAME.rules.offlineCapSec / 3600) + ' 小時' : '') + '。' + (sum.zoneTo !== sum.zoneFrom ? '你從' + zoneById(sum.zoneFrom).place + '・' + zoneById(sum.zoneFrom).name + '一路巡守到' + zoneById(sum.zoneTo).place + '・' + zoneById(sum.zoneTo).name + '。' : '你一直在' + zoneById(st.zone).place + '・' + zoneById(st.zone).name + '巡守。') + '</div>' +
+    (sum.lvTo > sum.lvFrom ? '<div class="big">Lv.' + sum.lvFrom + ' → Lv.' + sum.lvTo + '</div>' : '') +
+    '<div class="kv">' + kills + '<span>經驗</span><span>+' + fmt(sum.exp) + '</span><span>銀兩</span><span>+' + fmt(sum.silver) + '</span>' +
+    (sum.rareKills ? '<span>擊倒精英／首領</span><span>' + sum.rareKills + '</span>' : '') + '<span>委託進度</span><span>+' + sum.quest + '</span><span>重傷</span><span>' + sum.deaths + ' 次</span></div>' +
+    '<p class="note" style="margin:10px 0 14px">獲得材料：' + mats + '</p><button class="btn" id="closeModal">繼續巡守</button>';
+  $('#modal').classList.remove('hidden');
+  panelDirty = true;
+}
+
+/* ---------- 操作 ---------- */
+document.addEventListener('change', ev => {
+  if (ev.target.id === 'autoMove') { st.auto = ev.target.checked; save(); toast(st.auto ? '升級後會自動前往新區' : '會留在目前的狩獵區'); }
+});
+document.addEventListener('click', ev => {
+  const t = ev.target.closest('button'); if (!t) return;
+  if (t.dataset.t) { tab = t.dataset.t; if (tab === 'map') viewChap = GAME.chapters[0].id; panelDirty = true; renderTabs(); renderPanel(); if (t.closest('#loc')) $('#tabs').scrollIntoView({ behavior: 'smooth' }); return; }
+  if (t.dataset.ch) { viewChap = t.dataset.ch; renderPanel(); return; }
+  if (t.dataset.z) { if (st.zone !== t.dataset.z) { st.zone = t.dataset.z; if (rt.mode === 'fight') { rt.mob = null; rt.mode = 'search'; rt.wait = GAME.rules.searchSec; } const z = zoneById(st.zone); addLog('前往' + z.place + '・' + z.name); shownMob = null; renderLoc(); renderPanel(); save(); } return; }
+  if (t.dataset.w) { selWeapon = t.dataset.w; renderPanel(); return; }
+  switch (t.id) {
+    case 'doSword': if (upgradeSword(st)) { rt.d = derive(st); addLog('<span class="k-gold">豪情注入，' + wName(st.weapon) + ' +' + st.swordLv[st.weapon] + '</span>'); toast(GAME.sword.levelName + ' +' + st.swordLv[st.weapon]); save(); } break;
+    case 'doQuest': { const r = claimQuest(st); if (r) { addLog('<span class="k-gold">回報' + GAME.quest.giver + '：銀兩 +' + r.silver + '</span>'); toast('委託完成'); save(); } break; }
+    case 'doSwap': {
+      const ratio = st.hp / rt.d.maxHp; st.weapon = selWeapon; rt.d = derive(st);
+      st.hp = Math.max(1, rt.d.maxHp * ratio); st.en = Math.min(st.en, rt.d.maxEn);
+      if (rt.mode === 'fight') { rt.mob = null; rt.mode = 'search'; rt.wait = GAME.rules.searchSec; }
+      addLog('換上' + wName(st.weapon)); toast('換上' + wName(st.weapon)); save(); break;
+    }
+    case 'doExport': save(); $('#saveBox').value = btoa(unescape(encodeURIComponent(JSON.stringify(st)))); $('#saveBox').select(); toast('存檔碼已產生，請複製保存'); return;
+    case 'doImport': try {
+      const o = JSON.parse(decodeURIComponent(escape(atob($('#saveBox').value.trim()))));
+      if (!o || !o.weapon || !o.lv) throw 0;
+      const base = newState(); st = migrate(Object.assign(base, o, { stats: Object.assign(base.stats, o.stats || {}), quest: Object.assign(base.quest, o.quest || {}) }));
+      st.lastSave = Date.now(); rt = newRuntime(st); shownMob = null; save(); toast('匯入完成');
+    } catch (e) { toast('存檔碼無法讀取'); } break;
+    case 'doReset':
+      if (resetArm > Date.now()) { st = newState(); rt = newRuntime(st); logs = []; shownMob = null; resetArm = 0; save(); toast('已重新開始'); }
+      else { resetArm = Date.now() + 4000; } break;
+    case 'closeModal': $('#modal').classList.add('hidden'); break;
+  }
+  renderAll();
+});
+
+/* ---------- 主迴圈 ---------- */
+function tick() {
+  const now = Date.now();
+  let dt = (now - lastWall) / 1000; lastWall = now;
+  if (dt > 3) { // 分頁在背景被暫停過：用同一套規則快轉
+    const secs = Math.min(dt, GAME.rules.offlineCapSec);
+    st.stats.offlineSec += secs;
+    const { sum } = simulate(st, secs, rt);
+    if (dt > 60) showReport(sum, dt);
+    shownMob = null; acc = 0;
+  } else {
+    acc += dt; st.stats.playSec += dt;
+    while (acc >= 0.1) { step(st, rt, 0.1); acc -= 0.1; }
+  }
+  if (rt.events.length) { for (const e of rt.events) handle(e); rt.events.length = 0; renderLog(); }
+  renderHero(); renderArena();
+  if (panelDirty && Date.now() - lastPanelAt > 400 && document.activeElement?.id !== 'saveBox') { renderTabs(); renderPanel(); }
+  if (now - lastSaveAt > 5000) save();
+}
+
+function start() {
+  const loaded = load();
+  st = loaded || newState();
+  rt = newRuntime(st);
+  if (loaded) {
+    const away = (Date.now() - st.lastSave) / 1000;
+    if (away > 30) {
+      const secs = Math.min(away, GAME.rules.offlineCapSec);
+      st.stats.offlineSec += secs;
+      const { sum } = simulate(st, secs, rt);
+      showReport(sum, away);
+    }
+  } else {
+    addLog(GAME.npcs.quest.name + '：首區最近不太平，城外到處都有魔物越界，麻煩你了。');
+  }
+  save(); renderAll();
+  lastWall = Date.now();
+  setInterval(tick, 100);
+  document.addEventListener('visibilitychange', () => { if (document.hidden) save(); });
+  window.addEventListener('pagehide', save);
+}
+start();
+</script>
+</body>
+</html>
