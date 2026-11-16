@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#121315">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>天星界・御劍者 v0.6</title>
+<title>天星界・御劍者 v0.7</title>
 <style>
 :root{
   --bg:#121315;--panel:#1b1d20;--panel2:#23262a;--line:#34373c;--text:#e9e3d6;--muted:#9a958b;--faint:#6d6961;
@@ -238,6 +238,23 @@ select{background:var(--panel2);color:var(--text);border:1px solid var(--line);b
 .mobc.dead{opacity:0;transform:translateY(12px) scale(.9)}
 .mobc .floaters{position:absolute;inset:0;pointer-events:none}
 .chip.solo{padding:3px}
+.maincard{margin:0 0 10px;padding:10px 12px;background:var(--panel);border:1px solid var(--line);border-radius:12px}
+.maincard.ready{border-color:var(--gold)}
+.maincard .mh{display:flex;align-items:center;gap:6px}
+.maincard .mh b{font-family:var(--serif);font-size:15px;font-weight:600}
+.maincard .mh .mp{margin-left:auto;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.tag.main{background:#3a3220;color:#f2d58a}
+.maincard .mg{font-size:13px;margin:4px 0 6px;line-height:1.6}
+.maincard .mg small{color:var(--muted);font-size:11px;margin-left:4px}
+.maincard .mb{display:flex;gap:6px;margin-top:8px;justify-content:flex-end}
+.maincard .mb button{padding:6px 12px;border-radius:8px;border:1px solid var(--line);background:var(--panel2);font-size:13px;font-family:var(--serif)}
+.maincard .mb button.claim{background:var(--ver);border-color:var(--ver);color:#fff6ea}
+.maincard .mb button:disabled{opacity:.4;cursor:default}
+.dlg{font-family:var(--serif);font-size:14px;line-height:1.95;border-left:2px solid var(--gold-d);padding-left:10px;margin:6px 0 12px}
+.dlg .who{font-family:var(--sans);font-size:12px;color:var(--gold);margin-bottom:2px}
+.goalbox{background:var(--panel2);border-radius:8px;padding:8px 10px;font-size:13px;line-height:1.7;margin-bottom:10px}
+.goalbox small{display:block;color:var(--muted);font-size:12px}
+.unlockline{font-size:13px;color:#a6e3cd;margin-bottom:10px}
 .hidden{display:none!important}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--panel2);border:1px solid var(--line);padding:8px 14px;border-radius:8px;font-size:13px;z-index:30;transition:opacity .3s}
 </style>
@@ -245,7 +262,7 @@ select{background:var(--panel2);color:var(--text);border:1px solid var(--line);b
 <body>
 <div class="wrap">
   <header>
-    <h1>天星界・御劍者<small>v0.6 暫定名稱</small></h1>
+    <h1>天星界・御劍者<small>v0.7 暫定名稱</small></h1>
     <div class="silver" id="silver">銀兩 0</div>
   </header>
 
@@ -265,6 +282,7 @@ select{background:var(--panel2);color:var(--text);border:1px solid var(--line);b
   </section>
 
   <div class="loc" id="loc"></div>
+  <section class="maincard" id="mainCard"></section>
 
   <section class="card arena">
     <div class="stage" id="stage"><div class="floaters" id="floaters"></div></div>
@@ -288,7 +306,7 @@ select{background:var(--panel2);color:var(--text);border:1px solid var(--line);b
 
 /* ---------- 遊戲資料：名稱、數值都集中在這裡，改這裡就好 ---------- */
 const GAME = {
-  meta: { title: '天星界・御劍者', subtitle: '暫定名稱', version: '0.6', era: '仙曆五百餘年' },
+  meta: { title: '天星界・御劍者', subtitle: '暫定名稱', version: '0.7', era: '仙曆五百餘年' },
 
   // 八項資源系統（順序固定，星數陣列照這個順序）
   statNames: ['力量', '抵擋', '體力', '敏捷', '智慧', '守護', '靈力', '控制'],
@@ -608,6 +626,90 @@ GAME.requests = {
 };
 GAME.board = { slots: 3, rerollCost(lv) { return 50 * lv; } };
 
+/* ---------- 主線任務 ----------
+   goal.type：kill 擊倒指定魔物、counter 在架勢被你剋制時擊倒、collect 交付材料、survive 在某區連續撐過一段時間不重傷、
+   alloc 分配屬性點、sword 御心等級、stat 系統動作次數（crafted 調製）、mastery 任一招熟練度
+   lv 是建議等級；等級超過建議 6 級以上，可以直接略過（只拿一半銀兩） */
+GAME.main = {
+  chapter: '第一章　越界',
+  steps: [
+    { title: '報到', zone: 'tl1', lv: 1, npc: '溫遲',
+      lines: ['新來的御劍者？名冊上這一頁還是空的。', '城外的田最近長出會走路的苗。先去看看，順便讓我知道你的劍有多重。'],
+      goal: { type: 'kill', keys: ['qingmiao'], n: 5 }, goalText: '擊倒青苗靈 5 隻',
+      reward: { silver: 100, expPct: 0.3, items: { '小還丹': 5 } } },
+    { title: '知己', lv: 1, npc: '溫遲',
+      lines: ['拿劍之前，得先知道自己的力氣長在哪裡。', '到「屬性」把點數分下去，每一項加起來的效果不一樣。'],
+      goal: { type: 'alloc', n: 3 }, goalText: '分配 3 點屬性點',
+      reward: { silver: 60, expPct: 0.2 } },
+    { title: '南門', zone: 'tl2', lv: 2, npc: '溫遲',
+      lines: ['南門的守衛說，夜裡河堤上的狗叫聲一晚比一晚近。', '不是城裡的狗。'],
+      goal: { type: 'kill', keys: ['yequan'], n: 8 }, goalText: '擊倒野犬 8 隻',
+      reward: { silver: 150, expPct: 0.2 }, unlock: 'board', unlockText: '巡守司的「委託板」開放了：首區各地的人會託你收集材料。' },
+    { title: '百草', lv: 3, npc: '宋苓',
+      lines: ['你就是溫遲說的新人？手臂上那道傷，先別逞強。', '帶五根草芯來，我配一帖藥給你。以後缺藥，就來百草堂。'],
+      goal: { type: 'collect', mat: '草芯', n: 5 }, goalText: '交付草芯 5 根',
+      reward: { silver: 100, expPct: 0.15, items: { '小還丹': 10 } }, unlock: 'shop', unlockText: '「百草堂」開放了：可以買回復藥、調製增益藥。' },
+    { title: '麥田', zone: 'wd1', lv: 4, npc: '五頓村・老農',
+      lines: ['麥子還沒黃，田裡就先有東西在走。', '晚上聽得到殼摩擦的聲音，像有人蹲在田埂上磨刀。'],
+      goal: { type: 'kill', keys: ['maisui', 'tianjia'], n: 12 }, goalText: '擊倒麥穗靈或田甲蟲 12 隻',
+      reward: { silver: 300, expPct: 0.15, items: { '小還丹': 5 } } },
+    { title: '看勢', zone: 'wd1', lv: 5, npc: '溫遲（信）',
+      lines: ['聽說你在五頓村。田甲蟲的架勢是「武」。', '萬氏的二十種兵器彼此相剋，剋「武」的，是「暗」。', '換一本法典試試。剋住牠的時候，你會知道。'],
+      goal: { type: 'counter', n: 5 }, goalText: '在魔物的架勢被你剋制時擊倒牠 5 次',
+      hint: '到「武器」換成暗（法典），換完記得到「屬性」分配這把武器的點數。完成後可以換回原本的武器。',
+      reward: { silver: 300, expPct: 0.25, items: { '小還丹': 5 } } },
+    { title: '楓林', zone: 'xy1', lv: 7, npc: '仙緣鎮・祠堂管事',
+      lines: ['楓葉落下來，有的會自己站起來。', '鎮上的孩子不敢再進林子撿葉子了。'],
+      goal: { type: 'kill', keys: ['fengye'], n: 12 }, goalText: '擊倒楓葉靈 12 隻',
+      reward: { silver: 400, expPct: 0.15, items: { '中還丹': 3 } } },
+    { title: '舊址', zone: 'xy3', lv: 9, npc: '仙緣鎮・祠堂管事',
+      lines: ['楓緣舊址是五百多年前那位英雄出生的地方。每年榮耀日，鎮上的人都會去掃一掃。', '今年去的人說，屋簷下的燈自己亮著。'],
+      goal: { type: 'survive', zone: 'xy3', sec: 600 }, goalText: '在楓緣舊址連續巡守 10 分鐘，中途不重傷',
+      reward: { silver: 500, expPct: 0.2 } },
+    { title: '舊靈', zone: 'xy3', lv: 10, npc: '仙緣鎮・祠堂管事',
+      lines: ['燈旁邊站著一個影子，看不清臉。', '只看得見楓葉一直從它身上落下來，落了一整晚，地上卻一片也沒有。'],
+      goal: { type: 'kill', keys: ['jiuling'], n: 1 }, goalText: '擊倒精英「楓緣舊靈」',
+      reward: { silver: 800, expPct: 0.3, items: { '中還丹': 3 }, mats: { '草芯': 5 } } },
+    { title: '注心', lv: 10, npc: '溫遲',
+      lines: ['你回來了。劍刃上還沾著楓葉的顏色。', '劍不會自己變利。人放進去多少，它就還你多少。'],
+      goal: { type: 'sword', n: 3 }, goalText: '把目前武器的御心提升到 +3',
+      reward: { silver: 300, expPct: 0.1, mats: { '精魄': 10 } } },
+    { title: '石階', zone: 'mt1', lv: 10, npc: '明臺・守階人',
+      lines: ['石階一級一級往上，昨天多了一級。', '多出來的那一級，會走。'],
+      goal: { type: 'kill', keys: ['shijie'], n: 15 }, goalText: '擊倒石階傀儡 15 隻',
+      reward: { silver: 800, expPct: 0.15, items: { '中還丹': 4 } } },
+    { title: '守墓', zone: 'my1', lv: 12, npc: '冥月鎮・守墓人',
+      lines: ['墓園的火，從前只在清明前後亮。', '現在每晚都亮。我得把火燼收起來，不然它們會記得回來的路。'],
+      goal: { type: 'collect', mat: '火燼', n: 10 }, goalText: '交付火燼 10 份',
+      reward: { silver: 1000, expPct: 0.15, items: { '中還丹': 5 } } },
+    { title: '枯井', zone: 'my3', lv: 14, npc: '冥月鎮・守墓人',
+      lines: ['井底有人在說話。', '說的是很久以前的口令，一句一句，像在點名。'],
+      goal: { type: 'kill', keys: ['hunjiang'], n: 1 }, goalText: '擊倒精英「冥月遊魂將」',
+      reward: { silver: 1500, expPct: 0.3 } },
+    { title: '備藥', lv: 14, npc: '宋苓',
+      lines: ['往夜蘭山城的路不好走。', '帶上一帖補藥，別每次都撐到最後一口氣才想起我。'],
+      goal: { type: 'stat', key: 'crafted', n: 1 }, goalText: '在百草堂調製任一種增益藥 1 份',
+      reward: { silver: 600, expPct: 0.1, items: { '虎骨酒': 2 } } },
+    { title: '礦坑', zone: 'yl3', lv: 15, npc: '夜蘭山城・礦工',
+      lines: ['礦坑裡的石頭會自己翻身。', '我們以為挖到了礦脈，挖開才知道，那是一道背脊。'],
+      goal: { type: 'kill', keys: ['kuangkeng'], n: 20 }, goalText: '擊倒礦坑石魔 20 隻',
+      reward: { silver: 2000, expPct: 0.15, items: { '大還丹': 2 } } },
+    { title: '殘將', zone: 'ls3', lv: 18, npc: '梁山城・兵器行',
+      lines: ['關隘廢了一百多年，最近有人看見守將回來點兵。', '穿的是舊式的甲，喊的是沒人聽得懂的番號。'],
+      goal: { type: 'kill', keys: ['canjiang'], n: 1 }, goalText: '擊倒精英「梁山殘將」',
+      reward: { silver: 3000, expPct: 0.3, mats: { '殘鐵': 5 } } },
+    { title: '靈泉', zone: 'yf2', lv: 18, npc: '月靈峰・採藥人',
+      lines: ['泉水照得出一個人最熟的那一招。', '再往上就是凝鋒頂城。上去之前，把你最順手的那一招練熟。'],
+      goal: { type: 'mastery', n: 5 }, goalText: '任一招熟練度達到 Lv.5',
+      reward: { silver: 2000, expPct: 0.15, items: { '大還丹': 3 } } },
+    { title: '劍塚', zone: 'nf3', lv: 21, npc: '凝鋒頂城・守劍人',
+      lines: ['劍塚裡埋的，是沒有回家的御劍者留下的劍。', '最近那些劍會在半夜一起響，像在等誰回來。', '你去的話，別回頭看。'],
+      goal: { type: 'kill', keys: ['fenghun'], n: 1 }, goalText: '擊倒首領「劍塚・鋒魂」',
+      reward: { silver: 5000, expPct: 0.5, mats: { '鋒鐵': 1 } } }
+  ],
+  epilogue: { npc: '凝鋒頂城・守劍人', lines: ['劍停了。', '可是你注意到了嗎？這一路上的魔物，用的都是御劍者的架勢。', '有人在教牠們。', '這幾晚的風，都是從陰區那邊吹來的。'] }
+};
+
 /* ---------- 工具 ---------- */
 let rng = Math.random;
 function setRng(f) { rng = f; }
@@ -685,10 +787,11 @@ function derive(st) {
 function newState() {
   return {
     v: 5, lv: 1, exp: 0, weapon: '銀', swordLv: {}, alloc: {}, resetUsed: {}, mastery: {},
+    main: { step: 0, base: 0, surv: 0, gated: true, done: false },
     items: { '小還丹': 10 }, potion: { auto: { '小還丹': true, '中還丹': true, '大還丹': true, '凝神丹': false }, thr: 0.4 }, buffs: {}, buffAuto: {}, board: [], boardDone: 0, silver: 0, mats: {}, zone: GAME.zones[0].id, auto: true,
     hp: null, en: null,
     quest: { progress: 0, done: 0 },
-    stats: { kills: {}, deaths: 0, playSec: 0, offlineSec: 0, totalExp: 0, bossKills: 0 },
+    stats: { kills: {}, deaths: 0, playSec: 0, offlineSec: 0, totalExp: 0, bossKills: 0, counterKills: 0, crafted: 0 },
     lastSave: Date.now()
   };
 }
@@ -703,7 +806,8 @@ function migrate(st) {
   for (const k of ['items', 'potion', 'buffs', 'buffAuto', 'board']) if (!st[k]) st[k] = base[k];
   if (st.boardDone === undefined) st.boardDone = 0;
   fillBoard(st);
-  st.v = 5;
+  if (!st.main) { st.main = { step: 0, base: 0, surv: 0, gated: false, done: false }; mainBegin(st); } // 舊存檔：功能不鎖，主線從頭開始
+  st.v = 7;
   return st;
 }
 
@@ -807,7 +911,7 @@ function gainExp(st, rt, amount) {
   while (st.exp >= expNeed(st.lv)) {
     st.exp -= expNeed(st.lv); st.lv++;
     rt.d = derive(st); st.hp = rt.d.maxHp; st.en = rt.d.maxEn;
-    emit(rt, { t: 'levelup', lv: st.lv });
+    emit(rt, { t: 'levelup', lv: st.lv }); rt.autoMove = true;
     (GAME.skills[st.weapon] || []).forEach(s => { if (s.lv === st.lv) emit(rt, { t: 'learn', name: s.name }); });
   }
 }
@@ -838,6 +942,7 @@ function hitMob(st, rt, atk, magic, coef, o, target) {
   if (d.stunnedBonus && m.stunned > 0) mult *= 1 + d.stunnedBonus;
   const dmg = dmgCalc(atk, def, mult, st.lv);
   m.hp -= dmg;
+  if (m.hp <= 0 && !m.killKind) m.killKind = kind; // 最後一擊時的剋制關係
   if (d.lifesteal) healHp(st, rt, dmg * d.lifesteal);
   emit(rt, { t: 'hit', who: 'p', dmg, kind, crit, skill: o.skill || '', name: m.label, uid: m.uid, proc: !!o.proc, quiet: !!o.quiet });
   if (crit && !o.proc) for (const r of d.triggers) if (r.s.on === 'crit' && m.hp > 0) procStrike(st, rt, r, null, m);
@@ -963,6 +1068,7 @@ function onKillOne(st, rt, m) {
   st.silver += silver;
   st.stats.kills[m.key] = (st.stats.kills[m.key] || 0) + 1;
   if (m.rank === 'boss') st.stats.bossKills = (st.stats.bossKills || 0) + 1;
+  if (m.killKind === 'counter') st.stats.counterKills = (st.stats.counterKills || 0) + 1;
   const got = {};
   for (const [mat, p] of m.drops) if (rng() < p * (1 + rt.d.dropBuff) * (m.dropMult || 1)) { st.mats[mat] = (st.mats[mat] || 0) + 1; got[mat] = (got[mat] || 0) + 1; }
   if (st.quest.progress < GAME.quest.target) st.quest.progress++;
@@ -1046,6 +1152,7 @@ function step(st, rt, dt) {
   for (const k in rt.icd) rt.icd[k] -= dt;
   rt.potCd -= dt; rt.enCd -= dt;
   tickBuffs(st, rt, dt);
+  mainTick(st, rt, dt);
   d = rt.d;
   if (rt.drBuff.t > 0) rt.drBuff.t -= dt;
   if (rt.mode === 'down') {
@@ -1062,7 +1169,7 @@ function step(st, rt, dt) {
     st.hp = Math.min(d.maxHp, st.hp + d.maxHp * 0.01 * (1 + d.heal) * dt);
     rt.wait -= dt;
     if (rt.wait <= 0) {
-      if (st.auto) { const b = bestZone(st); if (b.id !== st.zone && b.lv[0] > zoneById(st.zone).lv[0]) { st.zone = b.id; emit(rt, { t: 'move', zone: b.id }); } }
+      if (st.auto && rt.autoMove) { rt.autoMove = false; const b = bestZone(st); if (b.id !== st.zone && b.lv[0] > zoneById(st.zone).lv[0]) { st.zone = b.id; emit(rt, { t: 'move', zone: b.id }); } } // 只在升級後換區，手動前往的地方不會被拉走
       startFight(st, rt);
     }
     return;
@@ -1219,6 +1326,7 @@ function craftItem(st, name, n = 1) {
   st.silver -= r.silver * n;
   for (const k in r.mats) st.mats[k] -= r.mats[k] * n;
   st.items[name] = (st.items[name] || 0) + n;
+  st.stats.crafted = (st.stats.crafted || 0) + n;
   return true;
 }
 
@@ -1254,6 +1362,54 @@ function rerollRequest(st, i) {
   st.silver -= c;
   st.board[i] = genRequest(st, st.board.map(x => x.mat));
   return true;
+}
+
+/* ---------- 主線 ---------- */
+function mainStep(st) { return st.main ? GAME.main.steps[st.main.step] || null : null; }
+function mainBase(st, g) {
+  if (g.type === 'kill') return g.keys.reduce((a, k) => a + (st.stats.kills[k] || 0), 0);
+  if (g.type === 'counter') return st.stats.counterKills || 0;
+  if (g.type === 'stat') return st.stats[g.key] || 0;
+  return 0;
+}
+function mainBegin(st) { const s = mainStep(st); st.main.base = s ? mainBase(st, s.goal) : 0; st.main.surv = 0; }
+function mainProgress(st) {
+  const s = mainStep(st); if (!s) return null;
+  const g = s.goal; let cur = 0, need = g.n || 1;
+  if (g.type === 'kill' || g.type === 'counter' || g.type === 'stat') cur = mainBase(st, g) - st.main.base;
+  else if (g.type === 'collect') cur = st.mats[g.mat] || 0;
+  else if (g.type === 'survive') { cur = Math.floor(st.main.surv); need = g.sec; }
+  else if (g.type === 'alloc') cur = pointsTotal(st) - pointsFree(st, st.weapon);
+  else if (g.type === 'sword') cur = st.swordLv[st.weapon] || 0;
+  else if (g.type === 'mastery') cur = Math.max(...[0, 1, 2].map(i => masteryOf(st, st.weapon, i)[0]));
+  return { cur: Math.min(cur, need), need, done: cur >= need };
+}
+function mainCanSkip(st) { const s = mainStep(st); return !!s && st.lv >= s.lv + 6; }
+function mainTick(st, rt, dt) {
+  const s = mainStep(st); if (!s || s.goal.type !== 'survive') return;
+  if (rt.mode === 'down' || st.zone !== s.goal.zone) st.main.surv = 0; // 重傷或離開就重新計算
+  else st.main.surv += dt;
+}
+// 回報主線；skip 是等級遠超過建議等級時直接略過
+function mainClaim(st, rt, skip) {
+  const s = mainStep(st), p = mainProgress(st);
+  if (!s || (!p.done && !(skip && mainCanSkip(st)))) return null;
+  const R = s.reward, got = { silver: 0, exp: 0, items: {}, mats: {} };
+  if (p.done) {
+    if (s.goal.type === 'collect') st.mats[s.goal.mat] -= s.goal.n;
+    got.silver = R.silver; got.exp = Math.round(expNeed(st.lv) * (R.expPct || 0));
+    for (const k in R.items || {}) { st.items[k] = (st.items[k] || 0) + R.items[k]; got.items[k] = R.items[k]; }
+    for (const k in R.mats || {}) { st.mats[k] = (st.mats[k] || 0) + R.mats[k]; got.mats[k] = R.mats[k]; }
+  } else got.silver = Math.round(R.silver / 2);
+  st.silver += got.silver;
+  if (got.exp) gainExp(st, rt, got.exp);
+  st.main.step++;
+  if (!mainStep(st)) st.main.done = true; else mainBegin(st);
+  return { step: s, got, skipped: !p.done };
+}
+function featureOpen(st, f) {
+  if (!st.main || !st.main.gated) return true;
+  return st.main.step > GAME.main.steps.findIndex(s => s.unlock === f);
 }
 
 /* ---------- 注劍：每級要銀兩和精魄；+5、+10、+15、+20 是突破，要特殊材料 ---------- */
@@ -1294,7 +1450,8 @@ if (typeof module !== 'undefined') module.exports = {
   GAME, setRng, posOf, counters, matchup, counterTargets, groupOf, expNeed, derive, newState, migrate, zoneById, zoneUnlocked, bestZone,
   spawn, newRuntime, step, simulate, swordCost, canAfford, upgradeSword, claimQuest,
   allocOf, pointsTotal, pointsFree, addPoints, autoPoints, resetCostFor, resetPoints, round3, resolveSkill, masteryOf, statIdx,
-  useBuff, buyItem, canCraft, craftItem, genRequest, fillBoard, turnIn, rerollRequest, MAT_LV
+  useBuff, buyItem, canCraft, craftItem, genRequest, fillBoard, turnIn, rerollRequest, MAT_LV,
+  mainStep, mainProgress, mainClaim, mainCanSkip, featureOpen, mainBegin
 };
 
 </script>
@@ -1377,6 +1534,7 @@ function load() {
     const raw = localStorage.getItem(SAVE_KEY);
     if (!raw) return null;
     const o = JSON.parse(raw), base = newState();
+    if (!o.main) o.main = null; // 舊存檔沒有主線：交給 migrate 處理（功能不鎖）
     return migrate(Object.assign(base, o, { stats: Object.assign(base.stats, o.stats || {}), quest: Object.assign(base.quest, o.quest || {}) }));
   } catch (e) { return null; }
 }
@@ -1543,7 +1701,7 @@ function swordReady() { const n = st.swordLv[st.weapon] || 0; return n < GAME.sw
 function renderTabs() {
   document.querySelectorAll('#tabs button').forEach(b => {
     b.classList.toggle('on', b.dataset.t === tab);
-    const dot = (b.dataset.t === 'quest' && (questReady() || st.board.some(r => (st.mats[r.mat] || 0) >= r.n))) || (b.dataset.t === 'sword' && swordReady()) || (b.dataset.t === 'stats' && pointsFree(st, st.weapon) > 0);
+    const dot = (b.dataset.t === 'quest' && (questReady() || (featureOpen(st, 'board') && st.board.some(r => (st.mats[r.mat] || 0) >= r.n)))) || (b.dataset.t === 'sword' && swordReady()) || (b.dataset.t === 'stats' && pointsFree(st, st.weapon) > 0);
     const has = b.querySelector('.dot');
     if (dot && !has) b.insertAdjacentHTML('beforeend', '<span class="dot"></span>');
     if (!dot && has) has.remove();
@@ -1654,8 +1812,8 @@ function renderPanel() {
         '<p style="margin-top:10px">報酬：銀兩 ' + fmt(r.silver) + '、' + Object.entries(r.mats).map(([k, n]) => k + '×' + n).join('、') + '（隨等級提高）</p>' +
         '<button class="btn" id="doQuest"' + (ready ? '' : ' disabled') + '>' + (ready ? '回報巡守司' : '巡守中') + '</button>' +
         '<p class="note" style="margin-top:8px">已完成 ' + st.quest.done + ' 次。離線時擊倒的魔物也算進度。</p></div>';
-      h += '<div class="sec" style="margin-top:14px"><h3>委託板</h3><p class="note">首區各地的人託你收集材料。交付後會貼上新的委託；已交付 ' + st.boardDone + ' 張。</p></div>';
-      st.board.forEach((rq, i) => {
+      h += '<div class="sec" style="margin-top:14px"><h3>委託板</h3><p class="note">' + (featureOpen(st, 'board') ? '首區各地的人託你收集材料。交付後會貼上新的委託；已交付 ' + st.boardDone + ' 張。' : '完成主線〈南門〉後開放。') + '</p></div>';
+      if (featureOpen(st, 'board')) st.board.forEach((rq, i) => {
         const T = GAME.requests[rq.mat], have = st.mats[rq.mat] || 0, ok = have >= rq.n, rc = GAME.board.rerollCost(st.lv);
         h += '<div class="npc quest req"><div class="giver"><span class="seal mid">' + GAME.materials[rq.mat].seal + '</span><div><b>' + T.giver + '</b><br><span>收集' + rq.mat + ' ×' + rq.n + '</span></div></div>' +
           '<p>' + T.text + '</p><div class="barrow"><span>持有</span><div class="bar exp"><i style="width:' + Math.min(100, have / rq.n * 100) + '%"></i></div><em>' + fmt(have) + ' / ' + rq.n + '</em></div>' +
@@ -1664,6 +1822,8 @@ function renderPanel() {
       });
       const N2 = GAME.npcs;
       h += '<div class="npc quest locked" style="margin-top:14px"><div class="giver"><span class="seal mid" style="background:#3a2f4a;color:#e3d6f5">' + N2.fate.seal + '</span><div><b>' + N2.fate.name + '</b><br><span>' + N2.fate.title + '</span></div></div><p>' + N2.fate.text + '</p></div>';
+    } else if (!featureOpen(st, 'shop')) {
+      h += '<div class="npc quest locked"><p>百草堂還沒開門。完成主線〈百草〉後開放。</p></div>';
     } else {
       const S = GAME.shopNpc;
       h += '<div class="npc quest"><div class="giver"><span class="seal mid" style="background:#2f4a3a;color:#d6efe0">' + S.seal + '</span><div><b>' + S.name + '</b><br><span>' + S.title + '</span></div></div><p>回復藥用銀兩買；增益藥要帶材料來，我幫你調。</p></div>';
@@ -1714,7 +1874,7 @@ function renderPanel() {
     let total = 0, rows = '';
     for (const k in GAME.monsters) { const n = s.kills[k] || 0; if (!n) continue; total += n; rows += '<span>' + GAME.monsters[k].name + '</span><span>' + fmt(n) + '</span>'; }
     p.innerHTML = '<div class="sec"><h3>巡守紀錄</h3><div class="kv"><span>線上時間</span><span>' + dur(s.playSec) + '</span><span>離線結算時間</span><span>' + dur(s.offlineSec) + '</span>' +
-      '<span>總擊倒</span><span>' + fmt(total) + '</span><span>擊倒首領</span><span>' + fmt(s.bossKills || 0) + '</span>' + rows + '<span>重傷次數</span><span>' + fmt(s.deaths) + '</span></div></div>' +
+      '<span>主線</span><span>' + (st.main.done ? GAME.main.chapter + ' 完成' : stepNo(st.main.step) + '／共 ' + GAME.main.steps.length + ' 步') + '</span><span>總擊倒</span><span>' + fmt(total) + '</span><span>擊倒首領</span><span>' + fmt(s.bossKills || 0) + '</span>' + rows + '<span>重傷次數</span><span>' + fmt(s.deaths) + '</span></div></div>' +
       '<div class="sec"><h3>存檔</h3><p class="note" style="margin-bottom:8px">進度存在這個瀏覽器裡。換手機或換瀏覽器前，先把存檔碼複製起來。</p>' +
       '<textarea id="saveBox" placeholder="按「匯出」產生存檔碼，或貼上存檔碼後按「匯入」"></textarea>' +
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px"><button class="btn ghost" id="doExport">匯出</button><button class="btn ghost" id="doImport">匯入</button></div>' +
@@ -1743,7 +1903,58 @@ function skillPanel(w, d, mine) {
   });
   return h;
 }
-function renderAll() { renderHero(); renderLoc(); renderArena(); renderLog(); renderTabs(); renderPanel(); }
+function rewardText(got) {
+  const a = [];
+  if (got.silver) a.push('銀兩 ' + fmt(got.silver));
+  if (got.exp) a.push('經驗 ' + fmt(got.exp));
+  for (const k in got.items || {}) a.push(k + '×' + got.items[k]);
+  for (const k in got.mats || {}) a.push(k + '×' + got.mats[k]);
+  return a.join('、');
+}
+function zoneTxt(id) { const z = zoneById(id); return z.place + '・' + z.name; }
+let lastMain = '';
+function renderMain() {
+  const box = $('#mainCard');
+  if (st.main.done) {
+    const k = 'done';
+    if (lastMain !== k) { lastMain = k; box.className = 'maincard'; box.innerHTML = '<div class="mh"><span class="tag main">主線</span><b>' + GAME.main.chapter + '　完</b></div><div class="mg">第二章製作中。</div>'; }
+    return;
+  }
+  const s = mainStep(st), p = mainProgress(st), skip = !p.done && mainCanSkip(st);
+  const go = s.zone && st.zone !== s.zone && !p.done;
+  const k = st.main.step + ':' + p.cur + ':' + p.done + ':' + skip + ':' + go + ':' + (s.zone ? zoneUnlocked(st, s.zone) : '');
+  if (lastMain === k) return;
+  lastMain = k;
+  box.className = 'maincard' + (p.done ? ' ready' : '');
+  const prog = s.goal.type === 'survive' ? Math.floor(p.cur / 60) + ':' + String(p.cur % 60).padStart(2, '0') + ' / ' + Math.floor(p.need / 60) + ':00' : p.cur + ' / ' + p.need;
+  box.innerHTML = '<div class="mh"><span class="tag main">主線</span><b>' + stepNo(st.main.step) + '　' + s.title + '</b><span class="mp">' + prog + '</span></div>' +
+    '<div class="mg">' + s.goalText + (s.zone ? '<small>' + zoneTxt(s.zone) + '</small>' : '') + '</div>' +
+    '<div class="bar exp"><i style="width:' + (p.cur / p.need * 100) + '%"></i></div>' +
+    '<div class="mb"><button data-main="detail">詳情</button>' +
+    (go ? '<button data-main="go"' + (zoneUnlocked(st, s.zone) ? '' : ' disabled') + '>' + (zoneUnlocked(st, s.zone) ? '前往' : 'Lv.' + zoneById(s.zone).unlock + ' 可前往') + '</button>' : '') +
+    (p.done ? '<button class="claim" data-main="claim">回報</button>' : skip ? '<button data-main="skip">略過</button>' : '') + '</div>';
+}
+function stepNo(i) { const n = '一二三四五六七八九十'; return '第' + (i < 10 ? n[i] : i < 19 ? '十' + (i === 9 ? '' : n[i - 10]) : '二十') + '步'; }
+function stepBody(s) {
+  return '<div class="dlg"><div class="who">' + s.npc + '</div>' + s.lines.map(l => '「' + l + '」').join('<br>') + '</div>' +
+    '<div class="goalbox">目標：' + s.goalText + (s.zone ? '<small>地點：' + zoneTxt(s.zone) + '（建議 Lv.' + s.lv + '）</small>' : '<small>建議 Lv.' + s.lv + '</small>') +
+    (s.hint ? '<small>提示：' + s.hint + '</small>' : '') +
+    '<small>獎勵：' + rewardText({ silver: s.reward.silver, items: s.reward.items, mats: s.reward.mats }) + (s.reward.expPct ? '、經驗（目前等級的 ' + Math.round(s.reward.expPct * 100) + '%）' : '') + '</small></div>';
+}
+function showStep(prefix) {
+  const s = mainStep(st);
+  let h = prefix || '';
+  if (s) {
+    const p = mainProgress(st), go = s.zone && st.zone !== s.zone && zoneUnlocked(st, s.zone) && !p.done;
+    h += '<h2>' + stepNo(st.main.step) + '　' + s.title + '</h2><div class="sub">' + GAME.main.chapter + '</div>' + stepBody(s) +
+      '<div class="ptbar">' + (go ? '<button class="btn" data-main="go">前往' + zoneById(s.zone).name + '</button>' : '') + '<button class="btn ghost" id="closeModal">' + (go ? '稍後' : '知道了') + '</button></div>';
+  } else {
+    const E = GAME.main.epilogue;
+    h += '<h2>' + GAME.main.chapter + '　完</h2><div class="dlg"><div class="who">' + E.npc + '</div>' + E.lines.map(l => '「' + l + '」').join('<br>') + '</div><p class="note" style="margin-bottom:12px">第二章製作中。</p><button class="btn" id="closeModal">繼續巡守</button>';
+  }
+  $('#modalBody').innerHTML = h; $('#modal').classList.remove('hidden');
+}
+function renderAll() { renderHero(); renderLoc(); lastMain = ''; renderMain(); renderArena(); renderLog(); renderTabs(); renderPanel(); }
 
 /* ---------- 離線戰報 ---------- */
 function showReport(sum, awaySec) {
@@ -1774,6 +1985,24 @@ document.addEventListener('click', ev => {
   const t = ev.target.closest('button'); if (!t) return;
   if (t.dataset.t) { tab = t.dataset.t; if (tab === 'map') viewChap = GAME.chapters[0].id; panelDirty = true; renderTabs(); renderPanel(); if (t.closest('#loc')) $('#tabs').scrollIntoView({ behavior: 'smooth' }); return; }
   if (t.dataset.ch) { viewChap = t.dataset.ch; renderPanel(); return; }
+  if (t.dataset.main) {
+    const a = t.dataset.main, s = mainStep(st);
+    if (a === 'detail') showStep();
+    else if (a === 'go' && s && s.zone && zoneUnlocked(st, s.zone)) {
+      st.zone = s.zone; if (rt.mode === 'fight') { rt.mob = null; rt.mobs = []; rt.mode = 'search'; rt.wait = GAME.rules.searchSec; }
+      resetArena(); addLog('前往' + zoneTxt(s.zone)); $('#modal').classList.add('hidden'); save();
+    } else if (a === 'claim' || a === 'skip') {
+      const r = mainClaim(st, rt, a === 'skip');
+      if (r) {
+        for (const e of rt.events) handle(e); rt.events.length = 0;
+        addLog('<span class="k-lv">主線〈' + r.step.title + '〉' + (r.skipped ? '略過' : '完成') + '</span>');
+        const pre = '<div class="sub" style="margin-bottom:4px">〈' + r.step.title + '〉' + (r.skipped ? '已略過' : '完成') + '</div><div class="big" style="font-size:16px">' + rewardText(r.got) + '</div>' +
+          (r.step.unlock ? '<div class="unlockline">' + r.step.unlockText + '</div>' : '');
+        showStep(pre); save();
+      }
+    }
+    lastMain = ''; renderAll(); return;
+  }
   if (t.dataset.town) { townTab = t.dataset.town; renderPanel(); return; }
   if (t.dataset.buy) { if (buyItem(st, t.dataset.buy, +t.dataset.n)) { toast('買了 ' + t.dataset.buy + ' ×' + t.dataset.n); save(); } renderAll(); return; }
   if (t.dataset.craft) { if (craftItem(st, t.dataset.craft, +t.dataset.n)) { toast('調製了 ' + t.dataset.craft + ' ×' + t.dataset.n); save(); } renderAll(); return; }
@@ -1800,6 +2029,7 @@ document.addEventListener('click', ev => {
     case 'doExport': save(); $('#saveBox').value = btoa(unescape(encodeURIComponent(JSON.stringify(st)))); $('#saveBox').select(); toast('存檔碼已產生，請複製保存'); return;
     case 'doImport': try {
       const o = JSON.parse(decodeURIComponent(escape(atob($('#saveBox').value.trim()))));
+      if (!o.main) o.main = null;
       if (!o || !o.weapon || !o.lv) throw 0;
       const base = newState(); st = migrate(Object.assign(base, o, { stats: Object.assign(base.stats, o.stats || {}), quest: Object.assign(base.quest, o.quest || {}) }));
       st.lastSave = Date.now(); rt = newRuntime(st); resetArena(); save(); toast('匯入完成');
@@ -1834,7 +2064,7 @@ function tick() {
     while (acc >= 0.1) { step(st, rt, 0.1); acc -= 0.1; }
   }
   if (rt.events.length) { for (const e of rt.events) handle(e); rt.events.length = 0; renderLog(); }
-  renderHero(); renderArena();
+  renderHero(); renderArena(); renderMain();
   if (panelDirty && Date.now() - lastPanelAt > 400 && !(document.activeElement && ['SELECT', 'TEXTAREA'].includes(document.activeElement.tagName))) { renderTabs(); renderPanel(); }
   if (now - lastSaveAt > 5000) save();
 }
@@ -1855,6 +2085,7 @@ function start() {
     addLog(GAME.npcs.quest.name + '：首區最近不太平，城外到處都有魔物越界，麻煩你了。');
   }
   save(); renderAll();
+  if (!loaded) showStep('<div class="sub" style="margin-bottom:6px">仙曆五百餘年，天霖國・首區</div>');
   lastWall = Date.now();
   setInterval(tick, 100);
   document.addEventListener('visibilitychange', () => { if (document.hidden) save(); });
