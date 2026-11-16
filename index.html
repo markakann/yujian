@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#121315">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>天星界・御劍者 v0.8</title>
+<title>天星界・御劍者 v0.8.1</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -287,7 +287,7 @@ select{background:var(--panel2);color:var(--text);border:1px solid var(--line);b
 <body>
 <div class="wrap">
   <header>
-    <h1>天星界・御劍者<small>v0.8 暫定名稱</small></h1>
+    <h1>天星界・御劍者<small>v0.8.1 暫定名稱</small></h1>
     <div class="silver" id="silver">銀兩 0</div>
   </header>
 
@@ -331,7 +331,7 @@ select{background:var(--panel2);color:var(--text);border:1px solid var(--line);b
 
 /* ---------- 遊戲資料：名稱、數值都集中在這裡，改這裡就好 ---------- */
 const GAME = {
-  meta: { title: '天星界・御劍者', subtitle: '暫定名稱', version: '0.8', era: '仙曆五百餘年' },
+  meta: { title: '天星界・御劍者', subtitle: '暫定名稱', version: '0.8.1', era: '仙曆五百餘年' },
 
   // 八項資源系統（順序固定，星數陣列照這個順序）
   statNames: ['力量', '抵擋', '體力', '敏捷', '智慧', '守護', '靈力', '控制'],
@@ -1859,10 +1859,14 @@ function load() {
   try {
     const raw = localStorage.getItem(SAVE_KEY);
     if (!raw) return null;
-    const o = JSON.parse(raw), base = newState();
-    if (!o.main) o.main = null; // 舊存檔沒有主線：交給 migrate 處理（功能不鎖）
-    return migrate(Object.assign(base, o, { stats: Object.assign(base.stats, o.stats || {}), quest: Object.assign(base.quest, o.quest || {}) }));
+    return parseSave(JSON.parse(raw));
   } catch (e) { return null; }
+}
+// 把存檔物件升級成目前版本（本機、存檔碼、雲端都走這裡）
+function parseSave(o) {
+  const base = newState();
+  if (!o.main) o.main = null; // 舊存檔沒有主線：交給 migrate 處理（功能不鎖）
+  return migrate(Object.assign(base, o, { stats: Object.assign(base.stats, o.stats || {}), quest: Object.assign(base.quest, o.quest || {}) }));
 }
 function save() {
   st.lastSave = Date.now();
@@ -1874,6 +1878,181 @@ function toast(t, pri = 0) {
   toast.pri = pri; toast.until = Date.now() + 1600;
   const el = $('#toast'); el.textContent = t; el.classList.remove('hidden'); el.style.opacity = 1;
   clearTimeout(toast.t); toast.t = setTimeout(() => { el.style.opacity = 0; setTimeout(() => el.classList.add('hidden'), 300); }, 1600);
+}
+
+/* ---------- 雲端存檔：Google 登入後存到 Firebase（tianxingjie 專案）的 yujianSaves/{uid} ----------
+   存檔整份轉成文字存一個欄位；另外記上傳時間 t、哪台裝置 dev、等級和累計巡守時間，用來判斷兩邊誰比較新 */
+const FB_CONFIG = {
+  apiKey: 'AIzaSyB7oK7uGGnAiQCQ9cdfrFLeV9xkt9OaRFw', authDomain: 'tianxingjie.firebaseapp.com', projectId: 'tianxingjie',
+  storageBucket: 'tianxingjie.firebasestorage.app', messagingSenderId: '307800918648', appId: '1:307800918648:web:6450747a72923ed72e7b8d'
+};
+const FB_VERS = ['12.19.0', '12.11.0', '10.12.2']; // 依序嘗試，前一個載不到就用下一個
+const CLOUD_KEY = 'tianxing-idle-cloud', CLOUD_EVERY = 5 * 60 * 1000;
+const cloud = { ok: /^https?:$/.test(location.protocol) && window.top === window, fb: null, loading: null, user: null, busy: false, hold: false, last: 0, status: '', err: false, later: null, pick: null, why: '', hiddenAt: 0 };
+const esc = t => String(t).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const hhmm = d => String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+const when = t => { const d = new Date(t); return (d.getMonth() + 1) + '/' + d.getDate() + ' ' + hhmm(d); };
+function cloudMeta() { try { return JSON.parse(localStorage.getItem(CLOUD_KEY)) || {}; } catch (e) { return {}; } }
+function setCloudMeta(patch) { const m = Object.assign(cloudMeta(), patch); try { localStorage.setItem(CLOUD_KEY, JSON.stringify(m)); } catch (e) {} return m; }
+function deviceId() { let m = cloudMeta(); if (!m.dev) m = setCloudMeta({ dev: Math.random().toString(36).slice(2, 10) + Date.now().toString(36) }); return m.dev; }
+function cloudSay(text, err) { cloud.status = text; cloud.err = !!err; panelDirty = true; }
+function withTimeout(p, ms) { return Promise.race([p, new Promise((_, no) => setTimeout(() => no(Object.assign(new Error('timeout'), { code: 'timeout' })), ms))]); }
+function cloudErr(e) {
+  const c = (e && e.code) || '', m = (e && e.message) || '';
+  if (c === 'auth/popup-closed-by-user' || c === 'auth/cancelled-popup-request') return '已取消登入';
+  if (c === 'auth/unauthorized-domain') return '這個網址還沒加進 Firebase 的「已授權網域」';
+  if (c === 'auth/operation-not-allowed') return 'Firebase 還沒啟用 Google 登入';
+  if (c === 'permission-denied' || c === 'firestore/permission-denied') return '雲端拒絕存取：Firestore 規則還沒加上 yujianSaves';
+  if (!navigator.onLine) return '目前離線，連上網路後會自動同步';
+  if (c === 'unavailable' || c === 'timeout' || c === 'auth/network-request-failed') return '連不上雲端，稍後會再試';
+  if (/import|fetch|module/i.test(m) && !c) return '載入 Firebase 失敗，請檢查網路';
+  return '雲端同步失敗（' + (c || m || '未知錯誤') + '）';
+}
+function loadFirebase() {
+  if (cloud.fb) return Promise.resolve(cloud.fb);
+  if (cloud.loading) return cloud.loading;
+  cloud.loading = (async () => {
+    let last;
+    for (const v of FB_VERS) {
+      try {
+        const b = 'https://www.gstatic.com/firebasejs/' + v + '/';
+        const [A, U, F] = await Promise.all([import(b + 'firebase-app.js'), import(b + 'firebase-auth.js'), import(b + 'firebase-firestore.js')]);
+        const app = A.initializeApp(FB_CONFIG);
+        cloud.fb = { U, F, auth: U.getAuth(app), db: F.getFirestore(app), v };
+        U.onAuthStateChanged(cloud.fb.auth, onCloudUser);
+        return cloud.fb;
+      } catch (e) { last = e; }
+    }
+    cloud.loading = null;
+    throw last;
+  })();
+  return cloud.loading;
+}
+function onCloudUser(user) {
+  const was = cloud.user && cloud.user.uid;
+  cloud.user = user || null;
+  if (user && user.uid !== was) { setCloudMeta({ on: true }); cloudSay('已登入，檢查雲端存檔中…'); cloudSync('login'); }
+  if (!user && cloudMeta().on) cloudSay('登入已失效，請重新登入', true);
+  panelDirty = true;
+}
+async function cloudLogin() {
+  if (!cloud.ok) return;
+  cloudSay('登入中…');
+  try {
+    const fb = await loadFirebase();
+    const prov = new fb.U.GoogleAuthProvider();
+    prov.setCustomParameters({ prompt: 'select_account' });
+    try { await fb.U.signInWithPopup(fb.auth, prov); }
+    catch (e) {
+      // 彈出視窗被擋：改用整頁跳轉登入
+      if (e && (e.code === 'auth/popup-blocked' || e.code === 'auth/operation-not-supported-in-this-environment')) { setCloudMeta({ on: true }); save(); await fb.U.signInWithRedirect(fb.auth, prov); return; }
+      throw e;
+    }
+  } catch (e) { cloudSay(cloudErr(e), true); }
+}
+async function cloudLogout() {
+  try { if (cloud.fb) await cloud.fb.U.signOut(cloud.fb.auth); } catch (e) {}
+  setCloudMeta({ on: false }); cloud.user = null; cloud.hold = false;
+  cloudSay('已登出，存檔只留在這台裝置'); toast('已登出');
+}
+function cloudBoot() { // 之前登入過：一開遊戲就載入，恢復登入狀態
+  loadFirebase().then(fb => fb.U.getRedirectResult(fb.auth)).catch(e => cloudSay(cloudErr(e), true));
+}
+function cloudDoc() { return cloud.fb.F.doc(cloud.fb.db, 'yujianSaves', cloud.user.uid); }
+function playOf(o) { const s = o.stats || {}; return Math.round((s.playSec || 0) + (s.offlineSec || 0)); }
+async function cloudPut() {
+  save();
+  const t = Date.now();
+  await withTimeout(cloud.fb.F.setDoc(cloudDoc(), { data: JSON.stringify(st), t, dev: deviceId(), lv: st.lv, weapon: st.weapon, play: playOf(st), ver: GAME.meta.version, at: cloud.fb.F.serverTimestamp() }), 20000);
+  setCloudMeta({ seen: t }); cloud.last = Date.now(); cloud.hold = false;
+  cloudSay('已同步・' + hhmm(new Date()));
+}
+// 先讀雲端再決定：雲端沒被別台改過、進度也沒有比這台多，才直接上傳；否則讓玩家選
+async function cloudSync(reason) {
+  if (!cloud.user || cloud.busy) return;
+  if (cloud.hold && reason === 'auto') return;
+  cloud.busy = true;
+  if (reason !== 'auto') cloudSay('同步中…');
+  try {
+    const snap = await withTimeout(cloud.fb.F.getDoc(cloudDoc()), 15000);
+    if (snap.exists()) {
+      const c = snap.data(), meta = cloudMeta();
+      const mine = c.dev === deviceId() || c.t <= (meta.seen || 0);
+      const behind = c.lv > st.lv || (c.play || 0) > playOf(st) + 600;
+      if (!mine || behind) {
+        cloud.hold = true; cloud.busy = false;
+        cloudSay('雲端和這台的存檔不一樣，同步暫停中');
+        askCloud(c, mine ? 'behind' : 'other');
+        return;
+      }
+    }
+    await cloudPut();
+    if (!snap.exists()) toast('已建立雲端存檔');
+    else if (reason === 'manual') toast('已同步到雲端');
+  } catch (e) { cloudSay(cloudErr(e), true); cloud.last = Date.now() - CLOUD_EVERY + 60000; } // 失敗的話一分鐘後再試
+  cloud.busy = false;
+}
+async function cloudPull() {
+  if (!cloud.user || cloud.busy) return;
+  cloud.busy = true; cloudSay('讀取雲端中…');
+  try {
+    const snap = await withTimeout(cloud.fb.F.getDoc(cloudDoc()), 15000);
+    cloud.busy = false;
+    if (!snap.exists()) { cloudSay('雲端還沒有存檔'); toast('雲端還沒有存檔'); return; }
+    cloudSay(cloud.hold ? '雲端和這台的存檔不一樣，同步暫停中' : '已讀取雲端資料');
+    askCloud(snap.data(), 'pull');
+  } catch (e) { cloud.busy = false; cloudSay(cloudErr(e), true); }
+}
+function saveSummary(o) {
+  const M = o.main;
+  return { lv: o.lv, weapon: GAME.weapons[o.weapon] ? o.weapon : '銀', main: !M ? '—' : M.done ? GAME.main.chapter + ' 完成' : '主線' + stepNo(Math.min(M.step, GAME.main.steps.length - 1)),
+    play: playOf(o), silver: o.silver || 0, saved: o.lastSave || 0 };
+}
+function askCloud(c, why) {
+  const show = () => {
+    let o; try { o = JSON.parse(c.data); } catch (e) { cloudSay('雲端存檔損毀，無法讀取', true); return; }
+    const A = saveSummary(o), B = saveSummary(st);
+    const card = (title, S, other) => '<div class="npc"><b class="serif" style="font-size:15px">' + title + '</b><div class="kv" style="margin-top:6px">' +
+      '<span>等級</span><span' + (S.lv > other.lv ? ' class="up"' : '') + '>Lv.' + S.lv + '</span><span>武器</span><span>' + wName(S.weapon) + '</span><span>主線</span><span>' + S.main + '</span>' +
+      '<span>累計巡守</span><span' + (S.play > other.play ? ' class="up"' : '') + '>' + dur(S.play) + '</span><span>銀兩</span><span>' + fmt(S.silver) + '</span><span>最後存檔</span><span>' + when(S.saved) + '</span></div></div>';
+    const head = why === 'pull' ? '從雲端讀取' : why === 'behind' ? '雲端的進度比較多' : '雲端有另一台裝置的存檔';
+    const sub = why === 'pull' ? '讀取後，這台裝置目前的進度會被雲端那份取代。' :
+      why === 'behind' ? '這台裝置的進度比雲端少，可能是重新開始過，或匯入了比較舊的存檔。要用哪一份繼續？' :
+      '另一台裝置在 ' + when(c.t) + ' 上傳了存檔。要用哪一份繼續？沒選的那一份會被取代。';
+    cloud.pick = c; cloud.why = why;
+    $('#modalBody').innerHTML = '<h2>' + head + '</h2><div class="sub">' + sub + '</div>' + card('雲端', A, B) + card('這台裝置', B, A) +
+      '<button class="btn" id="cloudUse">用雲端的存檔</button>' +
+      (why === 'pull' ? '' : '<button class="btn ghost" id="cloudKeep" style="margin-top:8px">用這台的存檔（覆蓋雲端）</button>') +
+      '<button class="btn ghost" id="cloudLater" style="margin-top:8px">' + (why === 'pull' ? '取消' : '先不要，暫停同步') + '</button>';
+    $('#modal').classList.remove('hidden');
+  };
+  if (!$('#modal').classList.contains('hidden')) cloud.later = show; else show(); // 戰報或對話還開著：關掉後再問
+}
+function applyCloud(c) {
+  st = parseSave(JSON.parse(c.data));
+  rt = newRuntime(st); logs = []; resetArena(); pend = [0, 0, 0, 0, 0, 0, 0, 0]; selWeapon = null;
+  setCloudMeta({ seen: c.t });
+  $('#modal').classList.add('hidden');
+  addLog('<span class="k-good">讀取雲端存檔：Lv.' + st.lv + '・' + wName(st.weapon) + '</span>');
+  const away = (Date.now() - st.lastSave) / 1000;
+  if (away > 30) { const secs = Math.min(away, GAME.rules.offlineCapSec); st.stats.offlineSec += secs; const { sum } = simulate(st, secs, rt); for (const e of rt.events) handle(e); rt.events.length = 0; showReport(sum, away); }
+  save(); renderAll(); toast('已讀取雲端存檔');
+}
+function cloudPanel() {
+  let h = '<div class="sec"><h3>雲端存檔</h3>';
+  if (!cloud.ok) return h + '<p class="note">雲端存檔要在 GitHub Pages 版或安裝好的 App 裡才能用，這裡只能用下面的存檔碼。</p></div>';
+  if (!cloud.user) {
+    if (!cloud.fb && !cloud.loading) loadFirebase().catch(() => {}); // 先在背景載好，按登入時彈出視窗才不會被擋
+    h += '<p class="note" style="margin-bottom:8px">用 Google 帳號登入後，存檔會同步到雲端：每 5 分鐘一次，離開遊戲時也會同步。換手機、平板都能接著玩。</p>' +
+      '<button class="btn ghost" id="cloudIn">用 Google 帳號登入</button>' +
+      (cloud.status ? '<p class="note" style="margin-top:6px' + (cloud.err ? ';color:#ffb199' : '') + '">' + esc(cloud.status) + '</p>' : '');
+  } else {
+    h += '<div class="kv"><span>帳號</span><span>' + esc(cloud.user.displayName || cloud.user.email || '已登入') + '</span><span>狀態</span><span' + (cloud.err || cloud.hold ? ' style="color:#ffb199"' : '') + '>' + esc(cloud.status || '—') + '</span></div>' +
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px"><button class="btn ghost" id="cloudNow"' + (cloud.busy ? ' disabled' : '') + '>' + (cloud.hold ? '處理存檔差異' : '立即同步') + '</button>' +
+      '<button class="btn ghost" id="cloudPull"' + (cloud.busy ? ' disabled' : '') + '>從雲端讀取</button></div>' +
+      '<button class="btn ghost" id="cloudOut" style="margin-top:8px">登出</button>';
+  }
+  return h + '</div>';
 }
 
 /* ---------- 戰鬥紀錄 ---------- */
@@ -2218,7 +2397,8 @@ function renderPanel() {
     for (const k in GAME.monsters) { const n = s.kills[k] || 0; if (!n) continue; total += n; rows += '<span>' + GAME.monsters[k].name + '</span><span>' + fmt(n) + '</span>'; }
     p.innerHTML = '<div class="sec"><h3>巡守紀錄</h3><div class="kv"><span>線上時間</span><span>' + dur(s.playSec) + '</span><span>離線結算時間</span><span>' + dur(s.offlineSec) + '</span>' +
       '<span>主線</span><span>' + (st.main.done ? GAME.main.chapter + ' 完成' : stepNo(st.main.step) + '／共 ' + GAME.main.steps.length + ' 步') + '</span><span>總擊倒</span><span>' + fmt(total) + '</span><span>擊倒首領</span><span>' + fmt(s.bossKills || 0) + '</span>' + rows + '<span>分解裝備</span><span>' + fmt(s.salvaged || 0) + ' 件</span><span>重傷次數</span><span>' + fmt(s.deaths) + '</span></div></div>' +
-      '<div class="sec"><h3>存檔</h3><p class="note" style="margin-bottom:8px">進度存在這個瀏覽器裡。換手機或換瀏覽器前，先把存檔碼複製起來。</p>' +
+      cloudPanel() +
+      '<div class="sec"><h3>存檔碼</h3><p class="note" style="margin-bottom:8px">進度存在這個瀏覽器裡。沒有登入雲端的話，換手機或換瀏覽器前，先把存檔碼複製起來。</p>' +
       '<textarea id="saveBox" placeholder="按「匯出」產生存檔碼，或貼上存檔碼後按「匯入」"></textarea>' +
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px"><button class="btn ghost" id="doExport">匯出</button><button class="btn ghost" id="doImport">匯入</button></div>' +
       '<button class="btn warn" id="doReset" style="margin-top:8px">' + (resetArm > Date.now() ? '再按一次確定刪除進度' : '重新開始') + '</button></div>' +
@@ -2487,15 +2667,21 @@ document.addEventListener('click', ev => {
     case 'doExport': save(); $('#saveBox').value = btoa(unescape(encodeURIComponent(JSON.stringify(st)))); $('#saveBox').select(); toast('存檔碼已產生，請複製保存'); return;
     case 'doImport': try {
       const o = JSON.parse(decodeURIComponent(escape(atob($('#saveBox').value.trim()))));
-      if (!o.main) o.main = null;
       if (!o || !o.weapon || !o.lv) throw 0;
-      const base = newState(); st = migrate(Object.assign(base, o, { stats: Object.assign(base.stats, o.stats || {}), quest: Object.assign(base.quest, o.quest || {}) }));
+      st = parseSave(o);
       st.lastSave = Date.now(); rt = newRuntime(st); resetArena(); save(); toast('匯入完成');
     } catch (e) { toast('存檔碼無法讀取'); } break;
     case 'doReset':
       if (resetArm > Date.now()) { st = freshState(); rt = newRuntime(st); logs = []; resetArena(); resetArm = 0; save(); toast('已重新開始'); }
       else { resetArm = Date.now() + 4000; } break;
-    case 'closeModal': $('#modal').classList.add('hidden'); break;
+    case 'closeModal': $('#modal').classList.add('hidden'); if (cloud.later) { const f = cloud.later; cloud.later = null; setTimeout(f, 200); } break;
+    case 'cloudIn': cloudLogin(); break;
+    case 'cloudOut': cloudLogout(); break;
+    case 'cloudNow': cloudSync('manual'); break;
+    case 'cloudPull': cloudPull(); break;
+    case 'cloudUse': if (cloud.pick) { const c = cloud.pick; cloud.pick = null; applyCloud(c); cloud.hold = false; if (cloud.user) cloudPut().catch(e => cloudSay(cloudErr(e), true)); } return;
+    case 'cloudKeep': if (cloud.pick) { cloud.pick = null; $('#modal').classList.add('hidden'); cloud.hold = false; cloud.busy = true; cloudPut().then(() => toast('已用這台的存檔覆蓋雲端')).catch(e => cloudSay(cloudErr(e), true)).finally(() => { cloud.busy = false; }); } break;
+    case 'cloudLater': $('#modal').classList.add('hidden'); if (cloud.why !== 'pull') { cloud.hold = true; cloudSay('同步已暫停：雲端和這台的存檔不一樣'); } cloud.pick = null; break;
     case 'doInstall': if (installPrompt) { installPrompt.prompt(); installPrompt.userChoice.finally(() => { installPrompt = null; panelDirty = true; }); } break;
     case 'doAlloc': if (addPoints(st, st.weapon, pend)) { rt.d = derive(st); st.hp = Math.min(st.hp, rt.d.maxHp); addLog('<span class="k-gold">加點完成：' + pend.map((x, i) => x ? GAME.statNames[i] + '+' + x : '').filter(Boolean).join('、') + '</span>'); pend = [0, 0, 0, 0, 0, 0, 0, 0]; toast('加點完成'); save(); } break;
     case 'cancelAlloc': pend = [0, 0, 0, 0, 0, 0, 0, 0]; break;
@@ -2526,6 +2712,7 @@ function tick() {
   renderHero(); renderArena(); renderMain();
   if (panelDirty && Date.now() - lastPanelAt > 400 && !(document.activeElement && ['SELECT', 'TEXTAREA'].includes(document.activeElement.tagName))) { renderTabs(); renderPanel(); }
   if (now - lastSaveAt > 5000) save();
+  if (cloud.user && !cloud.busy && !cloud.hold && now - cloud.last > CLOUD_EVERY) cloudSync('auto');
 }
 
 function start() {
@@ -2545,9 +2732,13 @@ function start() {
   }
   save(); renderAll();
   if (!loaded) showStep('<div class="sub" style="margin-bottom:6px">仙曆五百餘年，天霖國・首區</div>');
+  if (cloud.ok && cloudMeta().on) cloudBoot();
   lastWall = Date.now();
   setInterval(tick, 100);
-  document.addEventListener('visibilitychange', () => { if (document.hidden) save(); });
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) { save(); cloud.hiddenAt = Date.now(); if (cloud.user && !cloud.hold) cloudSync('auto'); }
+    else if (cloud.user && cloud.hiddenAt && Date.now() - cloud.hiddenAt > 60000) cloudSync('resume'); // 回來時看看別台有沒有更新
+  });
   window.addEventListener('pagehide', save);
 }
 start();
