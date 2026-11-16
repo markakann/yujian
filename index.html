@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#121315">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>天星界・御劍者 v0.10</title>
+<title>天星界・御劍者 v0.11</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -370,7 +370,7 @@ button:active:not(:disabled){transform:scale(.95)}
 <body>
 <div class="wrap">
   <header>
-    <h1>天星界・御劍者<small>v0.10 暫定名稱</small></h1>
+    <h1>天星界・御劍者<small>v0.11 暫定名稱</small></h1>
     <div class="silver" id="silver">銀兩 0</div>
   </header>
 
@@ -417,7 +417,7 @@ button:active:not(:disabled){transform:scale(.95)}
 
 /* ---------- 遊戲資料：名稱、數值都集中在這裡，改這裡就好 ---------- */
 const GAME = {
-  meta: { title: '天星界・御劍者', subtitle: '暫定名稱', version: '0.10', era: '仙曆五百餘年' },
+  meta: { title: '天星界・御劍者', subtitle: '暫定名稱', version: '0.11', era: '仙曆五百餘年' },
 
   // 八項資源系統（順序固定，星數陣列照這個順序）
   statNames: ['力量', '抵擋', '體力', '敏捷', '智慧', '守護', '靈力', '控制'],
@@ -485,7 +485,15 @@ const GAME = {
     '殘鐵': { seal: '鐵', desc: '舊時兵器的碎片，鏽得很深' },
     '鋒鐵': { seal: '鋒', desc: '劍塚深處取得的鐵，仍帶著鋒芒' },
     // 息區（第五章）材料，先保留
-    '瘴晶': { seal: '晶', desc: '瘴氣凝成的晶塊' }
+    '瘴晶': { seal: '晶', desc: '瘴氣凝成的晶塊' },
+    // 青區（第二章）材料
+    '鴉羽': { seal: '鴉', desc: '夜鴉的黑羽，摸起來像沾了露' },
+    '柳絲': { seal: '絲', desc: '柳妖身上抽出的細絲，很韌' },
+    '月露': { seal: '露', desc: '只在月光下凝結的露水' },
+    '古銅': { seal: '銅', desc: '古道上舊物的銅，綠鏽底下還亮著' },
+    '赤羽': { seal: '赤', desc: '赤羽鳥的羽毛，餘溫不散' },
+    '霜晶': { seal: '霜', desc: '冷遠道的霜凝成的晶，握久了手會麻' },
+    '血珀': { seal: '珀', desc: '烈血譚底的紅色琥珀，裡面封著一縷劍穗' }
   },
 
   // 魔物原型：同等級時的強度，等級越高照同一條曲線放大
@@ -538,7 +546,39 @@ const GAME = {
     kuteng:   { name: '枯藤妖', art: 'vine', pal: 'wither', arch: 'caster', attrs: ['慧', '玉'], type: 'magic', bind: 0.12, drops: [['瘴晶', 0.06]] },
     lunjia:   { name: '輪甲蟲', art: 'beetle', pal: 'wheel', arch: 'tank', attrs: ['星'], type: 'phys', drops: [['瘴晶', 0.06]] },
     yanji:    { name: '岩脊魔', art: 'golem', pal: 'rock', arch: 'brute', attrs: ['霸', '武'], type: 'phys', drops: [['瘴晶', 0.07]] },
-    chihou:   { name: '魔界斥候', rank: 'elite', art: 'hood', pal: 'demon', arch: 'elite', attrs: ['暗', '誅', '星', '霸'], type: 'phys', drops: [['瘴晶', 0.5]] }
+    chihou:   { name: '魔界斥候', rank: 'elite', art: 'hood', pal: 'demon', arch: 'elite', attrs: ['暗', '誅', '星', '霸'], type: 'phys', drops: [['瘴晶', 0.5]] },
+    // 青區（第二章）
+    daocao:   { name: '稻草人偶', art: 'hood', pal: 'straw', arch: 'brute', attrs: ['必', '武'], type: 'phys', drops: [['草芯', 0.10], ['精魄', 0.12]] },
+    yeya:     { name: '夜鴉', art: 'bird', pal: 'crow', arch: 'fast', attrs: ['弓', '閃'], type: 'phys', drops: [['鴉羽', 0.12], ['精魄', 0.10]] },
+    gujing:   { name: '穀精', art: 'sprite', pal: 'grain', arch: 'caster', attrs: ['神', '慧'], type: 'magic', drops: [['草芯', 0.10], ['精魄', 0.10]] },
+    liying:   { name: '籬影', art: 'hood', pal: 'shade', arch: 'caster', attrs: ['暗', '降', '誅'], type: 'magic', drops: [['鴉羽', 0.08], ['精魄', 0.10]] },
+    liuxu:    { name: '柳絮靈', art: 'wisp', pal: 'willow', arch: 'caster', attrs: ['慧', '玉'], type: 'magic', drops: [['柳絲', 0.12], ['精魄', 0.10]] },
+    qingshe:  { name: '青蛇', art: 'serpent', pal: 'viper', arch: 'fast', attrs: ['降', '閃'], type: 'phys', drops: [['柳絲', 0.08], ['精魄', 0.10]] },
+    shishi:   { name: '石獅傀儡', art: 'golem', pal: 'lion', arch: 'tank', attrs: ['霸', '聖'], type: 'phys', drops: [['石核', 0.10], ['精魄', 0.10]] },
+    liuyao:   { name: '柳妖', art: 'vine', pal: 'willowd', arch: 'caster', attrs: ['慧', '仙', '玉'], type: 'magic', bind: 0.08, drops: [['柳絲', 0.12], ['精魄', 0.10]] },
+    huayao:   { name: '月下花妖', art: 'vine', pal: 'blossom', arch: 'caster', attrs: ['仙', '玉', '天'], type: 'magic', drops: [['月露', 0.10], ['精魄', 0.10]] },
+    liuying:  { name: '流螢', art: 'wisp', pal: 'firefly', arch: 'fast', attrs: ['星', '閃'], type: 'magic', drops: [['月露', 0.12], ['精魄', 0.10]] },
+    yueke:    { name: '月殼蟲', art: 'beetle', pal: 'moonshell', arch: 'tank', attrs: ['星', '武'], type: 'phys', drops: [['甲片', 0.10], ['精魄', 0.10]] },
+    yinhu:    { name: '銀狐', art: 'hound', pal: 'silverfox', arch: 'fast', attrs: ['弓', '誅', '星'], type: 'phys', drops: [['獸牙', 0.12], ['精魄', 0.10]] },
+    shiyong:  { name: '古道石俑', art: 'golem', pal: 'bronze', arch: 'brute', attrs: ['萬', '武', '霸'], type: 'phys', drops: [['古銅', 0.12], ['精魄', 0.10]] },
+    yiting:   { name: '驛亭殘兵', art: 'hood', pal: 'ruin', arch: 'brute', attrs: ['必', '皇', '萬'], type: 'phys', drops: [['古銅', 0.10], ['精魄', 0.10]] },
+    duanjian: { name: '斷劍遊魂', art: 'blade', pal: 'rustblade', arch: 'fast', attrs: ['銀', '誅', '皇'], type: 'phys', drops: [['殘鐵', 0.12], ['精魄', 0.10]] },
+    chiyu:    { name: '赤羽鳥', art: 'bird', pal: 'phoenix', arch: 'fast', attrs: ['天', '暗', '術'], type: 'magic', drops: [['赤羽', 0.12], ['精魄', 0.10]] },
+    huoxi:    { name: '火蜥', art: 'serpent', pal: 'salamander', arch: 'caster', attrs: ['術', '天'], type: 'magic', drops: [['火燼', 0.12], ['精魄', 0.10]] },
+    yexun:    { name: '夜巡傀儡', art: 'golem', pal: 'ironguard', arch: 'brute', attrs: ['聖', '霸', '必'], type: 'phys', drops: [['古銅', 0.10], ['精魄', 0.10]] },
+    moyi:     { name: '墨衣影', art: 'hood', pal: 'ink', arch: 'caster', attrs: ['暗', '闇', '仙'], type: 'magic', drops: [['赤羽', 0.06], ['精魄', 0.12]] },
+    shuanglang: { name: '霜狼', art: 'hound', pal: 'frost', arch: 'fast', attrs: ['降', '誅', '弓'], type: 'phys', drops: [['霜晶', 0.10], ['精魄', 0.10]] },
+    xuepo:    { name: '雪魄', art: 'wisp', pal: 'snowsoul', arch: 'caster', attrs: ['玉', '仙', '天'], type: 'magic', drops: [['霜晶', 0.12], ['精魄', 0.10]] },
+    bingjia:  { name: '冰甲蟲', art: 'beetle', pal: 'ice', arch: 'tank', attrs: ['武', '霸', '聖'], type: 'phys', drops: [['霜晶', 0.10], ['精魄', 0.10]] },
+    hanya:    { name: '寒鴉', art: 'bird', pal: 'raven', arch: 'fast', attrs: ['閃', '星', '弓'], type: 'phys', drops: [['鴉羽', 0.12], ['精魄', 0.10]] },
+    xueteng:  { name: '血藤', art: 'vine', pal: 'bloodvine', arch: 'caster', attrs: ['闇', '暗', '仙'], type: 'magic', bind: 0.10, drops: [['血珀', 0.04], ['精魄', 0.12]] },
+    xueshe:   { name: '血蛇', art: 'serpent', pal: 'bloodviper', arch: 'fast', attrs: ['降', '閃', '誅'], type: 'phys', drops: [['血珀', 0.04], ['精魄', 0.12]] },
+    chijia:   { name: '赤甲', art: 'beetle', pal: 'bloodshell', arch: 'tank', attrs: ['萬', '必', '霸'], type: 'phys', drops: [['血珀', 0.05], ['精魄', 0.12]] },
+    jianou:   { name: '稻草劍偶', rank: 'elite', art: 'hood', pal: 'strawlord', arch: 'elite', attrs: ['必', '武', '皇', '萬'], type: 'phys', drops: [['鴉羽', 1], ['精魄', 1]] },
+    jiumeng:  { name: '月華舊夢', rank: 'elite', art: 'vine', pal: 'dream', arch: 'elite', attrs: ['仙', '玉', '慧', '天'], type: 'magic', drops: [['月露', 1], ['精魄', 1]] },
+    youjian:  { name: '古道遊劍', rank: 'elite', art: 'hood', pal: 'wander', arch: 'elite', attrs: ['銀', '誅', '皇', '必'], type: 'phys', ult: { name: '開天', every: 16, mult: 3 }, drops: [['古銅', 1], ['殘鐵', 1], ['精魄', 1]] },
+    langwang: { name: '霜原狼王', rank: 'elite', art: 'hound', pal: 'frostking', arch: 'elite', attrs: ['降', '誅', '弓', '星'], type: 'phys', drops: [['霜晶', 1], ['精魄', 1]] },
+    chijiao:  { name: '譚主・赤蛟', rank: 'boss', art: 'serpent', pal: 'crimsonboss', arch: 'boss', attrs: ['闇', '降', '暗', '誅'], type: 'phys', ult: { name: '十字', every: 14, mult: 3 }, drops: [['血珀', 1], ['精魄', 1]] }
   },
 
   // 天霖國六區：首區先開放，其他區先列出地名
@@ -581,7 +621,36 @@ const GAME = {
         { id: 'nf2', group: [2, 3], name: '頂城舊壘', lv: [20, 22], spawns: [['fengya', 60], ['canbing', 40]] },
         { id: 'nf3', group: [2, 3], name: '劍塚', lv: [21, 22], spawns: [['fengya', 85], ['fenghun', 15]] }] }
     ] },
-    { id: 'qing', no: '二', name: '青區', open: false, places: ['靜宇村', '柳青臺', '華月村', '古道', '鳳城', '冷遠道', '烈血譚'] },
+    { id: 'qing', no: '二', name: '青區', open: true, desc: '青區的路多半沿著水走。這陣子夜裡常起風，村裡的人說，風裡有鐵的味道。', places: [
+      { name: '靜宇村', bg: '#2c3324', zones: [
+        { id: 'jy1', group: [2, 3], name: '村外稻田', lv: [22, 23], spawns: [['daocao', 60], ['yeya', 40]] },
+        { id: 'jy2', group: [2, 3], name: '曬穀場', lv: [22, 24], spawns: [['gujing', 55], ['daocao', 45]] },
+        { id: 'jy3', group: [2, 3], name: '村後竹籬', lv: [23, 24], spawns: [['yeya', 45], ['liying', 50], ['jianou', 5]] }] },
+      { name: '柳青臺', bg: '#22362e', zones: [
+        { id: 'lq1', group: [2, 3], name: '柳堤', lv: [24, 25], spawns: [['liuxu', 60], ['qingshe', 40]] },
+        { id: 'lq2', group: [2, 3], name: '青石臺', lv: [24, 26], spawns: [['shishi', 55], ['liuxu', 45]] },
+        { id: 'lq3', group: [2, 3], name: '臺後柳林', lv: [25, 26], spawns: [['liuyao', 60], ['qingshe', 40]] }] },
+      { name: '華月村', bg: '#30263a', zones: [
+        { id: 'hy1', group: [2, 4], name: '花田', lv: [26, 27], spawns: [['huayao', 60], ['liuying', 40]] },
+        { id: 'hy2', group: [2, 4], name: '月池', lv: [26, 28], spawns: [['yueke', 55], ['liuying', 45]] },
+        { id: 'hy3', group: [2, 4], name: '銀狐坡', lv: [27, 28], spawns: [['yinhu', 55], ['huayao', 40], ['jiumeng', 5]] }] },
+      { name: '古道', bg: '#382f24', zones: [
+        { id: 'gd1', group: [2, 4], name: '驛亭', lv: [28, 29], spawns: [['shiyong', 55], ['yiting', 45]] },
+        { id: 'gd2', group: [2, 4], name: '斷碑林', lv: [28, 30], spawns: [['duanjian', 60], ['shiyong', 40]] },
+        { id: 'gd3', group: [2, 4], name: '古道盡頭', lv: [29, 30], spawns: [['duanjian', 50], ['yiting', 45], ['youjian', 5]] }] },
+      { name: '鳳城', hub: true, bg: '#3b2420', zones: [
+        { id: 'fc1', group: [3, 4], name: '城郊', lv: [30, 31], spawns: [['chiyu', 60], ['huoxi', 40]] },
+        { id: 'fc2', group: [3, 4], name: '舊城巷', lv: [30, 32], spawns: [['yexun', 55], ['chiyu', 45]] },
+        { id: 'fc3', group: [3, 4], name: '城牆外', lv: [31, 33], spawns: [['moyi', 55], ['yexun', 45]] }] },
+      { name: '冷遠道', bg: '#24303b', zones: [
+        { id: 'ly1', group: [3, 4], name: '霜原', lv: [33, 34], spawns: [['shuanglang', 60], ['xuepo', 40]] },
+        { id: 'ly2', group: [3, 4], name: '冰河', lv: [33, 35], spawns: [['bingjia', 55], ['xuepo', 45]] },
+        { id: 'ly3', group: [3, 4], name: '寒鴉嶺', lv: [34, 36], spawns: [['hanya', 50], ['shuanglang', 45], ['langwang', 5]] }] },
+      { name: '烈血譚', bg: '#3a1c20', zones: [
+        { id: 'lx1', group: [3, 5], name: '譚邊', lv: [36, 37], spawns: [['xueteng', 55], ['xueshe', 45]] },
+        { id: 'lx2', group: [3, 5], name: '赤水', lv: [36, 38], spawns: [['chijia', 50], ['xueshe', 50]] },
+        { id: 'lx3', group: [3, 5], name: '譚心', lv: [38, 40], spawns: [['xueteng', 45], ['chijia', 40], ['chijiao', 15]] }] }
+    ] },
     { id: 'liu', no: '三', name: '柳區', open: false, places: ['思曲村', '水清臺', '鷲鋒區', '龍掠山村', '履風譚', '神參道', '燮影鎮', '蓮凝楓臺', '寒霜村', '冷繁城', '陰籐道'] },
     { id: 'gu', no: '四', name: '孤區', open: false, places: ['獨古城', '崙閭譚', '寒迭村', '殤陽區', '蟬風御村', '葉城', '秋逢鎮', '穎譚', '夢華江區', '影界臺'] },
     { id: 'xi', no: '五', name: '息區', open: false, places: ['明羽村', '燎原山', '姑息大地', '星夜大地', '汐萬臺', '降靈臺', '初始大地', '風臺', '古丹城', '蓮清臺', '百花大地', '宿月區'] },
@@ -610,8 +679,8 @@ const GAME = {
   },
 
   sword: {
-    maxLv: 20, atkPerLv: 0.08, hpPerLv: 0.04, levelName: '御心',
-    breakthroughs: { 5: { '草芯': 8, '獸牙': 8 }, 10: { '甲片': 12, '火燼': 12 }, 15: { '石核': 15, '蝠翼': 15 }, 20: { '殘鐵': 15, '鋒鐵': 3 } }
+    maxLv: 30, atkPerLv: 0.08, hpPerLv: 0.04, levelName: '御心',
+    breakthroughs: { 5: { '草芯': 8, '獸牙': 8 }, 10: { '甲片': 12, '火燼': 12 }, 15: { '石核': 15, '蝠翼': 15 }, 20: { '殘鐵': 15, '鋒鐵': 3 }, 25: { '柳絲': 15, '月露': 15 }, 30: { '霜晶': 15, '血珀': 3 } }
   },
 
   rules: {
@@ -619,7 +688,7 @@ const GAME = {
     reviveCost(lv) { return Math.round(1.5 * (lv + 4) * (lv + 4)); }, // 線上重傷立即恢復要花的銀兩（照剩下的時間打折）
     skillCoef: 2.2, skillCd: 6, skillCost: 15, energyRegen: 2, baseInterval: 1.2,
     expBase: 40, expPow: 2.6,
-    mobHp: 1.68, mobAtk: 1.47 // v0.8 有裝備後魔物整體調強，維持首區節奏
+    mobHp: 1.68, mobAtk: 1.47, lateHp: 0.06, lateAtk: 0.04 // v0.8 有裝備後魔物整體調強，維持首區節奏
   }
 };
 
@@ -840,7 +909,13 @@ GAME.requests = {
   '甲片': { giver: '五頓村・鐵匠', text: '甲蟲的殼磨一磨，比鐵片還耐用。' },
   '石核': { giver: '明臺・守階人', text: '石核可以拿來修補明臺的石階，一階一階補回去。' },
   '蝠翼': { giver: '冥月鎮・守墓人', text: '蝠翼磨成粉，夜裡點起來，魔物就不太敢靠近墓園。' },
-  '殘鐵': { giver: '梁山城・兵器行', text: '舊兵器的鐵還能回爐，比新鐵更有韌性。' }
+  '殘鐵': { giver: '梁山城・兵器行', text: '舊兵器的鐵還能回爐，比新鐵更有韌性。' },
+  '鴉羽': { giver: '靜宇村・守夜人', text: '鴉羽紮在稻草人頭上，烏鴉就不敢靠近——至少以前是這樣。' },
+  '柳絲': { giver: '柳青臺・織工', text: '柳絲搓成線，織出來的布在月光下會發青。' },
+  '月露': { giver: '華月村・釀酒人', text: '月露兌進酒裡，喝了會夢見很久以前的事。' },
+  '古銅': { giver: '古道・驛丞', text: '驛亭的鐘裂了，古銅熔了可以補。' },
+  '赤羽': { giver: '鳳城・羽扇匠', text: '赤羽做的扇子，搧出來的風是熱的。' },
+  '霜晶': { giver: '冷遠道・冰窖主', text: '霜晶放進冰窖，整個夏天都化不了。' }
 };
 GAME.board = { slots: 3, rerollCost(lv) { return 50 * lv; } };
 
@@ -1007,6 +1082,95 @@ GAME.main = {
   epilogue: { npc: '凝鋒頂城・守劍人', lines: ['劍停了。', '可是你注意到了嗎？這一路上的魔物，用的都是御劍者的架勢。', '有人在教牠們。', '這幾晚的風，都是從陰區那邊吹來的。'] }
 };
 
+GAME.main2 = {
+  chapter: '第二章　追風',
+  steps: [
+    { title: '查風', zone: 'jy1', lv: 22, npc: '溫遲（信）',
+      lines: ['劍塚的事我往上報了。上頭只回了兩個字：查風。', '風從北邊來，青區是第一站。先到靜宇村，那裡的人這陣子夜裡都不太睡。'],
+      goal: { type: 'survive', zone: 'jy1', sec: 120 }, goalText: '在靜宇村・村外稻田巡守 2 分鐘，中途不重傷',
+      reward: { silver: 2000, expPct: 0.1, items: { '大還丹': 3 } } },
+    { title: '夜練', zone: 'jy1', lv: 22, npc: '靜宇村・守夜人',
+      lines: ['稻草人是我紮的。紮了十幾年，從來沒有一個會自己轉身。', '這幾晚它們排成一列，對著月亮一下一下地揮，像在練劍。'],
+      goal: { type: 'kill', keys: ['daocao'], n: 15 }, goalText: '擊倒稻草人偶 15 隻',
+      reward: { silver: 2500, expPct: 0.15 } },
+    { title: '鴉聲', zone: 'jy3', lv: 23, npc: '靜宇村・守夜人',
+      lines: ['烏鴉是跟著它們來的，叫聲很短，像有人在數拍子。', '帶幾根鴉羽回來，我想知道牠們是從哪裡飛來的。'],
+      goal: { type: 'collect', mat: '鴉羽', n: 8 }, goalText: '交付鴉羽 8 根',
+      reward: { silver: 2500, expPct: 0.15, items: { '大還丹': 3 } } },
+    { title: '劍偶', zone: 'jy3', lv: 24, npc: '靜宇村・守夜人',
+      lines: ['最大的那一個，背上插著一根竹竿，當劍用。', '它出手的時候，我認得那個架勢——是巡守司教新人的第一式。'],
+      goal: { type: 'kill', keys: ['jianou'], n: 1 }, goalText: '擊倒精英「稻草劍偶」',
+      reward: { silver: 4000, expPct: 0.3, pages: 2 } },
+    { title: '殘頁', zone: 'lq1', lv: 24, npc: '柳青臺・說書人',
+      lines: ['我說了三十年御劍者的故事，頭一回在柳樹底下撿到真的。', '一頁一頁散在堤上，字是手抄的，墨還沒乾透。'],
+      goal: { type: 'kill', keys: ['liuxu', 'qingshe'], n: 20 }, goalText: '擊倒柳絮靈或青蛇 20 隻',
+      reward: { silver: 3500, expPct: 0.15, pages: 2 } },
+    { title: '柳下', zone: 'lq3', lv: 25, npc: '柳青臺・說書人',
+      lines: ['柳妖身上纏著紙，撕下來看，是同一本書的後半。', '我說書的時候總愛說：招式是活的。現在我不太敢這樣說了。'],
+      goal: { type: 'counter', n: 15 }, goalText: '在魔物的架勢被你剋制時擊倒牠 15 次',
+      reward: { silver: 4000, expPct: 0.15, mats: { '柳絲': 5 } } },
+    { title: '轉頭', zone: 'hy1', lv: 26, npc: '華月村・釀酒人',
+      lines: ['花田的花，夜裡會跟著月亮轉頭。', '上個月開始，它們全朝著北邊。北邊什麼都沒有，只有一條往古道的路。'],
+      goal: { type: 'kill', keys: ['huayao'], n: 20 }, goalText: '擊倒月下花妖 20 隻',
+      reward: { silver: 4500, expPct: 0.15, items: { '大還丹': 4 } } },
+    { title: '舊夢', zone: 'hy3', lv: 27, npc: '華月村・釀酒人',
+      lines: ['銀狐坡上有個影子，穿著很舊的嫁衣，一直在等人。', '她手裡有一把扇子，扇面上寫的是御劍者的心法。'],
+      goal: { type: 'kill', keys: ['jiumeng'], n: 1 }, goalText: '擊倒精英「月華舊夢」',
+      reward: { silver: 6000, expPct: 0.3, mats: { '月露': 5 } } },
+    { title: '整備', lv: 28, npc: '宋苓（信）',
+      lines: ['聽說你要往古道走。那條路上的東西，不是穿布衣擋得住的。', '換一身像樣的，再上路。'],
+      goal: { type: 'gearQ', q: 2, n: 4 }, goalText: '穿上 4 件精品以上的裝備',
+      hint: '到「裝備」按「一鍵換上最好的」；精英和首領比較容易掉好裝備。',
+      reward: { silver: 3000, expPct: 0.1, items: { '大還丹': 5 } } },
+    { title: '斷碑', zone: 'gd2', lv: 28, npc: '古道・驛丞',
+      lines: ['碑林裡的碑，是給沒回來的人立的。', '最近碑一塊一塊斷了，斷口很齊，像是被人拿去試劍。'],
+      goal: { type: 'kill', keys: ['duanjian'], n: 25 }, goalText: '擊倒斷劍遊魂 25 隻',
+      reward: { silver: 5500, expPct: 0.15, mats: { '古銅': 5 } } },
+    { title: '遊劍', zone: 'gd3', lv: 30, npc: '古道・驛丞',
+      lines: ['古道盡頭有東西守著。不是人，是一副空的甲。', '我看見它放了一招，天整個暗下來。那是天御。'],
+      goal: { type: 'kill', keys: ['youjian'], n: 1 }, goalText: '擊倒精英「古道遊劍」',
+      hint: '古道遊劍會放天御，被打中很痛。帶夠藥再去。',
+      reward: { silver: 8000, expPct: 0.3, pages: 3 } },
+    { title: '天御', lv: 30, npc: '溫遲（信）',
+      lines: ['魔物會用天御，代表教牠的人學過完整的御劍者功法。', '這件事你得親手確認：讓你的劍也記得那一招。'],
+      goal: { type: 'stat', key: 'ults', n: 1 }, goalText: '施放一次天御',
+      hint: '天御書可以用 10 張天御殘頁到書肆換，學會後在戰鬥畫面右上角施放。',
+      reward: { silver: 4000, expPct: 0.2 } },
+    { title: '鳳城', zone: 'fc1', lv: 30, npc: '鳳城巡守分部・統領 葉朔',
+      lines: ['溫遲的信我看過了。你比他寫的年輕。', '城郊的赤羽鳥，羽毛會自己燒起來。先替我清一清。'],
+      goal: { type: 'kill', keys: ['chiyu'], n: 25 }, goalText: '擊倒赤羽鳥 25 隻',
+      reward: { silver: 7000, expPct: 0.15, items: { '大還丹': 5 } } },
+    { title: '名冊', zone: 'fc3', lv: 32, npc: '葉朔',
+      lines: ['分部的名冊少了一頁。不是撕掉的，是劃掉的，墨跡很重。', '城牆外那些墨衣影，穿的就是那一頁上那個人的衣服。'],
+      goal: { type: 'kill', keys: ['moyi'], n: 20 }, goalText: '擊倒墨衣影 20 隻',
+      reward: { silver: 8000, expPct: 0.15, mats: { '赤羽': 5 } } },
+    { title: '注心', lv: 32, npc: '葉朔',
+      lines: ['冷遠道冷得能把劍凍裂。', '去之前，把你的心再往劍裡放深一點。'],
+      goal: { type: 'sword', n: 25 }, goalText: '把目前武器的御心提升到 +25',
+      hint: '御心 +25 是突破，需要柳絲和月露。',
+      reward: { silver: 6000, expPct: 0.1, mats: { '精魄': 30 } } },
+    { title: '霜原', zone: 'ly2', lv: 34, npc: '冷遠道・冰窖主',
+      lines: ['霜狼的腳印一路往南，又折回來，像在等誰跟上。', '在冰河上待久一點，你就會聽見冰底下有東西在敲。'],
+      goal: { type: 'survive', zone: 'ly2', sec: 600 }, goalText: '在冷遠道・冰河連續巡守 10 分鐘，中途不重傷',
+      reward: { silver: 9000, expPct: 0.2, items: { '大還丹': 5 } } },
+    { title: '狼王', zone: 'ly3', lv: 35, npc: '冷遠道・冰窖主',
+      lines: ['寒鴉嶺上那頭白狼，額頭有一道舊疤，是劍傷。', '傷牠的人沒有殺牠，留了牠一條命，好讓牠記得那一劍。'],
+      goal: { type: 'kill', keys: ['langwang'], n: 1 }, goalText: '擊倒精英「霜原狼王」',
+      reward: { silver: 12000, expPct: 0.3, mats: { '霜晶': 5 }, pages: 3 } },
+    { title: '血譚', zone: 'lx1', lv: 36, npc: '葉朔',
+      lines: ['烈血譚的水本來是清的。', '現在水面上浮著的不是血，是被染紅的劍穗。'],
+      goal: { type: 'kill', keys: ['xueshe', 'xueteng'], n: 30 }, goalText: '擊倒血蛇或血藤 30 隻',
+      reward: { silver: 10000, expPct: 0.15, items: { '大還丹': 6 } } },
+    { title: '譚主', zone: 'lx3', lv: 39, npc: '葉朔',
+      lines: ['黑衣人在譚心。', '他不跑，他在等。等你到了，他才肯走。'],
+      goal: { type: 'kill', keys: ['chijiao'], n: 1 }, goalText: '擊倒首領「譚主・赤蛟」',
+      hint: '譚主會放天御，戰鬥前把藥備齊。',
+      reward: { silver: 20000, expPct: 0.5, mats: { '血珀': 2 } } }
+  ],
+  epilogue: { npc: '葉朔', lines: ['譚主倒下的時候，黑衣人站在對岸，把一頁紙丟進水裡。', '紙上只有一個名字，已經被劃掉了。', '他往柳區走了。風也跟著他走。'] }
+};
+GAME.mains = [GAME.main, GAME.main2];
+
 /* ---------- 工具 ---------- */
 let rng = Math.random;
 function setRng(f) { rng = f; }
@@ -1171,6 +1335,7 @@ function migrate(st) {
     st.books = st.books || {}; st.pages = st.pages || 0; st.ultKnown = st.ultKnown || {}; st.ultCharge = st.ultCharge || 0;
   }
   for (const k of ['books', 'ultKnown', 'skillCfg', 'skillOrder']) if (!st[k]) st[k] = {};
+  if (st.main && st.main.done && (st.main.ch || 0) < GAME.mains.length - 1) { st.main.ch = (st.main.ch || 0) + 1; st.main.step = 0; st.main.done = false; st.main.gated = false; mainBegin(st); }
   if (st.pages === undefined) st.pages = 0;
   if (st.ultCharge === undefined) st.ultCharge = 0;
   ensureWeaponGear(st, st.weapon);
@@ -1196,15 +1361,17 @@ function spawn(st) {
   const b = GAME.monsters[key], a = GAME.archetypes[b.arch];
   const L = b.rank ? z.lv[1] + 1 : randInt(z.lv[0], z.lv[1]);
   const f = lvScale(L), ramp = 1 + 0.02 * (L - 1);
-  const hp = Math.round(a.hp * Math.pow(f, 1.15) * ramp * GAME.rules.mobHp);
+  const over = Math.max(0, L - 21), R = GAME.rules; // 第二章以後魔物再加強：玩家御心、裝備、門檻都會疊上去
+  const hp = Math.round(a.hp * Math.pow(f, 1.15) * ramp * (1 + R.lateHp * over) * R.mobHp);
   return {
     key, name: b.name, rank: b.rank || '', lv: L, attrs: b.attrs.slice(), stance: 0, type: b.type,
     hp, maxHp: hp,
-    atk: Math.round(a.atk * f * (1 + 0.015 * (L - 1)) * GAME.rules.mobAtk),
+    atk: Math.round(a.atk * f * (1 + 0.015 * (L - 1)) * (1 + R.lateAtk * over) * GAME.rules.mobAtk),
     pdef: Math.round(a.pdef * f), mdef: Math.round(a.mdef * f),
     interval: a.interval, crit: a.crit || 0.05, bind: b.bind || 0,
     exp: Math.round(a.exp * Math.pow(f, 1.6)), silver: Math.round(a.silver * f),
-    drops: b.drops, timer: a.interval * 0.6, stunned: 0
+    drops: b.drops, timer: a.interval * 0.6, stunned: 0,
+    ult: b.ult || null, ultT: b.ult ? b.ult.every * 0.6 : 0
   };
 }
 function expPenalty(plv, mlv) {
@@ -1455,14 +1622,16 @@ function castActive(st, rt, r) {
 
 function mobAttack(st, rt, m) {
   const d = rt.d;
-  const ev = rng();
+  const ult = m.ult && m.ultT <= 0; // 這一擊是魔物的天御：不會落空，也閃不掉
+  if (ult) { m.ultT = m.ult.every; emit(rt, { t: 'mobUlt', name: m.label, ult: GAME.ult.name + '・' + m.ult.name, uid: m.uid }); }
+  const ev = ult ? 1 : rng();
   if (ev < 0.05) emit(rt, { t: 'miss', who: 'm', name: m.label, uid: m.uid });
   else if (ev < 0.05 + (d.dodge || 0)) emit(rt, { t: 'dodge', name: m.label, uid: m.uid });
   else {
     const kind = matchup(m.attrs[m.stance], st.weapon);
     const tough = m.type === 'magic' ? d.mtough : d.ptough;
     const crit = rng() < Math.max(0, m.crit - tough);
-    let dmg = dmgCalc(m.atk, m.type === 'magic' ? d.mdef : d.pdef, rollMult(kind, crit), m.lv);
+    let dmg = dmgCalc(m.atk, m.type === 'magic' ? d.mdef : d.pdef, rollMult(kind, crit) * (ult ? m.ult.mult : 1), m.lv);
     let blocked = null, half = null;
     for (const r of d.triggers) if (r.s.on === 'hitTaken') {
       if (r.s.block && rng() < r.chance) { blocked = r; break; }
@@ -1572,7 +1741,7 @@ function spawnGroup(st) {
   for (const m of list) cnt[m.name] = (cnt[m.name] || 0) + 1;
   list.forEach((m, i) => {
     m.uid = ++MOB_UID;
-    if (cnt[m.name] > 1) { idx[m.name] = idx[m.name] || 0; m.label = m.name + '甲乙丙丁'[idx[m.name]++]; } else m.label = m.name;
+    if (cnt[m.name] > 1) { idx[m.name] = idx[m.name] || 0; m.label = m.name + '甲乙丙丁戊己庚辛壬癸'[idx[m.name]++]; } else m.label = m.name;
     m.timer = m.interval * (0.6 + 0.3 * i) + delay; // 錯開出手時間；遠程武器多一段接近時間
   });
   return list;
@@ -1677,6 +1846,7 @@ function step(st, rt, dt) {
   for (const m of rt.mobs) {
     if (m.dead || m.hp <= 0) continue;
     if (m.stunned > 0) { m.stunned -= dt; continue; }
+    if (m.ult) m.ultT -= dt;
     m.timer -= dt;
     if (m.timer <= 0) {
       mobAttack(st, rt, m);
@@ -1956,7 +2126,8 @@ function rerollRequest(st, i) {
 }
 
 /* ---------- 主線 ---------- */
-function mainStep(st) { return st.main ? GAME.main.steps[st.main.step] || null : null; }
+function mainCh(st) { return GAME.mains[(st.main && st.main.ch) || 0] || GAME.main; }
+function mainStep(st) { return st.main ? mainCh(st).steps[st.main.step] || null : null; }
 function mainBase(st, g) {
   if (g.type === 'kill') return g.keys.reduce((a, k) => a + (st.stats.kills[k] || 0), 0);
   if (g.type === 'counter') return st.stats.counterKills || 0;
@@ -1974,6 +2145,7 @@ function mainProgress(st) {
   else if (g.type === 'sword') cur = st.swordLv[st.weapon] || 0;
   else if (g.type === 'mastery') cur = Math.max(...[0, 1, 2].map(i => masteryOf(st, st.weapon, i)[0]));
   else if (g.type === 'equip') cur = equipCount(st);
+  else if (g.type === 'gearQ') cur = equippedList(st).filter(it => it.q >= g.q).length;
   return { cur: Math.min(cur, need), need, done: cur >= need };
 }
 function mainCanSkip(st) { const s = mainStep(st); return !!s && st.lv >= s.lv + 6; }
@@ -1993,16 +2165,22 @@ function mainClaim(st, rt, skip) {
     for (const k in R.items || {}) { st.items[k] = (st.items[k] || 0) + R.items[k]; got.items[k] = R.items[k]; }
     for (const k in R.mats || {}) { st.mats[k] = (st.mats[k] || 0) + R.mats[k]; got.mats[k] = R.mats[k]; }
     if (R.gear && st.equip) { const it = genGear(st, st.lv, R.gear.q, { slot: R.gear.slot }); it.isNew = true; st.gear.push(it); got.gear = gearName(it); }
+    if (R.pages) { st.pages = (st.pages || 0) + R.pages; got.pages = R.pages; }
     if (R.book) { if (!skillKnown(st, st.weapon, R.book) && !hasBook(st, st.weapon, R.book)) { gainBook(st, rt, st.weapon, R.book, 'main'); got.book = bookName(st.weapon, R.book); } else { const pr = GAME.books.price[R.book]; st.silver += pr; got.silver += pr; } }
   } else got.silver = Math.round(R.silver / 2);
   st.silver += got.silver;
   if (got.exp) gainExp(st, rt, got.exp);
   st.main.step++;
-  if (!mainStep(st)) st.main.done = true; else mainBegin(st);
-  return { step: s, got, skipped: !p.done };
+  let chapterEnd = null;
+  if (!mainStep(st)) {
+    chapterEnd = mainCh(st);
+    if (GAME.mains[(st.main.ch || 0) + 1]) { st.main.ch = (st.main.ch || 0) + 1; st.main.step = 0; mainBegin(st); } // 進下一章
+    else st.main.done = true;
+  } else mainBegin(st);
+  return { step: s, got, skipped: !p.done, chapterEnd };
 }
 function featureOpen(st, f) {
-  if (!st.main || !st.main.gated) return true;
+  if (!st.main || !st.main.gated || (st.main.ch || 0) > 0) return true;
   return st.main.step > GAME.main.steps.findIndex(s => s.unlock === f);
 }
 
@@ -2207,7 +2385,7 @@ if (typeof module !== 'undefined') module.exports = {
   useBuff, buyItem, canCraft, craftItem, genRequest, fillBoard, turnIn, rerollRequest, MAT_LV,
   mainStep, mainProgress, mainClaim, mainCanSkip, featureOpen, mainBegin,
   freshState, genGear, gearName, gearBase, affixVal, affixText, gearTotals, equippedList, powerWith, powerNow, gearDelta, equipGear, salvageGear,
-  receiveGear, bestGear, ensureWeaponGear, reviveCost, revive, tierFx, tierLine,
+  receiveGear, bestGear, ensureWeaponGear, reviveCost, revive, tierFx, tierLine, mainCh,
   skillKnown, ultKnown, hasBook, bookName, bookLv, buyBook, exchangePages, gainBook, readBooks, castUlt, ultReady, skillCfg, setSkillCfg, activeOrder, moveSkill, learnBook, equipCount, rollIdx, playableWeapons, autoSalvageable, gearOwner, salvageValue, namedDir
 };
 
@@ -2223,10 +2401,12 @@ const ART = {
   hood: p => `<svg viewBox="0 0 120 120"><circle cx="18" cy="40" r="6" fill="#26364a" stroke="#1d1a17" stroke-width="1.5"/><circle cx="102" cy="40" r="6" fill="#4a2a26" stroke="#1d1a17" stroke-width="1.5"/><circle cx="14" cy="64" r="5" fill="${p.body}" stroke="#c9a45c" stroke-width="1.5"/><circle cx="106" cy="64" r="5" fill="${p.body}" stroke="${p.mark}" stroke-width="1.5"/><path d="M60 12C77 12 87 27 87 44L97 106L23 106L33 44C33 27 43 12 60 12Z" fill="${p.body}" stroke="#1d1a17" stroke-width="2.5" stroke-linejoin="round"/><path d="M46 70L40 104M60 66V104M74 70L80 104" stroke="${p.dark}" stroke-width="2.5" fill="none"/><path d="M60 22C71 22 77 31 77 43C77 56 69 63 60 63C51 63 43 56 43 43C43 31 49 22 60 22Z" fill="#14111a"/><path d="M60 29C68 29 72 36 72 44C72 52 66 58 60 58C54 58 48 52 48 44C48 36 52 29 60 29Z" fill="${p.mask}" stroke="#1d1a17" stroke-width="2"/><path d="M51 43H69" stroke="${p.mark}" stroke-width="3.5" stroke-linecap="round"/><path d="M60 48V55" stroke="${p.mark}" stroke-width="2" stroke-linecap="round"/><path d="M34 92L52 78M86 92L68 78" stroke="#1d1a17" stroke-width="5" stroke-linecap="round"/><path d="M34 92L52 78M86 92L68 78" stroke="${p.blade}" stroke-width="2.5" stroke-linecap="round"/></svg>`,
   sprite: p => `<svg viewBox="0 0 120 120"><ellipse cx="45" cy="99" rx="10" ry="5.5" fill="${p.dark}" stroke="#1d1a17" stroke-width="2"/><ellipse cx="75" cy="99" rx="10" ry="5.5" fill="${p.dark}" stroke="#1d1a17" stroke-width="2"/><path d="M60 38C83 38 95 56 93 74C91 91 77 99 60 99C43 99 29 91 27 74C25 56 37 38 60 38Z" fill="${p.body}" stroke="#1d1a17" stroke-width="2.5"/><path d="M40 62C44 52 52 47 61 47" stroke="${p.light}" stroke-width="3.5" fill="none" stroke-linecap="round"/><path d="M60 38C60 30 58 23 55 17" stroke="#1d1a17" stroke-width="6" fill="none" stroke-linecap="round"/><path d="M60 38C60 30 58 23 55 17" stroke="${p.deep}" stroke-width="3" fill="none" stroke-linecap="round"/><path d="M55 19C43 10 32 14 30 23C41 27 49 25 55 19Z" fill="${p.leaf}" stroke="#1d1a17" stroke-width="2" stroke-linejoin="round"/><path d="M56 21C65 8 80 7 85 15C78 24 67 27 56 21Z" fill="${p.leaf}" stroke="#1d1a17" stroke-width="2" stroke-linejoin="round"/><path d="M36 22C42 21 48 20 53 19M60 18C68 14 75 13 80 14" stroke="${p.deep}" stroke-width="1.5" fill="none"/><path d="M43 60L53 64M77 60L67 64" stroke="#1d1a17" stroke-width="2.4" stroke-linecap="round"/><ellipse cx="49" cy="70" rx="4.5" ry="6" fill="#1d1a17"/><ellipse cx="71" cy="70" rx="4.5" ry="6" fill="#1d1a17"/><circle cx="50.5" cy="67.5" r="1.6" fill="#fff"/><circle cx="72.5" cy="67.5" r="1.6" fill="#fff"/><ellipse cx="39" cy="81" rx="5.5" ry="3" fill="${p.accent}" opacity=".55"/><ellipse cx="81" cy="81" rx="5.5" ry="3" fill="${p.accent}" opacity=".55"/><path d="M54 84Q60 80 66 84" stroke="#1d1a17" stroke-width="2.2" fill="none" stroke-linecap="round"/></svg>`,
   bat: p => `<svg viewBox="0 0 120 120"><path d="M58 54C47 37 29 30 8 33C16 40 18 48 15 57C24 52 31 56 33 63C39 58 47 60 51 66Z" fill="${p.dark}" stroke="#1d1a17" stroke-width="2.5" stroke-linejoin="round"/><path d="M62 54C73 37 91 30 112 33C104 40 102 48 105 57C96 52 89 56 87 63C81 58 73 60 69 66Z" fill="${p.dark}" stroke="#1d1a17" stroke-width="2.5" stroke-linejoin="round"/><path d="M54 54L20 38M52 58L28 56M52 62L38 62M66 54L100 38M68 58L92 56M68 62L82 62" stroke="${p.deep}" stroke-width="1.8" stroke-linecap="round"/><path d="M50 48L47 30L57 43Z M70 48L73 30L63 43Z" fill="${p.body}" stroke="#1d1a17" stroke-width="2" stroke-linejoin="round"/><ellipse cx="60" cy="62" rx="13" ry="17" fill="${p.body}" stroke="#1d1a17" stroke-width="2.5"/><path d="M53 71C56 75 64 75 67 71" stroke="${p.dark}" stroke-width="1.5" fill="none"/><circle cx="54.5" cy="56" r="3.2" fill="${p.eye}" stroke="#1d1a17" stroke-width="1"/><circle cx="65.5" cy="56" r="3.2" fill="${p.eye}" stroke="#1d1a17" stroke-width="1"/><path d="M56 64L57.5 69L59 64M61 64L62.5 69L64 64" fill="#f1ece2" stroke="#1d1a17" stroke-width="1" stroke-linejoin="round"/><path d="M55 78L53 86M65 78L67 86" stroke="#1d1a17" stroke-width="3" stroke-linecap="round"/></svg>`,
+  bird: p => `<svg viewBox="0 0 120 120"><path d="M32 78L8 94L15 97L7 106L29 97L40 87Z" fill="${p.dark}" stroke="#1d1a17" stroke-width="2.5" stroke-linejoin="round"/><path d="M54 92L50 108M67 92L69 108M44 108H56M63 108H75" stroke="#1d1a17" stroke-width="3.5" stroke-linecap="round"/><path d="M30 76C30 56 46 44 64 44C84 44 94 58 92 74C90 88 76 96 60 96C44 96 30 90 30 76Z" fill="${p.body}" stroke="#1d1a17" stroke-width="2.5"/><path d="M38 70C46 57 66 55 79 63C73 78 58 87 41 84Z" fill="${p.dark}" stroke="#1d1a17" stroke-width="2.2" stroke-linejoin="round"/><path d="M47 72C55 68 63 67 70 69M45 78C53 76 61 76 68 76" stroke="${p.deep}" stroke-width="1.8" fill="none" stroke-linecap="round"/><path d="M73 25L69 10L79 22L84 7L87 24" fill="${p.accent}" stroke="#1d1a17" stroke-width="2" stroke-linejoin="round"/><circle cx="80" cy="38" r="16" fill="${p.body}" stroke="#1d1a17" stroke-width="2.5"/><path d="M94 35L112 41L94 46Z" fill="${p.beak}" stroke="#1d1a17" stroke-width="2.2" stroke-linejoin="round"/><circle cx="84" cy="36" r="4.4" fill="#1d1a17"/><circle cx="85.2" cy="34.8" r="1.7" fill="${p.eye}"/><path d="M67 45C72 51 80 53 88 51" stroke="${p.light}" stroke-width="2.5" fill="none" stroke-linecap="round"/></svg>`,
+  serpent: p => `<svg viewBox="0 0 120 120"><ellipse cx="60" cy="96" rx="41" ry="14" fill="${p.dark}" stroke="#1d1a17" stroke-width="2.5"/><path d="M24 92C32 80 88 80 96 92" stroke="${p.body}" stroke-width="10" fill="none" stroke-linecap="round"/><circle cx="40" cy="95" r="3" fill="${p.deep}"/><circle cx="57" cy="100" r="3" fill="${p.deep}"/><circle cx="80" cy="97" r="3" fill="${p.deep}"/><path d="M70 92C90 80 88 60 71 54C54 48 49 34 61 24" stroke="#1d1a17" stroke-width="21" fill="none" stroke-linecap="round"/><path d="M70 92C90 80 88 60 71 54C54 48 49 34 61 24" stroke="${p.body}" stroke-width="15.5" fill="none" stroke-linecap="round"/><path d="M77 85C86 76 83 63 71 58C61 54 57 46 59 38" stroke="${p.light}" stroke-width="4" fill="none" stroke-linecap="round" stroke-dasharray="3 5"/>${p.horn ? `<path d="M54 14L45 -2L60 10Z M78 14L88 -2L73 10Z" fill="${p.horn}" stroke="#1d1a17" stroke-width="2" stroke-linejoin="round"/><path d="M50 26C40 28 34 34 30 42M82 26C92 28 98 34 101 42" stroke="${p.horn}" stroke-width="2" fill="none" stroke-linecap="round"/>` : ''}<path d="M49 21C52 8 77 7 83 18C87 26 79 35 66 35C55 35 47 29 49 21Z" fill="${p.body}" stroke="#1d1a17" stroke-width="2.5"/><path d="M53 15C58 11 68 10 75 13" stroke="${p.light}" stroke-width="2" fill="none" stroke-linecap="round"/><ellipse cx="59" cy="21" rx="3.4" ry="4.4" fill="${p.eye}" stroke="#1d1a17" stroke-width="1.3"/><ellipse cx="74" cy="21" rx="3.4" ry="4.4" fill="${p.eye}" stroke="#1d1a17" stroke-width="1.3"/><path d="M59 18.5V23.5M74 18.5V23.5" stroke="#1d1a17" stroke-width="1.5"/><path d="M66 35V43L62 47M66 43L70 47" stroke="${p.accent}" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>`,
   blade: p => `<svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="46" fill="none" stroke="${p.light}" stroke-width="2" stroke-dasharray="3 7" opacity=".6"/><g fill="${p.accent}" stroke="#1d1a17" stroke-width="1.8" stroke-linejoin="round"><path d="M20 34L27 30L30 48L24 50Z"/><path d="M100 34L93 30L90 48L96 50Z"/><path d="M16 82L22 78L32 92L27 96Z"/><path d="M104 82L98 78L88 92L93 96Z"/></g><path d="M60 32L69 40L66 100L60 113L54 100L51 40Z" fill="${p.body}" stroke="#1d1a17" stroke-width="2.5" stroke-linejoin="round"/><path d="M60 42V104" stroke="${p.light}" stroke-width="2.5" stroke-linecap="round"/><path d="M54 60L58 66M64 76L61 82" stroke="${p.dark}" stroke-width="1.5" stroke-linecap="round"/><path d="M34 34H86L81 43H39Z" fill="${p.dark}" stroke="#1d1a17" stroke-width="2.5" stroke-linejoin="round"/><ellipse cx="60" cy="38.5" rx="7.5" ry="4.5" fill="#14171a"/><circle cx="60" cy="38.5" r="2.6" fill="${p.eye}"/><rect x="56" y="13" width="8" height="21" rx="2" fill="${p.deep}" stroke="#1d1a17" stroke-width="2"/><path d="M56 18L64 21M56 24L64 27M56 30L64 33" stroke="${p.dark}" stroke-width="1.5"/><circle cx="60" cy="10" r="5" fill="${p.accent}" stroke="#1d1a17" stroke-width="2"/></svg>`
 
 };
-const PAL_DEF = { body: '#888780', light: '#b4b2a9', dark: '#5f5e5a', deep: '#444441', eye: '#f0b04a', leaf: '#8fbf5a', accent: '#c9a45c', bone: '#cfc6b6', vine: '#5b6e41', crack: '#e8823f', mask: '#ddd5c5', mark: '#c8553d', blade: '#b9bdc4', hl: '#9fb3bf' };
+const PAL_DEF = { beak: '#e0a83a', body: '#888780', light: '#b4b2a9', dark: '#5f5e5a', deep: '#444441', eye: '#f0b04a', leaf: '#8fbf5a', accent: '#c9a45c', bone: '#cfc6b6', vine: '#5b6e41', crack: '#e8823f', mask: '#ddd5c5', mark: '#c8553d', blade: '#b9bdc4', hl: '#9fb3bf' };
 const PAL = {
   green:   { body: '#7fa35a', light: '#b8d68f', dark: '#56743c', deep: '#3e5a2a', leaf: '#9ccc5e', accent: '#e8a49a' },
   gold:    { body: '#c9a24a', light: '#ecd28b', dark: '#8d6f2c', deep: '#6a5220', leaf: '#d8b850', accent: '#e8a49a' },
@@ -2260,7 +2440,39 @@ const PAL = {
   iron:    { body: '#3e4248', dark: '#2c2f34', mask: '#c9cdd3', mark: '#c8553d', blade: '#b9bdc4' },
   steel:   { body: '#4a5560', dark: '#36404a', mask: '#d6dde4', mark: '#5fa5c8', blade: '#d0d6dc' },
   soul:    { body: '#c9d2da', light: '#eef3f7', dark: '#4a5560', deep: '#2c333a', accent: '#7fb8d8', eye: '#7fe0ff' },
-  demon:   { body: '#3b2f45', dark: '#2c2334', mask: '#ddd5c5', mark: '#c8553d', blade: '#b9bdc4' }
+  demon:   { body: '#3b2f45', dark: '#2c2334', mask: '#ddd5c5', mark: '#c8553d', blade: '#b9bdc4' },
+  // 青區
+  straw:      { body: '#a88a4a', dark: '#7a6230', mask: '#d8c48a', mark: '#5a4a2a', blade: '#8a7a5a' },
+  crow:       { body: '#2e2c33', light: '#4a4752', dark: '#1f1d24', deep: '#141318', accent: '#3a3640', beak: '#c9a45c', eye: '#e2563f' },
+  grain:      { body: '#b8964a', light: '#e0c483', dark: '#7e6430', deep: '#5a4520', leaf: '#d4b45a', accent: '#e8a49a' },
+  shade:      { body: '#2a2830', dark: '#1c1a22', mask: '#8a8696', mark: '#6a5aa0', blade: '#7a7686' },
+  willow:     { body: '#a8c49a', light: '#dcebd0', dark: '#7a9a6c', eye: '#f4fff0' },
+  viper:      { body: '#4f8a4a', light: '#9ccf88', dark: '#2f5a2c', deep: '#24441f', eye: '#f0d24a', accent: '#e2563f' },
+  lion:       { body: '#8e8a80', dark: '#6e6a62', deep: '#5a564e', crack: '#c9a45c', eye: '#f0b04a' },
+  willowd:    { body: '#4a6a48', deep: '#344c32', vine: '#7aa060', leaf: '#b8d68f', eye: '#f0ffe0' },
+  blossom:    { body: '#8a5a78', deep: '#5e3a52', vine: '#6a8a50', leaf: '#f0a8c8', eye: '#fff0f8' },
+  firefly:    { body: '#d8e070', light: '#f6f8b8', dark: '#a8b040', eye: '#fffbe0' },
+  moonshell:  { body: '#5a6a8a', light: '#8a9ac0', dark: '#3a4660', accent: '#e8e0b0', hl: '#b8c8e8', eye: '#f0e8a0' },
+  silverfox:  { body: '#b8bcc4', dark: '#8a8e96', deep: '#6a6e76', bone: '#f4f4f0', eye: '#7fd0ff' },
+  bronze:     { body: '#6a7a5a', dark: '#4e5a40', deep: '#3e4832', crack: '#5fd0a8', eye: '#c8ffe8' },
+  ruin:       { body: '#5e4a3a', dark: '#46362a', mask: '#c8b8a0', mark: '#8a6a3a', blade: '#a09080' },
+  rustblade:  { body: '#9a8676', light: '#c8b8a8', dark: '#5a4a3e', deep: '#3e322a', accent: '#a8603a', eye: '#ff9a6a' },
+  phoenix:    { body: '#c8452f', light: '#f08a5a', dark: '#8a2a1c', deep: '#5e1a12', accent: '#f2c04a', beak: '#f2d58a', eye: '#fff0b0' },
+  salamander: { body: '#d0702f', light: '#f2b07a', dark: '#8e4418', deep: '#6a3010', eye: '#fff0a0', accent: '#ffd04a' },
+  ironguard:  { body: '#4a4e58', dark: '#363a42', deep: '#2a2e36', crack: '#e85a3a', eye: '#ffb08a' },
+  ink:        { body: '#1e1e24', dark: '#121216', mask: '#e8e4dc', mark: '#1e1e24', blade: '#5a5a66' },
+  frost:      { body: '#a8c4d8', dark: '#7a98ae', deep: '#5a7488', bone: '#ffffff', eye: '#3a8ad0' },
+  snowsoul:   { body: '#dfeef8', light: '#ffffff', dark: '#a8c4d8', eye: '#9ad0ff' },
+  ice:        { body: '#6a98b8', light: '#a8d0e8', dark: '#4a7088', accent: '#e8f8ff', hl: '#d0f0ff', eye: '#e8f8ff' },
+  raven:      { body: '#2a3448', light: '#46526a', dark: '#1a2232', deep: '#10161f', accent: '#5a6a88', beak: '#8a96aa', eye: '#bfe4ff' },
+  bloodvine:  { body: '#5a1e22', deep: '#3e1216', vine: '#9a2a2a', leaf: '#d8463a', eye: '#ffd0a0' },
+  bloodviper: { body: '#8a2226', light: '#c85a52', dark: '#5a1418', deep: '#3a0c0e', eye: '#ffe08a', accent: '#2a0a0a' },
+  bloodshell: { body: '#6a2a26', light: '#9a463e', dark: '#4a1a18', accent: '#e8b04a', hl: '#c8706a', eye: '#ffd08a' },
+  strawlord:  { body: '#8a6a2a', dark: '#5e4618', mask: '#e8d49a', mark: '#c8553d', blade: '#d0d4da' },
+  dream:      { body: '#6a4a7a', deep: '#4a3058', vine: '#b88ad0', leaf: '#f4d0f0', eye: '#ffffff' },
+  wander:     { body: '#3a4248', dark: '#262c30', mask: '#9aa4aa', mark: '#c9a45c', blade: '#e8ecf0' },
+  frostking:  { body: '#e8f0f6', dark: '#b0c4d4', deep: '#8aa0b4', bone: '#ffffff', eye: '#2a6ad0' },
+  crimsonboss:{ body: '#7e1216', light: '#f2c04a', dark: '#4a080a', deep: '#f2c04a', eye: '#ffe27a', accent: '#ffb0a0', horn: '#f2c04a' }
 };
 function mobSvg(key) { const m = GAME.monsters[key]; return ART[m.art](Object.assign({}, PAL_DEF, PAL[m.pal] || {})); }
 
@@ -2404,7 +2616,7 @@ async function cloudPut() {
   save();
   const t = Date.now();
   await withTimeout(cloud.fb.F.setDoc(cloudDoc(), { data: JSON.stringify(st), t, dev: deviceId(), lv: st.lv, weapon: st.weapon, play: playOf(st), ver: GAME.meta.version, at: cloud.fb.F.serverTimestamp() }), 20000);
-  setCloudMeta({ seen: t }); cloud.last = Date.now(); cloud.hold = false;
+  setCloudMeta({ seen: t, play: playOf(st) }); cloud.last = Date.now(); cloud.hold = false;
   cloudSay('已同步・' + hhmm(new Date()));
 }
 // 先讀雲端再決定：雲端沒被別台改過、進度也沒有比這台多，才直接上傳；否則讓玩家選
@@ -2419,6 +2631,9 @@ async function cloudSync(reason) {
       const c = snap.data(), meta = cloudMeta();
       const mine = c.dev === deviceId() || c.t <= (meta.seen || 0);
       const behind = c.lv > st.lv || (c.play || 0) > playOf(st) + 600;
+      // 這台自從上次同步後幾乎沒玩（或是第一次登入的新進度），雲端就是正本：直接載入，不用問
+      const idle = meta.seen ? playOf(st) - (meta.play || 0) < 180 : playOf(st) < 600;
+      if (!mine && idle) { cloud.busy = false; applyCloud(c); cloudSay('已載入雲端的最新進度・' + hhmm(new Date())); return; }
       if (!mine || behind) {
         cloud.hold = true; cloud.busy = false;
         cloudSay('雲端和這台的存檔不一樣，同步暫停中');
@@ -2445,7 +2660,8 @@ async function cloudPull() {
 }
 function saveSummary(o) {
   const M = o.main;
-  return { lv: o.lv, weapon: GAME.weapons[o.weapon] ? o.weapon : '銀', main: !M ? '—' : M.done ? GAME.main.chapter + ' 完成' : '主線' + stepNo(Math.min(M.step, GAME.main.steps.length - 1)),
+  const C = M ? (GAME.mains[M.ch || 0] || GAME.main) : GAME.main;
+  return { lv: o.lv, weapon: GAME.weapons[o.weapon] ? o.weapon : '銀', main: !M ? '—' : M.done ? C.chapter + ' 完成' : C.chapter.split('　')[0] + stepNo(Math.min(M.step, C.steps.length - 1)),
     play: playOf(o), silver: o.silver || 0, saved: o.lastSave || 0 };
 }
 function askCloud(c, why) {
@@ -2471,7 +2687,7 @@ function askCloud(c, why) {
 function applyCloud(c) {
   st = parseSave(JSON.parse(c.data));
   rt = newRuntime(st); logs = []; resetArena(); pend = [0, 0, 0, 0, 0, 0, 0, 0]; selWeapon = null;
-  setCloudMeta({ seen: c.t });
+  setCloudMeta({ seen: c.t, play: playOf(st) });
   $('#modal').classList.add('hidden');
   addLog('<span class="k-good">讀取雲端存檔：Lv.' + st.lv + '・' + wName(st.weapon) + '</span>');
   const away = (Date.now() - st.lastSave) / 1000;
@@ -2483,7 +2699,7 @@ function cloudPanel() {
   if (!cloud.ok) return h + '<p class="note">雲端存檔要在 GitHub Pages 版或安裝好的 App 裡才能用，這裡只能用下面的存檔碼。</p></div>';
   if (!cloud.user) {
     if (!cloud.fb && !cloud.loading) loadFirebase().catch(() => {}); // 先在背景載好，按登入時彈出視窗才不會被擋
-    h += '<p class="note" style="margin-bottom:8px">用 Google 帳號登入後，存檔會同步到雲端：每 5 分鐘一次，離開遊戲時也會同步。換手機、平板都能接著玩。</p>' +
+    h += '<p class="note" style="margin-bottom:8px">用 Google 帳號登入後，雲端就是你的正本：每 5 分鐘、離開遊戲時都會同步；換一台裝置打開，會自動接上雲端的最新進度。只有兩台都各自玩過、進度不一樣時，才會問你要用哪一份。</p>' +
       '<button class="btn ghost" id="cloudIn">用 Google 帳號登入</button>' +
       (cloud.status ? '<p class="note" style="margin-top:6px' + (cloud.err ? ';color:#ffb199' : '') + '">' + esc(cloud.status) + '</p>' : '');
   } else {
@@ -2537,6 +2753,7 @@ function handle(e) {
       break;
     case 'miss': addLog(e.who === 'p' ? '你的攻擊落空' : e.name + '的攻擊落空'); break;
     case 'dodge': addLog('<span class="k-good">你閃過了' + e.name + '的攻擊</span>'); break;
+    case 'mobUlt': addLog('<span class="k-bad">【' + e.ult + '】' + e.name + '放出了天御！</span>'); { const was = arenaSeen; arenaSeen = true; lastShake = 0; shakeScreen(true); arenaSeen = was; } toast(e.name + '放出了' + e.ult, 2); break;
     case 'stance': addLog(e.name + '切換架勢：' + e.attr); break;
     case 'bound': addLog('<span class="k-bad">被藤蔓纏住，動彈不得</span>'); break;
     case 'cast': {
@@ -2622,7 +2839,7 @@ function renderArena() {
     const key = mobs.map(m => m.uid).join(',');
     if (shownGroup !== key) {
       shownGroup = key; shownInfo = ''; shownMob = null;
-      const size = mobs.length === 1 ? 150 : mobs.length === 2 ? 118 : 96;
+      const size = [150, 118, 96, 78, 64][Math.min(mobs.length, 5) - 1];
       stage.innerHTML = '<div class="mobs">' + mobs.map(m => '<div class="mobc" data-uid="' + m.uid + '"><div class="mob' + (m.rank ? ' elite' : '') + '" style="width:' + size + 'px;height:' + size + 'px">' + mobSvg(m.key) + '</div>' +
         '<div class="mlabel"><span class="seal st"></span><span class="nm">' + m.label + '</span></div><div class="bar hp mini"><i></i></div><div class="floaters"></div></div>').join('') + '</div>';
     }
@@ -2852,7 +3069,7 @@ function renderPanel() {
     let total = 0, rows = '';
     for (const k in GAME.monsters) { const n = s.kills[k] || 0; if (!n) continue; total += n; rows += '<span>' + GAME.monsters[k].name + '</span><span>' + fmt(n) + '</span>'; }
     p.innerHTML = '<div class="sec"><h3>巡守紀錄</h3><div class="kv"><span>線上時間</span><span>' + dur(s.playSec) + '</span><span>離線結算時間</span><span>' + dur(s.offlineSec) + '</span>' +
-      '<span>主線</span><span>' + (st.main.done ? GAME.main.chapter + ' 完成' : stepNo(st.main.step) + '／共 ' + GAME.main.steps.length + ' 步') + '</span><span>總擊倒</span><span>' + fmt(total) + '</span><span>擊倒首領</span><span>' + fmt(s.bossKills || 0) + '</span>' + rows + '<span>施放天御</span><span>' + fmt(s.ults || 0) + ' 次</span><span>天御殘頁</span><span>' + (st.pages || 0) + ' 張</span><span>分解裝備</span><span>' + fmt(s.salvaged || 0) + ' 件</span><span>重傷次數</span><span>' + fmt(s.deaths) + '</span></div></div>' +
+      '<span>主線</span><span>' + (st.main.done ? mainCh(st).chapter + ' 完成' : mainCh(st).chapter.split('　')[0] + stepNo(st.main.step) + '／共 ' + mainCh(st).steps.length + ' 步') + '</span><span>總擊倒</span><span>' + fmt(total) + '</span><span>擊倒首領</span><span>' + fmt(s.bossKills || 0) + '</span>' + rows + '<span>施放天御</span><span>' + fmt(s.ults || 0) + ' 次</span><span>天御殘頁</span><span>' + (st.pages || 0) + ' 張</span><span>分解裝備</span><span>' + fmt(s.salvaged || 0) + ' 件</span><span>重傷次數</span><span>' + fmt(s.deaths) + '</span></div></div>' +
       '<div class="sec"><h3>設定</h3>' +
       '<label class="toggle"><span>爆擊時畫面震動<br><span class="note">造成爆擊輕震、被爆擊重震；戰鬥畫面不在螢幕上時不會震</span></span><input type="checkbox" id="fxShake"' + (st.fx.shake ? ' checked' : '') + '></label>' +
       '<label class="toggle"><span>被爆擊時手機跟著震動</span><input type="checkbox" id="fxBuzz"' + (st.fx.buzz ? ' checked' : '') + '></label>' +
@@ -2873,7 +3090,7 @@ function swordPanel() {
     let h = '<div class="epi">若還有一絲御心，便將這份御心注入在這把劍。<cite>── 相傳出自五百多年前的息區區長王倩育</cite></div>' +
       '<div class="sec" style="display:flex;justify-content:space-between;align-items:center"><div><div class="note">' + wName(st.weapon) + '的' + GAME.sword.levelName + '</div><div class="swordlv">+' + n + '<span class="note"> / ' + GAME.sword.maxLv + '</span></div></div>' +
       '<div class="kv" style="min-width:150px"><span>攻擊加成</span><span>+' + Math.round(n * GAME.sword.atkPerLv * 100) + '%</span><span>血量加成</span><span>+' + Math.round(n * GAME.sword.hpPerLv * 100) + '%</span></div></div>';
-    if (max) h += '<div class="note">這把武器的' + GAME.sword.levelName + '已經到 v0.1 的上限。</div>';
+    if (max) h += '<div class="note">這把武器的' + GAME.sword.levelName + '已經到目前的上限 +' + GAME.sword.maxLv + '。</div>';
     else {
       const c = swordCost(n);
       h += '<h3 class="serif" style="font-size:14px;margin-top:6px">' + (c.breakthrough ? '突破至 +' + (n + 1) + '（需要特殊材料）' : '注入至 +' + (n + 1)) + '</h3>' +
@@ -3085,6 +3302,7 @@ function rewardText(got) {
   for (const k in got.mats || {}) a.push(k + '×' + got.mats[k]);
   if (got.gear) a.push(got.gear);
   if (got.book) a.push(got.book);
+  if (got.pages) a.push('天御殘頁×' + got.pages);
   return a.join('、');
 }
 function zoneTxt(id) { const z = zoneById(id); return z.place + '・' + z.name; }
@@ -3093,7 +3311,7 @@ function renderMain() {
   const box = $('#mainCard');
   if (st.main.done) {
     const k = 'done';
-    if (lastMain !== k) { lastMain = k; box.className = 'maincard'; box.innerHTML = '<div class="mh"><span class="tag main">主線</span><b>' + GAME.main.chapter + '　完</b></div><div class="mg">第二章製作中。</div>'; }
+    if (lastMain !== k) { lastMain = k; box.className = 'maincard'; box.innerHTML = '<div class="mh"><span class="tag main">主線</span><b>' + mainCh(st).chapter + '　完</b></div><div class="mg">第' + '一二三四五六'[GAME.mains.length] + '章製作中。</div>'; }
     return;
   }
   const s = mainStep(st), p = mainProgress(st), skip = !p.done && mainCanSkip(st);
@@ -3115,18 +3333,18 @@ function stepBody(s) {
   return '<div class="dlg"><div class="who">' + s.npc + '</div>' + s.lines.map(l => '「' + l + '」').join('<br>') + '</div>' +
     '<div class="goalbox">目標：' + s.goalText + (s.zone ? '<small>地點：' + zoneTxt(s.zone) + '（建議 Lv.' + s.lv + '）</small>' : '<small>建議 Lv.' + s.lv + '</small>') +
     (s.hint ? '<small>提示：' + s.hint + '</small>' : '') +
-    '<small>獎勵：' + rewardText({ silver: s.reward.silver, items: s.reward.items, mats: s.reward.mats, gear: s.reward.gear ? GAME.gear.quality[s.reward.gear.q].name + s.reward.gear.slot + '一件' : '', book: s.reward.book ? '目前武器第二招的技能書' : '' }) + (s.reward.expPct ? '、經驗（目前等級的 ' + Math.round(s.reward.expPct * 100) + '%）' : '') + '</small></div>';
+    '<small>獎勵：' + rewardText({ silver: s.reward.silver, items: s.reward.items, mats: s.reward.mats, gear: s.reward.gear ? GAME.gear.quality[s.reward.gear.q].name + s.reward.gear.slot + '一件' : '', book: s.reward.book ? '目前武器第二招的技能書' : '', pages: s.reward.pages }) + (s.reward.expPct ? '、經驗（目前等級的 ' + Math.round(s.reward.expPct * 100) + '%）' : '') + '</small></div>';
 }
 function showStep(prefix) {
   const s = mainStep(st);
   let h = prefix || '';
   if (s) {
     const p = mainProgress(st), go = s.zone && st.zone !== s.zone && zoneUnlocked(st, s.zone) && !p.done;
-    h += '<h2>' + stepNo(st.main.step) + '　' + s.title + '</h2><div class="sub">' + GAME.main.chapter + '</div>' + stepBody(s) +
+    h += '<h2>' + stepNo(st.main.step) + '　' + s.title + '</h2><div class="sub">' + mainCh(st).chapter + '</div>' + stepBody(s) +
       '<div class="ptbar">' + (go ? '<button class="btn" data-main="go">前往' + zoneById(s.zone).name + '</button>' : '') + '<button class="btn ghost" id="closeModal">' + (go ? '稍後' : '知道了') + '</button></div>';
   } else {
-    const E = GAME.main.epilogue;
-    h += '<h2>' + GAME.main.chapter + '　完</h2><div class="dlg"><div class="who">' + E.npc + '</div>' + E.lines.map(l => '「' + l + '」').join('<br>') + '</div><p class="note" style="margin-bottom:12px">第二章製作中。</p><button class="btn" id="closeModal">繼續巡守</button>';
+    const C = mainCh(st), E = C.epilogue;
+    h += '<h2>' + C.chapter + '　完</h2><div class="dlg"><div class="who">' + E.npc + '</div>' + E.lines.map(l => '「' + l + '」').join('<br>') + '</div><p class="note" style="margin-bottom:12px">第' + '一二三四五六'[GAME.mains.length] + '章製作中。</p><button class="btn" id="closeModal">繼續巡守</button>';
   }
   $('#modalBody').innerHTML = h; $('#modal').classList.remove('hidden');
 }
@@ -3198,8 +3416,13 @@ document.addEventListener('click', ev => {
       if (r) {
         for (const e of rt.events) handle(e); rt.events.length = 0;
         addLog('<span class="k-lv">主線〈' + r.step.title + '〉' + (r.skipped ? '略過' : '完成') + '</span>');
-        const pre = '<div class="sub" style="margin-bottom:4px">〈' + r.step.title + '〉' + (r.skipped ? '已略過' : '完成') + '</div><div class="big" style="font-size:16px">' + rewardText(r.got) + '</div>' +
+        let pre = '<div class="sub" style="margin-bottom:4px">〈' + r.step.title + '〉' + (r.skipped ? '已略過' : '完成') + '</div><div class="big" style="font-size:16px">' + rewardText(r.got) + '</div>' +
           (r.step.unlock ? '<div class="unlockline">' + r.step.unlockText + '</div>' : '');
+        if (r.chapterEnd && !st.main.done) {
+          const E = r.chapterEnd.epilogue;
+          pre += '<h2>' + r.chapterEnd.chapter + '　完</h2><div class="dlg"><div class="who">' + E.npc + '</div>' + E.lines.map(l => '「' + l + '」').join('<br>') + '</div><div class="unlockline">新的章節開始了。</div>';
+          addLog('<span class="k-lv">' + r.chapterEnd.chapter + '　完。' + mainCh(st).chapter + '開始</span>');
+        }
         showStep(pre); save();
       }
     }
