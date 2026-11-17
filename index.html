@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#121315">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>天星界・御劍者 v0.14</title>
+<title>天星界・御劍者 v0.14.1</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -396,6 +396,18 @@ button:active:not(:disabled){transform:scale(.95)}
 .scov .cap{pointer-events:auto;background:rgba(18,16,24,.8);border:1px solid var(--line);border-radius:10px;padding:8px 12px;text-align:center;font-family:var(--serif);font-size:14px;color:var(--text);letter-spacing:.06em}
 .scov .cap small{display:block;font-family:var(--sans);font-size:11px;color:var(--muted);letter-spacing:0;margin-top:2px}
 .scov .cap .revive{margin-top:6px}
+.scov .cap.win,.stage .idle.win{border:1.5px solid #c9a45c;background:rgba(24,20,14,.88);animation:winPop .45s cubic-bezier(.2,1.4,.4,1)}
+.stage .idle.win{border-radius:12px;padding:10px 16px}
+.vw-t{font-family:var(--serif);font-size:18px;color:#f2d58a;letter-spacing:.12em;margin-bottom:2px}
+.cap.win .vw-t{display:none}
+.vw-r{font-family:var(--sans);font-size:12px;color:var(--text);letter-spacing:0;line-height:1.5}
+.vw-r .lo{color:#8fdcc0}
+.vw-c{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:7px;font-family:var(--sans);font-size:12px;color:var(--muted);letter-spacing:0}
+.vw-c b{display:inline-block;min-width:1.1em;font-size:17px;color:#f2d58a;font-variant-numeric:tabular-nums;text-align:center}
+.vw-c .btn{padding:5px 14px;font-size:12.5px;width:auto}
+@keyframes winPop{0%{transform:scale(.6);opacity:0}100%{transform:scale(1);opacity:1}}
+@keyframes cdTick{0%{transform:scale(1.5)}100%{transform:scale(1)}}
+.vw-c b.tick{animation:cdTick .35s ease-out}
 .scov .cap.lite{padding:4px 10px;font-size:12px;opacity:.85}
 .boosts{position:absolute;top:10px;left:10px;z-index:4;display:flex;gap:6px;pointer-events:none}
 .boosts button{pointer-events:auto;padding:3px 9px;border-radius:999px;border:1.5px solid #c9a45c;background:#1b1d20d9;color:#f2d58a;font-size:12px;font-weight:600;font-variant-numeric:tabular-nums}
@@ -435,7 +447,7 @@ button:active:not(:disabled){transform:scale(.95)}
 <body>
 <div class="wrap">
   <header>
-    <h1>天星界・御劍者<small>v0.14 暫定名稱</small></h1>
+    <h1>天星界・御劍者<small>v0.14.1 暫定名稱</small></h1>
     <div class="silver" id="silver">銀兩 0</div>
   </header>
 
@@ -486,7 +498,7 @@ button:active:not(:disabled){transform:scale(.95)}
 
 /* ---------- 遊戲資料：名稱、數值都集中在這裡，改這裡就好 ---------- */
 const GAME = {
-  meta: { title: '天星界・御劍者', subtitle: '暫定名稱', version: '0.14', era: '仙曆五百餘年' },
+  meta: { title: '天星界・御劍者', subtitle: '暫定名稱', version: '0.14.1', era: '仙曆五百餘年' },
 
   // 八項資源系統（順序固定，星數陣列照這個順序）
   statNames: ['力量', '抵擋', '體力', '敏捷', '智慧', '守護', '靈力', '控制'],
@@ -1311,6 +1323,7 @@ GAME.towerRules = {
   lotusEvery: 5,              // 每 5 層一顆蓮子（永久 +1 屬性點）
   bossEvery: 10,
   between: 0.15,              // 層與層之間回復的血量（元蓮塔除外）
+  clearSec: 3,                // 通過一層後，倒數幾秒自動往上走
   pots: 3, potsOrigin: 5,      // 塔裡每層最多服幾顆回復藥
   hpBase: 1.2, hpPer: 0.2, atkBase: 1.1, atkPer: 0.1, bossHp: 0.4, bossAtk: 0.7
 };
@@ -1990,6 +2003,12 @@ function step(st, rt, dt) {
     if (st.hp >= d.maxHp * R.restUntil) { rt.mode = 'search'; rt.wait = R.searchSec; }
     return;
   }
+  if (rt.mode === 'clear') {
+    st.hp = Math.min(d.maxHp, st.hp + d.maxHp * 0.01 * (1 + d.heal) * dt);
+    rt.wait -= dt;
+    if (rt.wait <= 0) towerNext(st, rt);
+    return;
+  }
   if (rt.mode === 'search') {
     st.hp = Math.min(d.maxHp, st.hp + d.maxHp * 0.01 * (1 + d.heal) * dt);
     rt.wait -= dt;
@@ -2138,10 +2157,18 @@ function towerFloorDone(st, rt) {
       if (st.equip) receiveGear(st, rt, genGear(st, R.lv(F), 3), T.name);
     }
   }
-  emit(rt, { t: 'towerFloor', id: T.id, name: T.name, floor: F, first, rew });
-  rt.tower.floor++; rt.tower.pots = 0;
   if (T.id !== 'origin') healHp(st, rt, rt.d.maxHp * R.between);
-  rt.mode = 'search'; rt.wait = 1.2;
+  rt.tower.clear = { floor: F, first, rew, boss: F % R.bossEvery === 0 };
+  rt.mob = null; rt.mode = 'clear'; rt.wait = R.clearSec;   // 勝利畫面，倒數後往上一層
+  emit(rt, { t: 'towerFloor', id: T.id, name: T.name, floor: F, first, rew, boss: F % R.bossEvery === 0, next: F + 1, sec: R.clearSec });
+}
+// 倒數結束（或按「立即前往」）：往上一層
+function towerNext(st, rt) {
+  if (!rt.tower || rt.mode !== 'clear') return false;
+  rt.tower.floor++; rt.tower.pots = 0; rt.tower.clear = null;
+  rt.mobs = []; rt.mob = null; rt.mode = 'search'; rt.wait = 0.8;
+  emit(rt, { t: 'towerNext', id: rt.tower.id, floor: rt.tower.floor });
+  return true;
 }
 function towerEnd(st, rt, why, by) {
   if (!rt.tower) return null;
@@ -2705,7 +2732,7 @@ if (typeof module !== 'undefined') module.exports = {
   freshState, genGear, gearName, gearBase, affixVal, affixText, gearTotals, equippedList, powerWith, powerNow, gearDelta, equipGear, salvageGear,
   receiveGear, bestGear, ensureWeaponGear, reviveCost, revive, tierFx, tierLine, mainCh,
   exploreOf, explored, zoneLvOk, zoneExploreOk, placesDone, drinkItem,
-  rankOf, rankName, towerOpen, towerById, towerBest, towerUnlocked, towerStart, towerEnd, makeMob,
+  rankOf, rankName, towerOpen, towerNext, towerById, towerBest, towerUnlocked, towerStart, towerEnd, makeMob,
   skillKnown, ultKnown, hasBook, bookName, bookLv, buyBook, exchangePages, gainBook, readBooks, castUlt, ultReady, skillCfg, setSkillCfg, activeOrder, moveSkill, learnBook, equipCount, rollIdx, playableWeapons, autoSalvageable, gearOwner, salvageValue, namedDir
 };
 
@@ -3043,7 +3070,7 @@ const SC = {
   on: false, cv: null, cx: null, lo: null, lx: null, W: 0, H: 0, lw: 0, lh: 0, PX: 2, dpr: 1,
   WW: 440, WH: 320, cam: { x: 0, y: 0 }, ground: null, props: [], water: [], key: '', B: null,
   pl: null, ents: new Map(), wand: [], fx: [], txt: [], amb: [], t: 0, last: 0, running: false,
-  mob: {}, pf: null, pw: '', flash: 0, flashC: '#ffffff', lastKill: null, font: 'sans-serif', ro: null
+  mob: {}, pf: null, pw: '', flash: 0, flashC: '#ffffff', lastKill: null, font: 'sans-serif', ro: null, banner: null, fade: 0
 };
 const OL = '#1d1a17';
 
@@ -3465,6 +3492,8 @@ function sceneBuild(key) {
   SC.pl = { x: W / 2, y: H / 2 + 20, face: 1, st: 'idle', walkT: 0, atk: 0, hurt: 0, pt: null, pause: 1 };
   SC.cam.x = SC.pl.x - SC.lw / 2; SC.cam.y = SC.pl.y - SC.lh / 2; clampCam();
   initAmb();
+  if (rt.tower) { const T = towerById(rt.tower.id), F = rt.tower.floor; SC.fade = .5; SC.banner = { s: '第 ' + F + ' 層', sub: T.name + (F % GAME.towerRules.bossEvery === 0 ? '・守塔者在這一層' : ''), c: '#e8e4dc', t: 0, life: 1.7 }; }
+  else SC.banner = null;
 }
 function clampCam() { SC.cam.x = Math.max(0, Math.min(SC.WW - SC.lw, SC.cam.x)); SC.cam.y = Math.max(0, Math.min(SC.WH - SC.lh, SC.cam.y)); }
 
@@ -3561,11 +3590,12 @@ function sceneUpdate(dt) {
   }
   if (want === 0) SC.wand.length = 0;
   // 主角
-  P.atk = Math.max(0, P.atk - dt); P.hurt = Math.max(0, P.hurt - dt);
+  P.atk = Math.max(0, P.atk - dt); P.hurt = Math.max(0, P.hurt - dt); P.win = Math.max(0, (P.win || 0) - dt);
   const T = rt.mob && SC.ents.get(rt.mob.uid);
   let walking = false;
   if (mode === 'down') P.st = 'down';
   else if (mode === 'rest') P.st = 'sit';
+  else if (mode === 'clear') P.st = 'idle';
   else if (mode === 'fight' && T && !T.die) {
     const dx = T.x - P.x, dy = T.y - P.y, d = Math.hypot(dx, dy), want2 = (RANGE_PX[GAME.weapons[st.weapon].range] || 13) + T.size * .22;
     if (d > want2 + 2) walking = moveTo(P, T.x - dx / d * want2, T.y - dy / d * want2 * .8, 58, dt);
@@ -3588,7 +3618,8 @@ function sceneUpdate(dt) {
   SC.fx = SC.fx.filter(f => f.t < f.life);
   for (const t of SC.txt) t.t += dt;
   SC.txt = SC.txt.filter(t => t.t < t.life);
-  SC.flash = Math.max(0, SC.flash - dt);
+  SC.flash = Math.max(0, SC.flash - dt); SC.fade = Math.max(0, SC.fade - dt);
+  if (SC.banner && (SC.banner.t += dt) > SC.banner.life) SC.banner = null;
 }
 
 /* ----- 畫 ----- */
@@ -3627,6 +3658,8 @@ function sceneDraw(dt) {
   drawFx(x, cam, t);
   drawAmb(x, dt);
   if (SC.flash > 0) { x.globalAlpha = Math.min(.55, SC.flash * 1.4); R(x, 0, 0, W, H, SC.flashC); x.globalAlpha = 1; }
+  const fo = rt.mode === 'clear' && rt.wait < .4 ? 1 - rt.wait / .4 : 0, fi = SC.fade > 0 ? SC.fade / .5 : 0, dk = Math.max(fo, fi);
+  if (dk > 0) { x.globalAlpha = Math.min(1, dk); R(x, 0, 0, W, H, '#0c0b10'); x.globalAlpha = 1; }
   // 放大到畫面上，再寫字
   const c = SC.cx, PX = SC.PX;
   c.setTransform(SC.dpr, 0, 0, SC.dpr, 0, 0); c.imageSmoothingEnabled = false;
@@ -3638,11 +3671,13 @@ function drawPlayer(x, P, cam, t) {
   const dir = P.face > 0 ? 0 : 1;
   let fr = P.st === 'walk' ? F['walk' + ((P.walkT * 8 | 0) & 3)] : P.st === 'sit' ? F.sit : F['idle' + ((t * 1.6 | 0) & 1)];
   if (P.atk > 0) fr = F.atk;
+  let hop = 0;
+  if (P.win > 0) { fr = F.atk; const k = 1.8 - P.win; if (k < 1.1) hop = Math.round(Math.abs(Math.sin(k * 5.7)) * 4); }
   const X = Math.round(P.x - cam.x - PO.w / 2), Y = Math.round(P.y - cam.y - PO.h);
   if (P.st === 'down') {
     x.save(); x.translate(Math.round(P.x - cam.x), Math.round(P.y - cam.y)); x.rotate(-Math.PI / 2 * P.face); x.globalAlpha = .75; x.drawImage(fr[dir], -PO.w / 2, -PO.h + 4); x.restore(); x.globalAlpha = 1; return;
   }
-  x.drawImage(fr[dir], X, Y);
+  x.drawImage(fr[dir], X, Y - hop);
   if (P.hurt > .04) { x.globalAlpha = .45; x.drawImage(F.hurt[dir], X, Y); x.globalAlpha = 1; }
 }
 function drawMob(x, e, cam, t) {
@@ -3667,7 +3702,8 @@ function burst(x0, y0, c, n = 8, sp = 30, life = .45, up = 0) { for (let i = 0; 
 function drawFx(x, cam, t) {
   for (const f of SC.fx) {
     const k = f.t / f.life;
-    if (f.k === 'p') { const px = f.x + f.vx * f.t, py = f.y + f.vy * f.t + f.g * f.t * f.t * .5; x.globalAlpha = 1 - k * .7; R(x, Math.round(px - cam.x), Math.round(py - cam.y), 1, 1, f.c); }
+    if (f.k === 'cf') { const px = f.x + f.vx * f.t, py = f.y + f.vy * f.t + 70 * f.t * f.t * .5; x.globalAlpha = k > .75 ? (1 - k) * 4 : 1; const flip = ((f.t * 12 + f.ph) | 0) & 1; R(x, Math.round(px - cam.x), Math.round(py - cam.y), flip ? 2 : 1, flip ? 1 : 2, f.c); }
+    else if (f.k === 'p') { const px = f.x + f.vx * f.t, py = f.y + f.vy * f.t + f.g * f.t * f.t * .5; x.globalAlpha = 1 - k * .7; R(x, Math.round(px - cam.x), Math.round(py - cam.y), 1, 1, f.c); }
     else if (f.k === 'slash') { const n = 9, r0 = f.r; x.globalAlpha = 1 - k; for (let i = 0; i < n; i++) { const a = f.a - .9 + i / (n - 1) * 1.8 * Math.min(1, k * 3); const px = Math.round(f.x + Math.cos(a) * r0 - cam.x), py = Math.round(f.y + Math.sin(a) * r0 * .8 - cam.y); R(x, px, py, 2, 1, i > n - 3 ? '#ffffff' : f.c); } }
     else if (f.k === 'ring') { x.globalAlpha = 1 - k; ring(x, Math.round(f.x - cam.x), Math.round(f.y - cam.y), Math.round(f.r0 + (f.r1 - f.r0) * k), Math.round((f.r0 + (f.r1 - f.r0) * k) * .45), f.c); }
     else if (f.k === 'shot') {
@@ -3710,6 +3746,7 @@ function drawLabels(c, cam, PX, t) {
     c.fillStyle = m.rank === 'boss' ? '#e8b84a' : '#d8553d'; c.fillRect(X - bw / 2, top, bw * Math.max(0, m.hp / m.maxHp), 3);
   }
   if (P.st !== 'down' && !(rt.mode === 'fight' && SC.ents.size)) plate(c, '御劍者', toX(P.x), toY(P.y) + 3, '#e6f3ee', st.weapon, '');
+  drawBanner(c);
   for (const s of SC.txt) {
     const k = s.t / s.life, X = toX(s.x) + (s.dx || 0), Y = toY(s.y) - (s.rise || 26) * Math.min(1, k * 1.6) - (s.dy || 0);
     c.globalAlpha = k > .7 ? (1 - k) / .3 : 1;
@@ -3717,6 +3754,17 @@ function drawLabels(c, cam, PX, t) {
     scText(c, s.s, X, Y, s.c, Math.round(s.size * pop), s.w || 800);
     c.globalAlpha = 1;
   }
+}
+function drawBanner(c) {
+  const B = SC.banner; if (!B) return;
+  const k = B.t / B.life, a = k < .12 ? k / .12 : k > .8 ? (1 - k) / .2 : 1, pop = k < .12 ? .7 + .3 * (k / .12) + Math.sin(k / .12 * Math.PI) * .12 : 1;
+  const X = SC.W / 2, Y = SC.H * .3;
+  c.globalAlpha = Math.max(0, a);
+  if (B.glow) { const g = c.createRadialGradient(X, Y - 8, 4, X, Y - 8, 120); g.addColorStop(0, 'rgba(242,213,138,.35)'); g.addColorStop(1, 'rgba(242,213,138,0)'); c.fillStyle = g; c.fillRect(X - 130, Y - 70, 260, 120); }
+  c.save(); c.translate(X, Y); c.scale(pop, pop);
+  scText(c, B.s, 0, 0, B.c || '#f2d58a', 24, 800);
+  if (B.sub) scText(c, B.sub, 0, 20, '#e8e4dc', 12, 600);
+  c.restore(); c.globalAlpha = 1;
 }
 function say(x, y, s, c, size = 13, o = {}) { SC.txt.push(Object.assign({ x, y, s, c, size, t: 0, life: .9, dx: (Math.random() - .5) * 14 }, o)); if (SC.txt.length > 40) SC.txt.shift(); }
 
@@ -3764,6 +3812,18 @@ function sceneEvent(e) {
     case 'revive': case 'revivePaid': burst(P.x, P.y - 10, '#8af0a8', 14, 22, .9, 18); break;
     case 'mobUlt': if (ent) { fxAdd({ k: 'ring', x: ent.x, y: ent.y, r0: 6, r1: 60, c: '#ff5a4a', life: .6 }); say(ent.x, ent.y - ent.size - 6, e.ult, '#ff8a7a', 14, { dx: 0, life: 1.4 }); } SC.flash = .25; SC.flashC = '#c8302a'; break;
     case 'ult': SC.flash = .5; SC.flashC = '#fff2c0'; fxAdd({ k: 'ring', x: P.x, y: P.y, r0: 4, r1: 90, c: '#f2d58a', life: .8 }); fxAdd({ k: 'ring', x: P.x, y: P.y, r0: 2, r1: 60, c: '#ffffff', life: .6 }); for (const o of SC.ents.values()) burst(o.x, o.y - o.size * .4, '#f2d58a', 14, 40, .8); break;
+    case 'towerFloor': {
+      P.win = 1.8; P.atk = 0;
+      SC.flash = .3; SC.flashC = '#fff2c0';
+      fxAdd({ k: 'pillar', x: P.x, y: P.y, c: '#f2d58a', life: 1.6 });
+      fxAdd({ k: 'ring', x: P.x, y: P.y - 2, r0: 4, r1: 70, c: '#f2d58a', life: .7 });
+      fxAdd({ k: 'ring', x: P.x, y: P.y - 2, r0: 2, r1: 46, c: '#ffffff', life: .55 });
+      const CF = ['#f2d58a', '#ff8a7a', '#8fdcc0', '#9fc3e8', '#e8a8f0', '#ffffff'];
+      for (let i = 0; i < 70; i++) { const a = -Math.PI / 2 + (Math.random() - .5) * 2.2, v = 40 + Math.random() * 60; fxAdd({ k: 'cf', x: P.x + (Math.random() - .5) * 10, y: P.y - 18, vx: Math.cos(a) * v, vy: Math.sin(a) * v, c: CF[i % CF.length], ph: Math.random() * 4, life: 1.4 + Math.random() * .9 }); }
+      burst(P.x, P.y - 12, '#f2d58a', 16, 34, 1.1, 22);
+      SC.banner = { s: e.boss ? '守塔者擊破' : '第 ' + e.floor + ' 層　通過', sub: e.boss ? '第 ' + e.floor + ' 層　通過' : e.first ? '首次通過' : '', c: '#f2d58a', glow: true, t: 0, life: 2.6 };
+      break;
+    }
     case 'stance': if (ent && ent.m) say(ent.x, ent.y - ent.size - 4, '架勢・' + e.attr, '#c8c0e8', 11, { dx: 0 }); break;
   }
 }
@@ -3856,6 +3916,7 @@ function handle(e) {
       if (r.lotus) toast('得到一顆' + towerById(e.id).lotus + '子，屬性點 +1', 1);
       renderLoc(); panelDirty = true; break;
     }
+    case 'towerNext': renderLoc(); resetArena(); break;
     case 'towerEnd': showTowerEnd(e); renderLoc(); resetArena(); panelDirty = true; break;
     case 'mobUlt':
       if (e.plain) { addLog('<span class="k-bad">【' + e.ult + '】</span>' + e.name + '出招'); shakeScreen(false); break; }
@@ -4017,12 +4078,21 @@ function renderArena() {
       const txt = rt.mode === 'rest' ? ['原地調息', '血量恢復到九成五後繼續巡守'] :
         rt.mode === 'down' ? ['重傷調養中', '<span id="downT"></span> 後恢復'] : rt.tower ? [towerById(rt.tower.id).name + '　第 ' + rt.tower.floor + ' 層', '往上走的樓梯很暗'] : ['巡守' + z.name, z.place + '・魔物 ' + zoneLvText(z)];
       const rv = rt.mode === 'down' ? '<button class="revive" data-revive="1" id="reviveBtn"></button>' : '';
+      if (rt.mode === 'clear' && rt.tower && rt.tower.clear) {
+        const C = rt.tower.clear, r = C.rew, a = [];
+        if (C.first) { a.push('功績 +' + r.merit, '銀兩 +' + fmt(r.silver), '精魄 +' + r.soul); if (r.lotus) a.push('<span class="lo">' + towerById(rt.tower.id).lotus + '子 +1</span>'); if (r.pages) a.push('天御殘頁 +' + r.pages); }
+        const card = '<div class="vw-t">' + (C.boss ? '守塔者擊破　' : '') + '第 ' + C.floor + ' 層　通過</div><div class="vw-r">' + (C.first ? a.join('・') : '已經通過過，這次沒有獎勵') + '</div><div class="vw-c"><span><b id="clearT">' + Math.max(1, Math.ceil(rt.wait)) + '</b> 秒後前往第 ' + (C.floor + 1) + ' 層</span><button class="btn" data-tnext="1">立即前往</button></div>';
+        if (SC.on) $('#scOv').innerHTML = '<div class="cap win">' + card + '</div>'; else stage.innerHTML = '<div class="idle win">' + card + '</div>';
+        info.innerHTML = '<div class="note">' + towerById(rt.tower.id).name + '第 ' + C.floor + ' 層的魔物都倒下了。想停在這裡，可以按上面的「離開塔」。</div>';
+        return;
+      }
       if (SC.on) $('#scOv').innerHTML = rt.mode === 'down' || rt.mode === 'rest' ? '<div class="cap">' + txt[0] + '<small>' + txt[1] + '</small>' + rv + '</div>' : rt.tower ? '<div class="cap lite">' + txt[0] + '</div>' : '';
       else stage.innerHTML = '<div class="idle">' + txt[0] + '<small>' + txt[1] + '</small>' + rv + '</div>';
       info.innerHTML = '<div class="note">' + (rt.mode === 'search' ? '搜尋魔物中…' : rt.mode === 'rest' ? '休息時血量恢復較快，靈力越高恢復越快。' :
         '重傷不會損失任何東西。線上要休養 ' + (GAME.rules.downSecOnline / 60) + ' 分鐘，越接近恢復，急救越便宜；離線時照原本的 ' + GAME.rules.downSec + ' 秒。') + '</div>' +
         (rt.mode === 'down' ? '<label class="toggle" style="padding-bottom:0"><span>重傷時自動花銀兩恢復</span><input type="checkbox" id="autoRevive"' + (st.autoRevive ? ' checked' : '') + '></label>' : '');
     }
+    if (rt.mode === 'clear') { const ct = $('#clearT'), v = String(Math.max(1, Math.ceil(rt.wait))); if (ct && ct.textContent !== v) { ct.textContent = v; ct.classList.remove('tick'); void ct.offsetWidth; ct.classList.add('tick'); } }
     if (rt.mode === 'down') {
       const sec = Math.max(0, Math.ceil(rt.wait)), rc = reviveCost(st, rt), ok = st.silver >= rc;
       const t1 = Math.floor(sec / 60) + ':' + String(sec % 60).padStart(2, '0'), el = $('#downT'), bt = $('#reviveBtn');
@@ -4653,6 +4723,7 @@ document.addEventListener('click', ev => {
     return;
   }
   if (t.dataset.boost) { toast(boostText(t.dataset.boost), 1); return; }
+  if (t.dataset.tnext) { if (towerNext(st, rt)) { for (const e of rt.events) handle(e); rt.events.length = 0; renderLog(); } return; }
   if (t.dataset.revive) { revive(st, rt); for (const e of rt.events) handle(e); rt.events.length = 0; save(); renderAll(); return; }
   if (t.dataset.t) { if (tab === 'gear' && t.dataset.t !== 'gear') clearNewGear(); if (tab !== t.dataset.t) setTimeout(animPanel, 0); tab = t.dataset.t; if (tab === 'map') viewChap = GAME.chapters[0].id; panelDirty = true; renderTabs(); renderPanel(); if (t.closest('#loc')) $('#tabs').scrollIntoView({ behavior: 'smooth' }); return; }
   if (t.dataset.ch) { viewChap = t.dataset.ch; renderPanel(); animPanel(); return; }
