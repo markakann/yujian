@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#121315">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>天星界・御劍者 v0.11</title>
+<title>天星界・御劍者 v0.12.1</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -363,6 +363,30 @@ button:active:not(:disabled){transform:scale(.95)}
 @keyframes ultIn{0%{opacity:0;transform:translateY(8px)}25%{opacity:1;transform:none}80%{opacity:1}100%{opacity:0}}
 @keyframes ultName{0%{opacity:0;transform:scale(1.5);filter:blur(6px)}25%{opacity:1;transform:scale(1);filter:none}80%{opacity:1}100%{opacity:0;transform:scale(.96)}}
 @keyframes ultSlash{0%{transform:rotate(-14deg) scaleX(0);opacity:1}70%{transform:rotate(-14deg) scaleX(1);opacity:1}100%{transform:rotate(-14deg) scaleX(1);opacity:0}}
+/* 天陰五大塔 */
+.subtabs.four{grid-template-columns:repeat(4,1fr)}
+.subtabs.four button{font-size:13px;padding:8px 2px}
+.rankcard{background:linear-gradient(135deg,#2a2418,#23262a 70%);border:1px solid #6e5a2f;border-radius:12px;padding:12px;margin-bottom:12px}
+.rankcard .rk{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+.rankcard .rk b{font-family:var(--serif);font-size:22px;color:#f2d58a;letter-spacing:.08em}
+.rankcard .rk span{font-size:12px;color:var(--muted)}
+.rankcard .note{margin-top:6px}
+.tower{border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:10px;background:var(--panel2);position:relative;overflow:hidden}
+.tower::before{content:'';position:absolute;right:-18px;top:-18px;width:76px;height:76px;border-radius:50%;background:radial-gradient(circle,var(--lc) 0%,transparent 70%);opacity:.35}
+.tower.lock{opacity:.55;border-style:dashed}
+.tower .th{display:flex;align-items:center;gap:8px}
+.tower .th b{font-family:var(--serif);font-size:17px;font-weight:600;letter-spacing:.06em}
+.tower .th .best{margin-left:auto;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+.tower p{font-size:12.5px;color:var(--muted);line-height:1.7;margin:4px 0}
+.tower .tf{font-family:var(--serif);font-size:12px;color:var(--faint)}
+.tower .btn{margin-top:8px;font-size:14px;letter-spacing:.05em;padding:9px}
+.pill.rule{background:#3a3220;color:#f2d58a}
+.loc.intower{border-color:#6e5a2f;background:linear-gradient(90deg,#2a2418,var(--panel))}
+.chips span.rank{background:#3a3220;color:#f2d58a;border:1px solid #6e5a2f}
+.mobs.many{flex-wrap:wrap;gap:0 2px;padding-top:8px;align-content:flex-start}
+.mobs.many .mobc{flex:0 0 19%;max-width:19%}
+.mobs.many .mlabel{font-size:9.5px}
+.mobs.many .mlabel .seal{width:14px;height:14px;font-size:9px}
 .hidden{display:none!important}
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:var(--panel2);border:1px solid var(--line);padding:8px 14px;border-radius:8px;font-size:13px;z-index:30;transition:opacity .3s}
 </style>
@@ -370,7 +394,7 @@ button:active:not(:disabled){transform:scale(.95)}
 <body>
 <div class="wrap">
   <header>
-    <h1>天星界・御劍者<small>v0.11 暫定名稱</small></h1>
+    <h1>天星界・御劍者<small>v0.12.1 暫定名稱</small></h1>
     <div class="silver" id="silver">銀兩 0</div>
   </header>
 
@@ -417,7 +441,7 @@ button:active:not(:disabled){transform:scale(.95)}
 
 /* ---------- 遊戲資料：名稱、數值都集中在這裡，改這裡就好 ---------- */
 const GAME = {
-  meta: { title: '天星界・御劍者', subtitle: '暫定名稱', version: '0.11', era: '仙曆五百餘年' },
+  meta: { title: '天星界・御劍者', subtitle: '暫定名稱', version: '0.12.1', era: '仙曆五百餘年' },
 
   // 八項資源系統（順序固定，星數陣列照這個順序）
   statNames: ['力量', '抵擋', '體力', '敏捷', '智慧', '守護', '靈力', '控制'],
@@ -578,6 +602,13 @@ const GAME = {
     jiumeng:  { name: '月華舊夢', rank: 'elite', art: 'vine', pal: 'dream', arch: 'elite', attrs: ['仙', '玉', '慧', '天'], type: 'magic', drops: [['月露', 1], ['精魄', 1]] },
     youjian:  { name: '古道遊劍', rank: 'elite', art: 'hood', pal: 'wander', arch: 'elite', attrs: ['銀', '誅', '皇', '必'], type: 'phys', ult: { name: '開天', every: 16, mult: 3 }, drops: [['古銅', 1], ['殘鐵', 1], ['精魄', 1]] },
     langwang: { name: '霜原狼王', rank: 'elite', art: 'hound', pal: 'frostking', arch: 'elite', attrs: ['降', '誅', '弓', '星'], type: 'phys', drops: [['霜晶', 1], ['精魄', 1]] },
+    jianying: { name: '劍影', art: 'blade', pal: 'swordshade', arch: 'fast', attrs: ['銀'], type: 'phys', drops: [['殘鐵', 0.08], ['精魄', 0.12]] },
+    canying:  { name: '御劍殘影', art: 'hood', pal: 'shadeknight', arch: 'brute', attrs: ['必'], type: 'phys', drops: [['殘鐵', 0.08], ['精魄', 0.12]] },
+    tw_star:  { name: '星蓮守', rank: 'boss', art: 'hood', pal: 'lotusStar', arch: 'boss', attrs: ['星', '萬', '神', '玉'], type: 'magic', drops: [['精魄', 1]] },
+    tw_moon:  { name: '月蓮守', rank: 'boss', art: 'wisp', pal: 'lotusMoon', arch: 'boss', attrs: ['仙', '天', '聖'], type: 'magic', drops: [['精魄', 1]] },
+    tw_shadow:{ name: '影蓮守', rank: 'boss', art: 'hood', pal: 'lotusShadow', arch: 'boss', attrs: ['暗'], type: 'phys', drops: [['精魄', 1]] },
+    tw_origin:{ name: '元蓮守', rank: 'boss', art: 'golem', pal: 'lotusOrigin', arch: 'boss', attrs: ['武', '霸', '必'], type: 'phys', drops: [['精魄', 1]] },
+    tw_sword: { name: '御蓮劍主', rank: 'boss', art: 'blade', pal: 'lotusSword', arch: 'boss', attrs: ['銀', '誅', '皇', '降'], type: 'phys', ult: { name: '開天', every: 12, mult: 2.6 }, drops: [['精魄', 1]] },
     chijiao:  { name: '譚主・赤蛟', rank: 'boss', art: 'serpent', pal: 'crimsonboss', arch: 'boss', attrs: ['闇', '降', '暗', '誅'], type: 'phys', ult: { name: '十字', every: 14, mult: 3 }, drops: [['血珀', 1], ['精魄', 1]] }
   },
 
@@ -688,7 +719,7 @@ const GAME = {
     reviveCost(lv) { return Math.round(1.5 * (lv + 4) * (lv + 4)); }, // 線上重傷立即恢復要花的銀兩（照剩下的時間打折）
     skillCoef: 2.2, skillCd: 6, skillCost: 15, energyRegen: 2, baseInterval: 1.2,
     expBase: 40, expPow: 2.6,
-    mobHp: 1.68, mobAtk: 1.47, lateHp: 0.06, lateAtk: 0.04 // v0.8 有裝備後魔物整體調強，維持首區節奏
+    mobHp: 1.68, mobAtk: 1.47, lateHp: 0.14, lateAtk: 0.13 // v0.8 有裝備後魔物整體調強，維持首區節奏
   }
 };
 
@@ -1171,6 +1202,40 @@ GAME.main2 = {
 };
 GAME.mains = [GAME.main, GAME.main2];
 
+/* ---------- 天陰五大塔：立在陰區・天陰區，每座塔頂開著一朵主蓮 ----------
+   每層一批魔物，每 10 層一隻守塔者；第一次通過某一層才有獎勵；只能在線上挑戰 */
+GAME.towers = [
+  { id: 'star', name: '星蓮塔', lotus: '星蓮', rule: '變化', bg: '#262a40', boss: 'tw_star',
+    desc: '魔物的架勢多，換得也快；剋制與被剋的傷害都會再放大。挑對武器，比什麼都重要。', flavor: '花瓣上的光，每一瓣都指向不同的方向。' },
+  { id: 'moon', name: '月蓮塔', lotus: '月蓮', rule: '群戰', bg: '#2a2f3e', boss: 'tw_moon',
+    desc: '越往上魔物越多，最多 12 隻；每 10 層是滿月，數量最多。群攻招式在這座塔最好用。', flavor: '月圓那晚，整座塔都在等你。' },
+  { id: 'shadow', name: '影蓮塔', lotus: '影蓮', rule: '宿敵', bg: '#241f2c', boss: 'tw_shadow',
+    desc: '每一層的魔物，都用你目前武器的天敵架勢。考驗的是整體實力，還有「被剋時受到的傷害」這條詞條。', flavor: '塔裡的影子，比你更早知道你要往哪裡躲。' },
+  { id: 'origin', name: '元蓮塔', lotus: '元蓮', rule: '耐戰', bg: '#2e2a22', boss: 'tw_origin',
+    desc: '一進塔血量就不會自己回來：層與層之間不回血，戰鬥中也不會自然回血，只能靠藥品和技能撐（每層最多 5 顆回復藥）。', flavor: '一口氣，要撐到塔頂。' },
+  { id: 'sword', name: '御蓮塔', lotus: '御蓮', rule: '劍影', bg: '#2a2e33', boss: 'tw_sword', needAll: 10,
+    desc: '過去御劍者留下的劍影，會放招、也會格擋。其他四座塔都爬到第 10 層才開放。', flavor: '劍還記得握它的人。' }
+];
+GAME.towerRules = {
+  openLv: 20,                 // 完成第一章，或 Lv.20 以上就能進塔
+  lv(floor) { return 19 + floor; },
+  lotusEvery: 5,              // 每 5 層一顆蓮子（永久 +1 屬性點）
+  bossEvery: 10,
+  between: 0.15,              // 層與層之間回復的血量（元蓮塔除外）
+  pots: 3, potsOrigin: 5,      // 塔裡每層最多服幾顆回復藥
+  hpBase: 1.2, hpPer: 0.2, atkBase: 1.1, atkPer: 0.1, bossHp: 0.4, bossAtk: 0.7
+};
+// 御劍者位階：20 階，每階分下、中、上三品，共 60 品；靠功績晉升
+GAME.ranks = {
+  names: ['黑鐵', '白銀', '玄夜', '皇月', '星山', '雀雲', '霄蔻', '靈耀', '凡光', '鳳羽', '魂懾', '焰屹', '風玥', '烻仙', '宇冬', '星煦', '天霜', '殘龍', '靈月', '聖崶'],
+  tiers: ['下品', '中品', '上品'],
+  need(r) { return r <= 0 ? 0 : Math.round(8 * Math.pow(r, 1.7)); }, // 到第 r 品（0 起算）累積要多少功績
+  bonus: 0.005,                                                       // 每一品：攻擊、血量、防禦各 +0.5%
+  merit: { elite: 2, boss: 3, main: 5 }
+};
+function rankOf(st) { let r = 0; while (r < 59 && (st.merit || 0) >= GAME.ranks.need(r + 1)) r++; return r; }
+function rankName(r) { return GAME.ranks.names[Math.floor(r / 3)] + GAME.ranks.tiers[r % 3]; }
+
 /* ---------- 工具 ---------- */
 let rng = Math.random;
 function setRng(f) { rng = f; }
@@ -1268,6 +1333,8 @@ function derive(st) {
   if (t('drPhys')) d.drs.push({ v: t('drPhys'), when: 'phys' });
   if (t('drMagic')) d.drs.push({ v: t('drMagic'), when: 'magic' });
   if (t('lowDr')) d.drs.push({ v: t('lowDr'), when: 'hpBelow30' });
+  d.rank = rankOf(st);
+  if (d.rank) { const k = 1 + GAME.ranks.bonus * d.rank; d.atk = Math.round(d.atk * k); d.maxHp = Math.round(d.maxHp * k); d.pdef = Math.round(d.pdef * k); d.mdef = Math.round(d.mdef * k); }
   d.aspd = Math.min(0.6, d.aspd);
   d.interval = GAME.rules.baseInterval / (1 + d.aspd);
   d.power = powerOf(d, st.lv);
@@ -1294,6 +1361,7 @@ function newState() {
     equip: { weapons: {} }, gear: [], gearSeq: 0, gearGift: {}, gearSet: { salv: 1, other: false, autoEquip: true },
     autoRevive: false, fx: { shake: true, buzz: false },
     learned: {}, books: {}, pages: 0, ultKnown: {}, ultCharge: 0, skillCfg: {}, skillOrder: {},
+    towers: {}, lotus: 0, merit: 0,
     lastSave: Date.now()
   };
 }
@@ -1338,6 +1406,9 @@ function migrate(st) {
   if (st.main && st.main.done && (st.main.ch || 0) < GAME.mains.length - 1) { st.main.ch = (st.main.ch || 0) + 1; st.main.step = 0; st.main.done = false; st.main.gated = false; mainBegin(st); }
   if (st.pages === undefined) st.pages = 0;
   if (st.ultCharge === undefined) st.ultCharge = 0;
+  if (!st.towers) st.towers = {};
+  if (st.lotus === undefined) st.lotus = 0;
+  if (st.merit === undefined) st.merit = 0;
   ensureWeaponGear(st, st.weapon);
   st.v = 10;
   return st;
@@ -1358,8 +1429,11 @@ function spawn(st) {
   const total = z.spawns.reduce((a, s) => a + s[1], 0);
   let r = rng() * total, key = z.spawns[0][0];
   for (const [k, w] of z.spawns) { if ((r -= w) < 0) { key = k; break; } }
+  return makeMob(key, GAME.monsters[key].rank ? z.lv[1] + 1 : randInt(z.lv[0], z.lv[1]));
+}
+// 照魔物種類和等級做出一隻魔物（狩獵區和塔共用）
+function makeMob(key, L) {
   const b = GAME.monsters[key], a = GAME.archetypes[b.arch];
-  const L = b.rank ? z.lv[1] + 1 : randInt(z.lv[0], z.lv[1]);
   const f = lvScale(L), ramp = 1 + 0.02 * (L - 1);
   const over = Math.max(0, L - 21), R = GAME.rules; // 第二章以後魔物再加強：玩家御心、裝備、門檻都會疊上去
   const hp = Math.round(a.hp * Math.pow(f, 1.15) * ramp * (1 + R.lateHp * over) * R.mobHp);
@@ -1493,11 +1567,13 @@ function hitMob(st, rt, atk, magic, coef, o, target) {
   if (rt.nextBonus && !o.keepBonus) { mult *= 1 + rt.nextBonus; rt.nextBonus = 0; }
   if (d.stunnedBonus && m.stunned > 0) mult *= 1 + d.stunnedBonus;
   if (kind === 'counter' && d.ctr) mult *= 1 + d.ctr;
+  if (rt.tower && rt.tower.amp && kind !== 'neutral') mult *= kind === 'counter' ? rt.tower.amp : 1 / rt.tower.amp;
+  if (m.guardP && !o.proc && rng() < m.guardP) { mult *= 0.3; o = Object.assign({}, o, { guarded: true }); }
   const dmg = dmgCalc(atk, def, mult, st.lv);
   m.hp -= dmg;
   if (m.hp <= 0 && !m.killKind) m.killKind = kind; // 最後一擊時的剋制關係
   if (d.lifesteal) healHp(st, rt, dmg * d.lifesteal);
-  emit(rt, { t: 'hit', who: 'p', dmg, kind, crit, skill: o.skill || '', name: m.label, uid: m.uid, proc: !!o.proc, quiet: !!o.quiet });
+  emit(rt, { t: 'hit', who: 'p', dmg, kind, crit, skill: o.skill || '', name: m.label, uid: m.uid, proc: !!o.proc, quiet: !!o.quiet, guarded: !!o.guarded });
   if (crit && !o.proc) for (const r of d.triggers) {
     if (r.s.on === 'crit' && m.hp > 0) procStrike(st, rt, r, null, m);
     if (r.s.on === 'critStack') {
@@ -1623,7 +1699,7 @@ function castActive(st, rt, r) {
 function mobAttack(st, rt, m) {
   const d = rt.d;
   const ult = m.ult && m.ultT <= 0; // 這一擊是魔物的天御：不會落空，也閃不掉
-  if (ult) { m.ultT = m.ult.every; emit(rt, { t: 'mobUlt', name: m.label, ult: GAME.ult.name + '・' + m.ult.name, uid: m.uid }); }
+  if (ult) { m.ultT = m.ult.every; emit(rt, { t: 'mobUlt', name: m.label, ult: m.ult.plain ? m.ult.name : GAME.ult.name + '・' + m.ult.name, plain: !!m.ult.plain, uid: m.uid }); }
   const ev = ult ? 1 : rng();
   if (ev < 0.05) emit(rt, { t: 'miss', who: 'm', name: m.label, uid: m.uid });
   else if (ev < 0.05 + (d.dodge || 0)) emit(rt, { t: 'dodge', name: m.label, uid: m.uid });
@@ -1631,7 +1707,7 @@ function mobAttack(st, rt, m) {
     const kind = matchup(m.attrs[m.stance], st.weapon);
     const tough = m.type === 'magic' ? d.mtough : d.ptough;
     const crit = rng() < Math.max(0, m.crit - tough);
-    let dmg = dmgCalc(m.atk, m.type === 'magic' ? d.mdef : d.pdef, rollMult(kind, crit) * (ult ? m.ult.mult : 1), m.lv);
+    let dmg = dmgCalc(m.atk, m.type === 'magic' ? d.mdef : d.pdef, rollMult(kind, crit) * (ult ? m.ult.mult : 1) * (rt.tower && rt.tower.amp && kind !== 'neutral' ? (kind === 'counter' ? rt.tower.amp : 1 / rt.tower.amp) : 1), m.lv);
     let blocked = null, half = null;
     for (const r of d.triggers) if (r.s.on === 'hitTaken') {
       if (r.s.block && rng() < r.chance) { blocked = r; break; }
@@ -1685,6 +1761,7 @@ function onKillOne(st, rt, m) {
   const got = {};
   for (const [mat, p] of m.drops) if (rng() < p * (1 + rt.d.dropBuff) * (m.dropMult || 1)) { st.mats[mat] = (st.mats[mat] || 0) + 1; got[mat] = (got[mat] || 0) + 1; }
   if (st.quest.progress < GAME.quest.target) st.quest.progress++;
+  if (m.rank && !rt.tower) addMerit(st, rt, GAME.ranks.merit[m.rank]);
   emit(rt, { t: 'kill', key: m.key, name: m.name, label: m.label, uid: m.uid, exp, silver, got, rank: m.rank });
   if (st.equip) { const D = gearDropFor(m); if (rng() < D.chance * (m.rank ? 1 : (m.dropMult || 1))) receiveGear(st, rt, genGear(st, m.lv, rollIdx(D.q)), m.label); }
   if (st.learned) bookDrops(st, rt, m);
@@ -1713,6 +1790,7 @@ function reap(st, rt) {
   const live = alive(rt);
   if (!live.length) {
     rt.mob = null;
+    if (rt.tower) { towerFloorDone(st, rt); return true; }
     if (st.hp < rt.d.maxHp * GAME.rules.restBelow) { rt.mode = 'rest'; emit(rt, { t: 'rest' }); }
     else { rt.mode = 'search'; rt.wait = GAME.rules.searchSec; }
     return true;
@@ -1748,7 +1826,7 @@ function spawnGroup(st) {
 }
 
 function startFight(st, rt) {
-  rt.mobs = spawnGroup(st); rt.mob = rt.mobs[0];
+  rt.mobs = rt.tower ? towerGroup(st, rt) : spawnGroup(st); rt.mob = rt.mobs[0];
   rt.mode = 'fight'; rt.pTimer = 0.3; rt.atkCount = 0;
   const keep = {}; // 治療、煉丹的計時跨場累積；機關獸撲擊每場重新計時
   for (const r of rt.d.triggers) if ((r.s.on === 'periodic' && r.heal) || r.s.on === 'brew') if (rt.per[r.i] !== undefined) keep[r.i] = rt.per[r.i];
@@ -1796,13 +1874,13 @@ function step(st, rt, dt) {
     st.hp = Math.min(d.maxHp, st.hp + d.maxHp * 0.01 * (1 + d.heal) * dt);
     rt.wait -= dt;
     if (rt.wait <= 0) {
-      if (st.auto && rt.autoMove) { rt.autoMove = false; const b = bestZone(st); if (b.id !== st.zone && b.lv[0] > zoneById(st.zone).lv[0]) { st.zone = b.id; emit(rt, { t: 'move', zone: b.id }); } } // 只在升級後換區，手動前往的地方不會被拉走
+      if (st.auto && rt.autoMove && !rt.tower) { rt.autoMove = false; const b = bestZone(st); if (b.id !== st.zone && b.lv[0] > zoneById(st.zone).lv[0]) { st.zone = b.id; emit(rt, { t: 'move', zone: b.id }); } } // 只在升級後換區，手動前往的地方不會被拉走
       startFight(st, rt);
     }
     return;
   }
   autoPotions(st, rt);
-  st.hp = Math.min(d.maxHp, st.hp + (d.maxHp * (0.003 * (1 + d.heal) + d.regenPct) + d.regen) * dt);
+  if (!(rt.tower && rt.tower.id === 'origin')) st.hp = Math.min(d.maxHp, st.hp + (d.maxHp * (0.003 * (1 + d.heal) + d.regenPct) + d.regen) * dt);
   if (d.lowRegen && st.hp < d.maxHp * 0.3) st.hp += d.maxHp * d.lowRegen * dt;
   // 魔物身上的狀態
   for (const m of rt.mobs) {
@@ -1852,6 +1930,7 @@ function step(st, rt, dt) {
       mobAttack(st, rt, m);
       m.timer += m.interval * (1 + (m.slow && m.slow.t > 0 ? m.slow.v : 0));
       if (st.hp <= 0) {
+        if (rt.tower) { towerEnd(st, rt, 'fall', m.label); return; }
         st.hp = 0; st.stats.deaths++; rt.mode = 'down'; rt.wait = rt.offline ? R.downSec : R.downSecOnline * (1 - (d.downCut || 0)); rt.mob = null; rt.mobs = []; rt.shield = 0;
         emit(rt, { t: 'down', name: m.label });
         if (!rt.offline && st.autoRevive) { const c = reviveCost(st, rt); if (st.silver >= c) { st.silver -= c; rt.wait = 0.6; emit(rt, { t: 'revivePaid', cost: c, auto: true }); } }
@@ -1860,6 +1939,98 @@ function step(st, rt, dt) {
     }
   }
   reap(st, rt);
+}
+
+/* ---------- 位階 ---------- */
+function addMerit(st, rt, n) {
+  const before = rankOf(st);
+  st.merit = (st.merit || 0) + n;
+  const after = rankOf(st);
+  if (after > before) { if (rt) rt.d = derive(st); emit(rt, { t: 'rank', r: after, name: rankName(after) }); }
+}
+
+/* ---------- 天陰五大塔 ---------- */
+function towerOpen(st) { return st.lv >= GAME.towerRules.openLv || !!(st.main && ((st.main.ch || 0) > 0 || st.main.done)); }
+function towerById(id) { return GAME.towers.find(t => t.id === id); }
+function towerBest(st, id) { return (st.towers && st.towers[id]) || 0; }
+function towerUnlocked(st, id) {
+  const T = towerById(id);
+  if (!towerOpen(st)) return false;
+  return !T.needAll || GAME.towers.filter(x => x.id !== id).every(x => towerBest(st, x.id) >= T.needAll);
+}
+function towerStart(st, rt, id) {
+  if (!towerUnlocked(st, id) || rt.tower) return false;
+  rt.tower = { id, floor: towerBest(st, id) + 1, from: towerBest(st, id) + 1, cleared: 0, pots: 0, got: { merit: 0, silver: 0, soul: 0, lotus: 0, pages: 0 } };
+  rt.mob = null; rt.mobs = []; rt.mode = 'search'; rt.wait = 1.2; rt.shield = 0; rt.storm = null;
+  st.hp = rt.d.maxHp; st.en = rt.d.maxEn;
+  emit(rt, { t: 'towerStart', id, floor: rt.tower.floor });
+  return true;
+}
+// 樓層的魔物：等級跟著層數走，每座塔再套自己的規則
+const TOWER_POOL = [];
+for (const z of GAME.zones) for (const [k] of z.spawns) if (!GAME.monsters[k].rank && !TOWER_POOL.includes(k)) TOWER_POOL.push(k);
+const ALL_ATTRS = GAME.groups.flatMap(g => g.members);
+function towerGroup(st, rt) {
+  const T = towerById(rt.tower.id), F = rt.tower.floor, L = GAME.towerRules.lv(F), boss = F % GAME.towerRules.bossEvery === 0;
+  const pickPool = () => T.id === 'sword' ? (rng() < 0.6 ? 'jianying' : 'canying') : TOWER_POOL[Math.floor(rng() * TOWER_POOL.length)];
+  let n = T.id === 'moon' ? Math.min(12, 3 + Math.floor(F / 4) + (boss ? 3 : 0)) : 2 + Math.min(2, Math.floor(F / 8));
+  const list = [];
+  if (boss) { const b = makeMob(T.boss, L + 1); b.maxHp = b.hp = Math.round(b.hp * GAME.towerRules.bossHp); b.atk = Math.round(b.atk * GAME.towerRules.bossAtk); list.push(b); n = Math.min(n, T.id === 'moon' ? n : 2); }
+  while (list.length < n) list.push(makeMob(pickPool(), L));
+  const k = list.length, f = k === 1 ? 1 : 1 / (0.5 + 0.5 * k);
+  const enemyOf = counterTargets(st.weapon).beatenBy;
+  list.forEach((m, i) => {
+    if (!m.rank && k > 1) { m.maxHp = m.hp = Math.max(1, Math.round(m.maxHp * f)); m.atk = Math.max(1, Math.round(m.atk * f)); m.exp = Math.max(1, Math.round(m.exp * f)); m.silver = Math.round(m.silver * f); m.dropMult = f; }
+    const R = GAME.towerRules; m.maxHp = m.hp = Math.round(m.maxHp * (R.hpBase + R.hpPer * F)); m.atk = Math.round(m.atk * (R.atkBase + R.atkPer * F)); // 越高層越硬
+    if (T.id === 'star') { const a = ALL_ATTRS.slice().sort(() => rng() - 0.5); m.attrs = a.slice(0, 4); }
+    if (T.id === 'shadow') { m.attrs = [enemyOf]; m.maxHp = m.hp = Math.round(m.maxHp * 0.6); m.atk = Math.round(m.atk * 0.55); }
+    if (T.id === 'origin') { m.maxHp = m.hp = Math.round(m.maxHp * 0.85); m.atk = Math.round(m.atk * 0.8); }
+    if (T.id === 'sword') {
+      m.attrs = [ALL_ATTRS[Math.floor(rng() * ALL_ATTRS.length)]].concat(m.rank ? m.attrs : []);
+      m.guardP = 0.15;
+      if (!m.ult) { const w = m.attrs[0], sk = (GAME.skills[w] || GAME.skills['銀'])[0]; m.ult = { name: sk.name, every: 9, mult: 2.2, plain: true }; m.ultT = 9 * (0.4 + rng() * 0.5); }
+    }
+    m.uid = ++MOB_UID;
+    m.timer = m.interval * (0.6 + 0.3 * i) + GAME.ranges[GAME.weapons[st.weapon].range || '近'].delay;
+  });
+  rt.tower.amp = T.id === 'star' ? 1.3 : 0;
+  const cnt = {}, idx = {};
+  for (const m of list) cnt[m.name] = (cnt[m.name] || 0) + 1;
+  for (const m of list) { if (cnt[m.name] > 1) { idx[m.name] = idx[m.name] || 0; m.label = m.name + '甲乙丙丁戊己庚辛壬癸'[idx[m.name]++]; } else m.label = m.name; }
+  return list;
+}
+// 通過一層：第一次通過才有獎勵；接著往上一層
+function towerFloorDone(st, rt) {
+  const T = towerById(rt.tower.id), F = rt.tower.floor, R = GAME.towerRules, g = rt.tower.got;
+  rt.tower.cleared++;
+  const first = F > towerBest(st, T.id), rew = {};
+  if (first) {
+    if (!st.towers) st.towers = {};
+    st.towers[T.id] = F;
+    const boss = F % R.bossEvery === 0;
+    rew.merit = (4 + F) * (boss ? 2 : 1); addMerit(st, rt, rew.merit); g.merit += rew.merit;
+    rew.silver = 100 * F; st.silver += rew.silver; g.silver += rew.silver;
+    rew.soul = 2 + Math.floor(F / 2); st.mats['精魄'] = (st.mats['精魄'] || 0) + rew.soul; g.soul += rew.soul;
+    gainExp(st, rt, Math.round(expNeed(st.lv) * 0.02));
+    if (F % R.lotusEvery === 0) { st.lotus = (st.lotus || 0) + 1; rew.lotus = 1; g.lotus++; }
+    if (boss) {
+      st.pages = (st.pages || 0) + 2; rew.pages = 2; g.pages += 2;
+      if (st.equip) receiveGear(st, rt, genGear(st, R.lv(F), 3), T.name);
+    }
+  }
+  emit(rt, { t: 'towerFloor', id: T.id, name: T.name, floor: F, first, rew });
+  rt.tower.floor++; rt.tower.pots = 0;
+  if (T.id !== 'origin') healHp(st, rt, rt.d.maxHp * R.between);
+  rt.mode = 'search'; rt.wait = 1.2;
+}
+function towerEnd(st, rt, why, by) {
+  if (!rt.tower) return null;
+  const T = towerById(rt.tower.id), r = { t: 'towerEnd', id: T.id, name: T.name, why, by: by || '', reached: rt.tower.floor, from: rt.tower.from, cleared: rt.tower.cleared, best: towerBest(st, T.id), got: rt.tower.got };
+  rt.tower = null; rt.mob = null; rt.mobs = []; rt.storm = null; rt.guard = null;
+  if (why === 'fall') { st.hp = Math.max(1, rt.d.maxHp * 0.3); rt.mode = 'rest'; }
+  else { rt.mode = 'search'; rt.wait = GAME.rules.searchSec; }
+  emit(rt, r);
+  return r;
 }
 
 /* ---------- 技能書 ---------- */
@@ -1977,6 +2148,7 @@ function revive(st, rt) {
 function simulate(st, seconds, rt) {
   const sum = { seconds, lvFrom: st.lv, lvTo: st.lv, zoneFrom: st.zone, zoneTo: st.zone, exp: 0, silver: 0, kills: {}, mats: {}, deaths: 0, quest: 0, rareKills: 0, mastery: {}, learned: [], used: {}, gear: [0, 0, 0, 0, 0], salv: 0, soul: 0, equipped: [], named: [], bag: 0, books: [], pages: 0, ultFrom: st.ultCharge || 0 };
   rt = rt || newRuntime(st);
+  if (rt.tower) towerEnd(st, rt, 'away');
   const saveEvents = rt.events; rt.events = [];
   const wasOffline = rt.offline; rt.offline = true;
   if (rt.mode === 'down') rt.wait = Math.min(rt.wait, GAME.rules.downSec); // 離線時照原本的速度休養
@@ -2007,7 +2179,7 @@ function simulate(st, seconds, rt) {
 
 /* ---------- 加點 ---------- */
 function allocOf(st, w) { return (st.alloc && st.alloc[w]) || [0, 0, 0, 0, 0, 0, 0, 0]; }
-function pointsTotal(st) { return GAME.points.perLevel * st.lv; }
+function pointsTotal(st) { return GAME.points.perLevel * st.lv + (st.lotus || 0); } // 蓮子：每顆永久 +1 點
 function pointsFree(st, w) { return pointsTotal(st) - allocOf(st, w).reduce((a, b) => a + b, 0); }
 // add 是八項各要加幾點；全部成功才會套用
 function addPoints(st, w, add) {
@@ -2040,9 +2212,10 @@ function resetPoints(st, w) {
 /* ---------- 藥品 ---------- */
 function autoPotions(st, rt) {
   const d = rt.d, P = st.potion;
-  if (rt.potCd <= 0 && st.hp < d.maxHp * P.thr) {
+  const potCap = rt.tower ? (rt.tower.id === 'origin' ? GAME.towerRules.potsOrigin : GAME.towerRules.pots) : 99;
+  if (rt.potCd <= 0 && st.hp < d.maxHp * P.thr && (!rt.tower || rt.tower.pots < potCap)) {
     const n = ['大還丹', '中還丹', '小還丹'].find(x => P.auto[x] && st.items[x] > 0); // 先用效果最好的
-    if (n) { st.items[n]--; const before = st.hp; healHp(st, rt, d.maxHp * GAME.items[n].heal * (1 + (d.potion || 0))); rt.potCd = GAME.potionRules.hpCd - (d.potCd || 0); emit(rt, { t: 'potion', name: n, v: Math.round(st.hp - before) }); }
+    if (n) { if (rt.tower) rt.tower.pots++; st.items[n]--; const before = st.hp; healHp(st, rt, d.maxHp * GAME.items[n].heal * (1 + (d.potion || 0))); rt.potCd = GAME.potionRules.hpCd - (d.potCd || 0); emit(rt, { t: 'potion', name: n, v: Math.round(st.hp - before) }); }
   }
   if (rt.enCd <= 0 && P.auto['凝神丹'] && st.items['凝神丹'] > 0 && st.en < 15) {
     st.items['凝神丹']--; st.en = Math.min(d.maxEn, st.en + d.maxEn * GAME.items['凝神丹'].restore); rt.enCd = GAME.potionRules.enCd;
@@ -2151,7 +2324,7 @@ function mainProgress(st) {
 function mainCanSkip(st) { const s = mainStep(st); return !!s && st.lv >= s.lv + 6; }
 function mainTick(st, rt, dt) {
   const s = mainStep(st); if (!s || s.goal.type !== 'survive') return;
-  if (rt.mode === 'down' || st.zone !== s.goal.zone) st.main.surv = 0; // 重傷或離開就重新計算
+  if (rt.mode === 'down' || rt.tower || st.zone !== s.goal.zone) st.main.surv = 0; // 重傷、進塔或離開就重新計算
   else st.main.surv += dt;
 }
 // 回報主線；skip 是等級遠超過建議等級時直接略過
@@ -2170,6 +2343,7 @@ function mainClaim(st, rt, skip) {
   } else got.silver = Math.round(R.silver / 2);
   st.silver += got.silver;
   if (got.exp) gainExp(st, rt, got.exp);
+  if (p.done) { addMerit(st, rt, GAME.ranks.merit.main); got.merit = GAME.ranks.merit.main; }
   st.main.step++;
   let chapterEnd = null;
   if (!mainStep(st)) {
@@ -2386,6 +2560,7 @@ if (typeof module !== 'undefined') module.exports = {
   mainStep, mainProgress, mainClaim, mainCanSkip, featureOpen, mainBegin,
   freshState, genGear, gearName, gearBase, affixVal, affixText, gearTotals, equippedList, powerWith, powerNow, gearDelta, equipGear, salvageGear,
   receiveGear, bestGear, ensureWeaponGear, reviveCost, revive, tierFx, tierLine, mainCh,
+  rankOf, rankName, towerOpen, towerById, towerBest, towerUnlocked, towerStart, towerEnd, makeMob,
   skillKnown, ultKnown, hasBook, bookName, bookLv, buyBook, exchangePages, gainBook, readBooks, castUlt, ultReady, skillCfg, setSkillCfg, activeOrder, moveSkill, learnBook, equipCount, rollIdx, playableWeapons, autoSalvageable, gearOwner, salvageValue, namedDir
 };
 
@@ -2472,6 +2647,13 @@ const PAL = {
   dream:      { body: '#6a4a7a', deep: '#4a3058', vine: '#b88ad0', leaf: '#f4d0f0', eye: '#ffffff' },
   wander:     { body: '#3a4248', dark: '#262c30', mask: '#9aa4aa', mark: '#c9a45c', blade: '#e8ecf0' },
   frostking:  { body: '#e8f0f6', dark: '#b0c4d4', deep: '#8aa0b4', bone: '#ffffff', eye: '#2a6ad0' },
+  swordshade: { body: '#b8c4d0', light: '#eef4fa', dark: '#5a6470', deep: '#3a424c', accent: '#7fb8d8', eye: '#bfe9ff' },
+  shadeknight:{ body: '#3a4250', dark: '#262c36', mask: '#aab4c0', mark: '#7fb8d8', blade: '#dfe8f0' },
+  lotusStar:  { body: '#2e3460', dark: '#1e2244', mask: '#e8ecff', mark: '#8fa8ff', blade: '#cfd8ff' },
+  lotusMoon:  { body: '#e8e4c8', light: '#ffffff', dark: '#b8b498', eye: '#4a5a8a' },
+  lotusShadow:{ body: '#2a2034', dark: '#1a1424', mask: '#c8b8e0', mark: '#9a7ac8', blade: '#b8a8d0' },
+  lotusOrigin:{ body: '#8a6a3a', dark: '#6a4e28', deep: '#4e3a1c', crack: '#ffd04a', eye: '#fff0b0' },
+  lotusSword: { body: '#dfe8f0', light: '#ffffff', dark: '#5a6a7a', deep: '#2c3640', accent: '#f2d58a', eye: '#7fe0ff' },
   crimsonboss:{ body: '#7e1216', light: '#f2c04a', dark: '#4a080a', deep: '#f2c04a', eye: '#ffe27a', accent: '#ffb0a0', horn: '#f2c04a' }
 };
 function mobSvg(key) { const m = GAME.monsters[key]; return ART[m.art](Object.assign({}, PAL_DEF, PAL[m.pal] || {})); }
@@ -2739,7 +2921,7 @@ function handle(e) {
         const k = KIND_TXT[e.kind];
         if (e.crit) shakeScreen(false);
         if (e.quiet) { floater(e); shake(e.uid); break; }
-        addLog((e.skill ? '<span class="k-gold">【' + e.skill + '】</span>' + (e.proc ? '追擊' + e.name + ' ' : '') : '你對' + e.name + '造成 ') + e.dmg +
+        addLog((e.skill ? '<span class="k-gold">【' + e.skill + '】</span>' + (e.proc ? '追擊' + e.name + ' ' : '') : '你對' + e.name + '造成 ') + e.dmg + (e.guarded ? '（被格擋）' : '') +
           (e.crit ? ' <span class="k-bad">爆擊</span>' : '') + (k ? ' <span class="' + (e.kind === 'counter' ? 'k-good' : 'k-bad') + '">' + k + '</span>' : '') +
           (e.stun ? '，' + e.name + '被震懾' : ''));
         floater(e);
@@ -2753,7 +2935,19 @@ function handle(e) {
       break;
     case 'miss': addLog(e.who === 'p' ? '你的攻擊落空' : e.name + '的攻擊落空'); break;
     case 'dodge': addLog('<span class="k-good">你閃過了' + e.name + '的攻擊</span>'); break;
-    case 'mobUlt': addLog('<span class="k-bad">【' + e.ult + '】' + e.name + '放出了天御！</span>'); { const was = arenaSeen; arenaSeen = true; lastShake = 0; shakeScreen(true); arenaSeen = was; } toast(e.name + '放出了' + e.ult, 2); break;
+    case 'rank': addLog('<span class="k-lv">位階晉升：' + e.name + '</span>'); toast('位階晉升：' + e.name, 2); pulse($('.hero').closest('.card'), 'lvup'); panelDirty = true; lastChips = ''; break;
+    case 'towerStart': addLog('<span class="k-gold">踏進' + towerById(e.id).name + '，從第 ' + e.floor + ' 層開始</span>'); renderLoc(); resetArena(); break;
+    case 'towerFloor': {
+      const r = e.rew, a = [];
+      if (e.first) { a.push('功績 +' + r.merit); a.push('銀兩 +' + fmt(r.silver)); a.push('精魄 +' + r.soul); if (r.lotus) a.push('<span class="k-lv">蓮子 +1（屬性點 +1）</span>'); if (r.pages) a.push('天御殘頁 +' + r.pages); }
+      addLog('<span class="k-good">通過' + e.name + '第 ' + e.floor + ' 層</span>' + (e.first ? '：' + a.join('、') : '（已通過過，沒有獎勵）'));
+      if (r.lotus) toast('得到一顆' + towerById(e.id).lotus + '子，屬性點 +1', 1);
+      renderLoc(); panelDirty = true; break;
+    }
+    case 'towerEnd': showTowerEnd(e); renderLoc(); resetArena(); panelDirty = true; break;
+    case 'mobUlt':
+      if (e.plain) { addLog('<span class="k-bad">【' + e.ult + '】</span>' + e.name + '出招'); shakeScreen(false); break; }
+      addLog('<span class="k-bad">【' + e.ult + '】' + e.name + '放出了天御！</span>'); { const was = arenaSeen; arenaSeen = true; lastShake = 0; shakeScreen(true); arenaSeen = was; } toast(e.name + '放出了' + e.ult, 2); break;
     case 'stance': addLog(e.name + '切換架勢：' + e.attr); break;
     case 'bound': addLog('<span class="k-bad">被藤蔓纏住，動彈不得</span>'); break;
     case 'cast': {
@@ -2820,18 +3014,26 @@ function renderHero() {
   $('#silver').textContent = '銀兩 ' + fmt(st.silver);
   const mmss = t => Math.floor(t / 60) + ':' + String(Math.floor(t % 60)).padStart(2, '0');
   let c = '';
+  c += '<span class="rank">' + rankName(rankOf(st)) + '</span>';
   for (const n of ['小還丹', '中還丹', '大還丹']) if (st.items[n] > 0 || (n === '小還丹' && st.potion.auto[n])) c += '<span' + ((st.items[n] || 0) < 5 ? ' class="low"' : '') + '>' + n + ' ×' + (st.items[n] || 0) + '</span>';
   for (const k in st.buffs) c += '<span class="buff">' + st.buffs[k].item + ' ' + mmss(st.buffs[k].t) + '</span>';
   if (c !== lastChips) { $('#pChips').innerHTML = c; lastChips = c; }
 }
 function zoneLvText(z) { return 'Lv.' + z.lv[0] + '～' + z.lv[1]; }
 function renderLoc() {
+  if (rt && rt.tower) {
+    const T = towerById(rt.tower.id);
+    $('#loc').className = 'loc intower';
+    $('#loc').innerHTML = '<div class="where"><small>陰區・天陰五大塔</small><b>' + T.name + '　第 ' + rt.tower.floor + ' 層</b><em>最高 ' + towerBest(st, T.id) + ' 層・本層回復藥 ' + rt.tower.pots + '／' + (T.id === 'origin' ? GAME.towerRules.potsOrigin : GAME.towerRules.pots) + '</em></div><button id="towerLeave">離開塔</button>';
+    return;
+  }
+  $('#loc').className = 'loc';
   const z = zoneById(st.zone);
   $('#loc').innerHTML = '<div class="where"><small>' + z.chapter + '・' + z.place + '</small><b>' + z.name + '</b><em>魔物 ' + zoneLvText(z) + '</em></div><button data-t="map">地圖</button>';
 }
 function renderArena() {
   const stage = $('#stage'), info = $('#mobinfo');
-  const zz = zoneById(st.zone); stage.className = 'stage'; stage.style.background = 'radial-gradient(ellipse at 50% 85%,' + zz.bg + ' 0%,#1b1d20 62%)';
+  const zz = zoneById(st.zone), bgc = rt.tower ? towerById(rt.tower.id).bg : zz.bg; stage.className = 'stage'; stage.style.background = 'radial-gradient(ellipse at 50% 85%,' + bgc + ' 0%,#1b1d20 62%)';
   const mobs = rt.mobs || [];
   const fighting = rt.mode === 'fight' && mobs.length;
   const fading = rt.mode === 'search' && mobs.length && mobs.every(x => x.dead);
@@ -2839,8 +3041,8 @@ function renderArena() {
     const key = mobs.map(m => m.uid).join(',');
     if (shownGroup !== key) {
       shownGroup = key; shownInfo = ''; shownMob = null;
-      const size = [150, 118, 96, 78, 64][Math.min(mobs.length, 5) - 1];
-      stage.innerHTML = '<div class="mobs">' + mobs.map(m => '<div class="mobc" data-uid="' + m.uid + '"><div class="mob' + (m.rank ? ' elite' : '') + '" style="width:' + size + 'px;height:' + size + 'px">' + mobSvg(m.key) + '</div>' +
+      const size = mobs.length > 5 ? 50 : [150, 118, 96, 78, 64][mobs.length - 1];
+      stage.innerHTML = '<div class="mobs' + (mobs.length > 5 ? ' many' : '') + '">' + mobs.map(m => '<div class="mobc" data-uid="' + m.uid + '"><div class="mob' + (m.rank ? ' elite' : '') + '" style="width:' + size + 'px;height:' + size + 'px">' + mobSvg(m.key) + '</div>' +
         '<div class="mlabel"><span class="seal st"></span><span class="nm">' + m.label + '</span></div><div class="bar hp mini"><i></i></div><div class="floaters"></div></div>').join('') + '</div>';
     }
     for (const m of mobs) {
@@ -2870,12 +3072,12 @@ function renderArena() {
     }
     const bar = $('#mobHp'); if (bar && m) bar.style.width = Math.max(0, m.hp / m.maxHp * 100) + '%';
   } else {
-    const key = rt.mode; // 重傷倒數只更新數字，不重畫整塊（避免一直閃）
+    const key = rt.mode + (rt.tower ? ':t' + rt.tower.floor : ''); // 重傷倒數只更新數字，不重畫整塊（避免一直閃）
     if (shownMob !== key) {
       shownMob = key; shownGroup = ''; shownInfo = '';
       const z = zoneById(st.zone);
       const txt = rt.mode === 'rest' ? ['原地調息', '血量恢復到九成五後繼續巡守'] :
-        rt.mode === 'down' ? ['重傷調養中', '<span id="downT"></span> 後恢復'] : ['巡守' + z.name, z.place + '・魔物 ' + zoneLvText(z)];
+        rt.mode === 'down' ? ['重傷調養中', '<span id="downT"></span> 後恢復'] : rt.tower ? [towerById(rt.tower.id).name + '　第 ' + rt.tower.floor + ' 層', '往上走的樓梯很暗'] : ['巡守' + z.name, z.place + '・魔物 ' + zoneLvText(z)];
       stage.innerHTML = '<div class="idle">' + txt[0] + '<small>' + txt[1] + '</small>' + (rt.mode === 'down' ? '<button class="revive" data-revive="1" id="reviveBtn"></button>' : '') + '</div>';
       info.innerHTML = '<div class="note">' + (rt.mode === 'search' ? '搜尋魔物中…' : rt.mode === 'rest' ? '休息時血量恢復較快，靈力越高恢復越快。' :
         '重傷不會損失任何東西。線上要休養 ' + (GAME.rules.downSecOnline / 60) + ' 分鐘，越接近恢復，急救越便宜；離線時照原本的 ' + GAME.rules.downSec + ' 秒。') + '</div>' +
@@ -2931,7 +3133,7 @@ function swordReady() { const n = st.swordLv[st.weapon] || 0; return n < GAME.sw
 function renderTabs() {
   document.querySelectorAll('#tabs button').forEach(b => {
     b.classList.toggle('on', b.dataset.t === tab);
-    const dot = (b.dataset.t === 'quest' && (questReady() || (featureOpen(st, 'board') && st.board.some(r => (st.mats[r.mat] || 0) >= r.n)))) || (b.dataset.t === 'gear' && (swordReady() || gearHint())) || (b.dataset.t === 'stats' && pointsFree(st, st.weapon) > 0) || (b.dataset.t === 'skill' && bookHint());
+    const dot = (b.dataset.t === 'quest' && (questReady() || (featureOpen(st, 'board') && st.board.some(r => (st.mats[r.mat] || 0) >= r.n)))) || (b.dataset.t === 'gear' && (swordReady() || gearHint())) || (b.dataset.t === 'stats' && pointsFree(st, st.weapon) > 0) || (b.dataset.t === 'skill' && bookHint()) || (b.dataset.t === 'quest' && towerOpen(st) && !GAME.towers.some(T => towerBest(st, T.id) > 0));
     const has = b.querySelector('.dot');
     if (dot && !has) b.insertAdjacentHTML('beforeend', '<span class="dot"></span>');
     if (!dot && has) has.remove();
@@ -2991,7 +3193,7 @@ function renderPanel() {
     }
     p.innerHTML = h + '</div>';
   } else if (tab === 'quest') {
-    let h = '<div class="subtabs three"><button data-town="quest" class="' + (townTab === 'quest' ? 'on' : '') + '">委託</button><button data-town="shop" class="' + (townTab === 'shop' ? 'on' : '') + '">百草堂</button><button data-town="book" class="' + (townTab === 'book' ? 'on' : '') + '">書肆</button></div>';
+    let h = '<div class="subtabs four"><button data-town="quest" class="' + (townTab === 'quest' ? 'on' : '') + '">委託</button><button data-town="shop" class="' + (townTab === 'shop' ? 'on' : '') + '">百草堂</button><button data-town="book" class="' + (townTab === 'book' ? 'on' : '') + '">書肆</button><button data-town="tower" class="' + (townTab === 'tower' ? 'on' : '') + '">天陰塔</button></div>';
     if (townTab === 'quest') {
       const q = GAME.quest, r = q.reward(st.lv), ready = questReady(), N = GAME.npcs;
       h += '<div class="npc quest"><div class="giver"><span class="seal mid">' + N.quest.seal + '</span><div><b>' + N.quest.name + '</b><br><span>' + N.quest.title + '</span></div></div>' +
@@ -3012,6 +3214,8 @@ function renderPanel() {
       h += '<div class="npc quest locked" style="margin-top:14px"><div class="giver"><span class="seal mid" style="background:#3a2f4a;color:#e3d6f5">' + N2.fate.seal + '</span><div><b>' + N2.fate.name + '</b><br><span>' + N2.fate.title + '</span></div></div><p>' + N2.fate.text + '</p></div>';
     } else if (townTab === 'book') {
       h += bookPanel();
+    } else if (townTab === 'tower') {
+      h += towerPanel();
     } else if (!featureOpen(st, 'shop')) {
       h += '<div class="npc quest locked"><p>百草堂還沒開門。完成主線〈百草〉後開放。</p></div>';
     } else {
@@ -3069,7 +3273,7 @@ function renderPanel() {
     let total = 0, rows = '';
     for (const k in GAME.monsters) { const n = s.kills[k] || 0; if (!n) continue; total += n; rows += '<span>' + GAME.monsters[k].name + '</span><span>' + fmt(n) + '</span>'; }
     p.innerHTML = '<div class="sec"><h3>巡守紀錄</h3><div class="kv"><span>線上時間</span><span>' + dur(s.playSec) + '</span><span>離線結算時間</span><span>' + dur(s.offlineSec) + '</span>' +
-      '<span>主線</span><span>' + (st.main.done ? mainCh(st).chapter + ' 完成' : mainCh(st).chapter.split('　')[0] + stepNo(st.main.step) + '／共 ' + mainCh(st).steps.length + ' 步') + '</span><span>總擊倒</span><span>' + fmt(total) + '</span><span>擊倒首領</span><span>' + fmt(s.bossKills || 0) + '</span>' + rows + '<span>施放天御</span><span>' + fmt(s.ults || 0) + ' 次</span><span>天御殘頁</span><span>' + (st.pages || 0) + ' 張</span><span>分解裝備</span><span>' + fmt(s.salvaged || 0) + ' 件</span><span>重傷次數</span><span>' + fmt(s.deaths) + '</span></div></div>' +
+      '<span>主線</span><span>' + (st.main.done ? mainCh(st).chapter + ' 完成' : mainCh(st).chapter.split('　')[0] + stepNo(st.main.step) + '／共 ' + mainCh(st).steps.length + ' 步') + '</span><span>總擊倒</span><span>' + fmt(total) + '</span><span>擊倒首領</span><span>' + fmt(s.bossKills || 0) + '</span>' + rows + '<span>位階</span><span>' + rankName(rankOf(st)) + '（功績 ' + fmt(st.merit || 0) + '）</span><span>天陰五大塔</span><span>' + GAME.towers.map(T => T.name.slice(0, 2) + ' ' + towerBest(st, T.id)).join('・') + '</span><span>蓮子</span><span>' + (st.lotus || 0) + ' 顆</span><span>施放天御</span><span>' + fmt(s.ults || 0) + ' 次</span><span>天御殘頁</span><span>' + (st.pages || 0) + ' 張</span><span>分解裝備</span><span>' + fmt(s.salvaged || 0) + ' 件</span><span>重傷次數</span><span>' + fmt(s.deaths) + '</span></div></div>' +
       '<div class="sec"><h3>設定</h3>' +
       '<label class="toggle"><span>爆擊時畫面震動<br><span class="note">造成爆擊輕震、被爆擊重震；戰鬥畫面不在螢幕上時不會震</span></span><input type="checkbox" id="fxShake"' + (st.fx.shake ? ' checked' : '') + '></label>' +
       '<label class="toggle"><span>被爆擊時手機跟著震動</span><input type="checkbox" id="fxBuzz"' + (st.fx.buzz ? ' checked' : '') + '></label>' +
@@ -3203,6 +3407,7 @@ function statsPanel(d) {
     h += '<div class="ptbar"><button class="btn ghost" id="autoAlloc"' + (free > 0 ? '' : ' disabled') + '>照星數比例分配</button>' +
       '<button class="btn warn" id="resetAlloc"' + (al.some(x => x) && st.silver >= rc ? '' : ' disabled') + '>' + (armed ? '再按一次確定' : '重新分配（' + (rc ? '銀兩 ' + fmt(rc) : '免費') + '）') + '</button></div>';
   }
+  if (st.lotus) h += '<p class="note" style="color:var(--gold)">蓮子帶來的屬性點：+' + st.lotus + '（每把武器都有）</p>';
   h += '<p class="note">點一項資源，可以看它的細項和加點門檻。每點效果照星數加權：1★ 0.667、2★ 1、3★ 1.333、4★ 1.667、5★ 2。加點數值到 ' + GAME.tiers.at.join('、') +
     ' 會各解鎖一個門檻獎勵，高星的屬性比較快解鎖。點數每把武器各自一套，每把武器第一次重新分配免費。</p></div>';
   const row = (name, a, b, txt) => '<span>' + name + '</span><span' + up(a, b) + '>' + txt + '</span>';
@@ -3230,6 +3435,45 @@ function statsPanel(d) {
 const TYPE_TXT = { active: ['主動', 'act'], passive: ['被動', 'pas'], trigger: ['觸發', 'trg'] };
 function skillDesc(s, cur, max) {
   return s.desc.replace(/\{(\w+)\}/g, (_, k) => pct(cur[k]) + (max && Math.abs(max[k] - cur[k]) > 1e-6 ? '<span class="mx">→' + pct(max[k]) + '</span>' : ''));
+}
+/* ---------- 天陰五大塔、位階 ---------- */
+const LOTUS_C = { star: '#8fa8ff', moon: '#e8e4c8', shadow: '#9a7ac8', origin: '#e8b04a', sword: '#cfe0f0' };
+function rankCard() {
+  const r = rankOf(st), next = r < 59 ? GAME.ranks.need(r + 1) : 0, cur = GAME.ranks.need(r), m = st.merit || 0;
+  return '<div class="rankcard"><div class="rk"><span>御劍者位階</span><b>' + rankName(r) + '</b></div>' +
+    (r < 59 ? '<div class="barrow" style="margin-top:6px"><span>功績</span><div class="bar exp"><i style="width:' + Math.min(100, (m - cur) / (next - cur) * 100) + '%"></i></div><em>' + fmt(m) + ' / ' + fmt(next) + '</em></div>' : '<p class="note">已經到最高的位階。</p>') +
+    '<p class="note">目前加成：攻擊、血量、防禦各 +' + f3(r * GAME.ranks.bonus * 100) + '%' + (r < 59 ? '・下一品：' + rankName(r + 1) : '') + '<br>功績來源：第一次通過塔的樓層、擊倒精英（+' + GAME.ranks.merit.elite + '）和首領（+' + GAME.ranks.merit.boss + '）、完成主線（+' + GAME.ranks.merit.main + '）。共 20 階、每階分下中上三品。</p></div>';
+}
+function towerPanel() {
+  let h = rankCard();
+  h += '<p class="note" style="margin-bottom:10px">陰區的天陰區立著五座塔，每座塔頂開著一朵主蓮。天霖市的傳送陣可以直接過去。<br>每層一批魔物，每 10 層有一位守塔者。第一次通過一層才有獎勵；每 5 層得到一顆蓮子（永久 +1 屬性點）；每 10 層再加天御殘頁和一件珍品。塔裡每層最多服 ' + GAME.towerRules.pots + ' 顆回復藥，倒下只會被送出塔，不算重傷。離線時不會爬塔。</p>';
+  if (!towerOpen(st)) return h + '<div class="tower lock"><p>完成第一章主線，或到 Lv.' + GAME.towerRules.openLv + '，傳送陣才會為你打開。</p></div>';
+  h += '<p class="note" style="margin-bottom:10px">蓮子：已得到 ' + (st.lotus || 0) + ' 顆（屬性點 +' + (st.lotus || 0) + '）</p>';
+  for (const T of GAME.towers) {
+    const best = towerBest(st, T.id), open = towerUnlocked(st, T.id), here = rt.tower && rt.tower.id === T.id, next = best + 1, L = GAME.towerRules.lv(next);
+    h += '<div class="tower' + (open ? '' : ' lock') + '" style="--lc:' + LOTUS_C[T.id] + '"><div class="th"><b>' + T.name + '</b><span class="pill rule">' + T.rule + '</span><span class="best">最高 ' + best + ' 層・蓮子 ' + Math.floor(best / GAME.towerRules.lotusEvery) + '</span></div>' +
+      '<p>' + T.desc + '</p><div class="tf">「' + T.flavor + '」</div>' +
+      (open ? (here ? '<button class="btn ghost" disabled>挑戰中：第 ' + rt.tower.floor + ' 層</button>' :
+        '<button class="btn" data-tower="' + T.id + '"' + (rt.tower ? ' disabled' : '') + '>挑戰第 ' + next + ' 層（魔物 Lv.' + L + (next % GAME.towerRules.bossEvery === 0 ? '・守塔者' : '') + '）</button>') :
+        '<p style="color:var(--gold)">' + (T.needAll ? '其他四座塔都到第 ' + T.needAll + ' 層才開放' : '') + '</p>') + '</div>';
+  }
+  return h;
+}
+function showTowerEnd(e) {
+  const g = e.got, a = [];
+  if (g.merit) a.push('功績 +' + g.merit); if (g.silver) a.push('銀兩 +' + fmt(g.silver)); if (g.soul) a.push('精魄 +' + g.soul); if (g.lotus) a.push('蓮子 +' + g.lotus); if (g.pages) a.push('天御殘頁 +' + g.pages);
+  const why = e.why === 'fall' ? '在第 ' + e.reached + ' 層被' + e.by + '擊倒，被送出了塔。' : e.why === 'leave' ? '在第 ' + e.reached + ' 層離開了塔。' : '離開遊戲時，自動離開了塔。';
+  addLog('<span class="k-gold">' + e.name + '：' + why + '</span>');
+  if (e.why === 'away') return;
+  const show = () => {
+    $('#modalBody').innerHTML = '<h2>' + e.name + '</h2><div class="sub">' + why + '</div>' +
+      '<div class="big">' + (e.cleared ? '這一趟通過 ' + e.cleared + ' 層' : '這一趟沒有通過新的樓層') + '</div>' +
+      '<div class="kv"><span>最高紀錄</span><span>第 ' + e.best + ' 層</span><span>位階</span><span>' + rankName(rankOf(st)) + '</span></div>' +
+      (a.length ? '<p class="note" style="margin:10px 0">獲得：' + a.join('、') + '</p>' : '<div style="height:10px"></div>') +
+      '<button class="btn" id="closeModal">回去巡守</button>';
+    $('#modal').classList.remove('hidden');
+  };
+  if (!$('#modal').classList.contains('hidden')) cloud.later = show; else show();
 }
 function bookLine(w, i) {
   const lv = bookLv(w, i), price = GAME.books.price[i];
@@ -3303,6 +3547,7 @@ function rewardText(got) {
   if (got.gear) a.push(got.gear);
   if (got.book) a.push(got.book);
   if (got.pages) a.push('天御殘頁×' + got.pages);
+  if (got.merit) a.push('功績 +' + got.merit);
   return a.join('、');
 }
 function zoneTxt(id) { const z = zoneById(id); return z.place + '・' + z.name; }
@@ -3393,6 +3638,11 @@ document.addEventListener('change', ev => {
 });
 document.addEventListener('click', ev => {
   const t = ev.target.closest('button'); if (!t) return;
+  if (t.dataset.tower) {
+    if (towerStart(st, rt, t.dataset.tower)) { for (const e of rt.events) handle(e); rt.events.length = 0; save(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
+    renderAll(); return;
+  }
+  if (t.id === 'towerLeave') { towerEnd(st, rt, 'leave'); for (const e of rt.events) handle(e); rt.events.length = 0; save(); renderAll(); return; }
   if (t.id === 'ultBtn') {
     const r = castUlt(st, rt);
     if (r) { ultShow(GAME.ult.name + '・' + GAME.ults[st.weapon].name); for (const e of rt.events) handle(e); rt.events.length = 0; save(); renderAll(); }
@@ -3409,6 +3659,7 @@ document.addEventListener('click', ev => {
     const a = t.dataset.main, s = mainStep(st);
     if (a === 'detail') showStep();
     else if (a === 'go' && s && s.zone && zoneUnlocked(st, s.zone)) {
+      if (rt.tower) { towerEnd(st, rt, 'leave'); for (const e of rt.events) handle(e); rt.events.length = 0; }
       st.zone = s.zone; if (rt.mode === 'fight') { rt.mob = null; rt.mobs = []; rt.mode = 'search'; rt.wait = GAME.rules.searchSec; }
       resetArena(); addLog('前往' + zoneTxt(s.zone)); $('#modal').classList.add('hidden'); save();
     } else if (a === 'claim' || a === 'skip') {
@@ -3457,7 +3708,7 @@ document.addEventListener('click', ev => {
     if (dd > 0 && left > 0) pend[i]++; else if (dd < 0 && pend[i] > 0) pend[i]--;
     renderPanel(); return;
   }
-  if (t.dataset.z) { if (st.zone !== t.dataset.z) { st.zone = t.dataset.z; if (rt.mode === 'fight') { rt.mob = null; rt.mobs = []; rt.mode = 'search'; rt.wait = GAME.rules.searchSec; } const z = zoneById(st.zone); addLog('前往' + z.place + '・' + z.name); resetArena(); renderLoc(); renderPanel(); save(); } return; }
+  if (t.dataset.z) { if (rt.tower) { towerEnd(st, rt, 'leave'); for (const e of rt.events) handle(e); rt.events.length = 0; } if (st.zone !== t.dataset.z) { st.zone = t.dataset.z; if (rt.mode === 'fight') { rt.mob = null; rt.mobs = []; rt.mode = 'search'; rt.wait = GAME.rules.searchSec; } const z = zoneById(st.zone); addLog('前往' + z.place + '・' + z.name); resetArena(); renderLoc(); renderPanel(); save(); } return; }
   if (t.dataset.w) { selWeapon = t.dataset.w; renderPanel(); pulse($('.wdetail'), 'enter'); return; }
   switch (t.id) {
     case 'doBest': {
@@ -3476,6 +3727,7 @@ document.addEventListener('click', ev => {
     case 'doSword': if (upgradeSword(st)) { rt.d = derive(st); addLog('<span class="k-gold">注入' + GAME.sword.levelName + '：' + wName(st.weapon) + ' +' + st.swordLv[st.weapon] + '</span>'); toast(GAME.sword.levelName + ' +' + st.swordLv[st.weapon]); save(); } break;
     case 'doQuest': { const r = claimQuest(st); if (r) { addLog('<span class="k-gold">回報' + GAME.quest.giver + '：銀兩 +' + r.silver + '</span>'); toast('委託完成'); save(); } break; }
     case 'doSwap': {
+      if (rt.tower) { towerEnd(st, rt, 'leave'); for (const e of rt.events) handle(e); rt.events.length = 0; }
       const ratio = st.hp / rt.d.maxHp; st.weapon = selWeapon; pend = [0, 0, 0, 0, 0, 0, 0, 0];
       const gift = ensureWeaponGear(st, st.weapon); if (gift) setTimeout(() => toast('巡守司配發了一件' + gearName(gift)), 1700);
       rt.d = derive(st);
