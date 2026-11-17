@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#121315">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>天星界・御劍者 v0.13</title>
+<title>天星界・御劍者 v0.14</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -389,6 +389,39 @@ button:active:not(:disabled){transform:scale(.95)}
 .tower .tf{font-family:var(--serif);font-size:12px;color:var(--faint)}
 .tower .btn{margin-top:8px;font-size:14px;letter-spacing:.05em;padding:9px}
 .pill.rule{background:#3a3220;color:#f2d58a}
+.scene{position:relative;height:300px;margin:-2px -2px 0;border-radius:10px;overflow:hidden;background:#15141a;touch-action:manipulation}
+.scene canvas{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated;image-rendering:crisp-edges}
+.scene.hidden,.stage.hidden{display:none}
+.scov{position:absolute;left:8px;right:8px;bottom:8px;display:flex;justify-content:center;pointer-events:none}
+.scov .cap{pointer-events:auto;background:rgba(18,16,24,.8);border:1px solid var(--line);border-radius:10px;padding:8px 12px;text-align:center;font-family:var(--serif);font-size:14px;color:var(--text);letter-spacing:.06em}
+.scov .cap small{display:block;font-family:var(--sans);font-size:11px;color:var(--muted);letter-spacing:0;margin-top:2px}
+.scov .cap .revive{margin-top:6px}
+.scov .cap.lite{padding:4px 10px;font-size:12px;opacity:.85}
+.boosts{position:absolute;top:10px;left:10px;z-index:4;display:flex;gap:6px;pointer-events:none}
+.boosts button{pointer-events:auto;padding:3px 9px;border-radius:999px;border:1.5px solid #c9a45c;background:#1b1d20d9;color:#f2d58a;font-size:12px;font-weight:600;font-variant-numeric:tabular-nums}
+.skbar{display:grid;grid-template-columns:repeat(auto-fill,minmax(58px,1fr));gap:6px;margin-top:10px}
+.skbar .sk{display:flex;flex-direction:column;align-items:center;gap:3px;padding:0;border:0;background:none;color:var(--text)}
+.skbar .ic{position:relative;width:46px;height:46px;border-radius:9px;border:1.5px solid var(--line);background:linear-gradient(145deg,color-mix(in srgb,var(--c) 55%,#1b1d20),#1b1d20);display:flex;align-items:center;justify-content:center;font-family:var(--serif);font-size:22px;color:#f4efe4;overflow:hidden;text-shadow:0 1px 2px #000}
+.skbar .ic i{position:absolute;left:0;right:0;bottom:0;background:rgba(10,10,14,.68)}
+.skbar .ic b{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-family:var(--sans);font-size:15px;font-weight:800;color:#fff;text-shadow:0 0 3px #000,0 0 3px #000;font-variant-numeric:tabular-nums}
+.skbar .sk.ok .ic{border-color:var(--c);box-shadow:0 0 0 1px color-mix(in srgb,var(--c) 40%,transparent),0 0 10px color-mix(in srgb,var(--c) 35%,transparent)}
+.skbar .sk.off .ic{filter:grayscale(1) brightness(.6)}
+.skbar .sk.cd .ic{color:rgba(244,239,228,.3)}
+.skbar .sk.noen .ic{filter:saturate(.4) brightness(.75)}
+.skbar .nm{font-size:11px;color:var(--muted);white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
+.skbar .sk.off .nm::after{content:'（關）'}
+.potbar{display:flex;gap:6px;align-items:stretch;margin-top:8px;padding:6px;border:1px solid var(--line);border-radius:10px;background:var(--panel2);overflow-x:auto}
+.potbar .lab{writing-mode:vertical-rl;font-size:11px;color:var(--gold);letter-spacing:.2em;padding:2px 0;align-self:center}
+.potbar .pt{position:relative;flex:0 0 auto;width:48px;height:48px;border-radius:9px;border:1px solid var(--line);background:var(--panel);font-family:var(--serif);font-size:19px;color:var(--text);padding:0;overflow:hidden}
+.potbar .pt .n{position:absolute;top:2px;right:4px;font-family:var(--sans);font-size:10px;font-weight:700;color:var(--text);font-variant-numeric:tabular-nums}
+.potbar .pt .a{position:absolute;bottom:2px;left:4px;font-family:var(--sans);font-size:9px;color:var(--jade)}
+.potbar .pt .tm{position:absolute;bottom:2px;right:3px;font-family:var(--sans);font-size:9px;color:var(--gold)}
+.potbar .pt i{position:absolute;left:0;right:0;bottom:0;background:rgba(10,10,14,.6)}
+.potbar .pt.hp{color:#ff9a8a}.potbar .pt.en{color:#9fd8ff}.potbar .pt.buff{color:#f2d58a}
+.potbar .pt.on{border-color:var(--gold)}
+.potbar .pt.empty{opacity:.4}
+.potbar .pt.used{animation:potUse .35s ease-out}
+@keyframes potUse{0%{transform:scale(.86);background:#2a3a30}100%{transform:scale(1)}}
 .loc.intower{border-color:#6e5a2f;background:linear-gradient(90deg,#2a2418,var(--panel))}
 .chips span.rank{background:#3a3220;color:#f2d58a;border:1px solid #6e5a2f}
 .mobs.many{flex-wrap:wrap;gap:0 2px;padding-top:8px;align-content:flex-start}
@@ -402,7 +435,7 @@ button:active:not(:disabled){transform:scale(.95)}
 <body>
 <div class="wrap">
   <header>
-    <h1>天星界・御劍者<small>v0.13 暫定名稱</small></h1>
+    <h1>天星界・御劍者<small>v0.14 暫定名稱</small></h1>
     <div class="silver" id="silver">銀兩 0</div>
   </header>
 
@@ -426,7 +459,11 @@ button:active:not(:disabled){transform:scale(.95)}
 
   <section class="card arena">
     <button class="ultbtn hidden" id="ultBtn"></button>
+    <div class="boosts" id="boosts"></div>
+    <div class="scene hidden" id="scene"><canvas id="scv"></canvas><div class="scov" id="scOv"></div></div>
     <div class="stage" id="stage"><div class="floaters" id="floaters"></div></div>
+    <div class="skbar" id="skBar"></div>
+    <div class="potbar" id="potBar"></div>
     <div class="mobinfo" id="mobinfo"></div>
   </section>
 
@@ -449,7 +486,7 @@ button:active:not(:disabled){transform:scale(.95)}
 
 /* ---------- 遊戲資料：名稱、數值都集中在這裡，改這裡就好 ---------- */
 const GAME = {
-  meta: { title: '天星界・御劍者', subtitle: '暫定名稱', version: '0.13', era: '仙曆五百餘年' },
+  meta: { title: '天星界・御劍者', subtitle: '暫定名稱', version: '0.14', era: '仙曆五百餘年' },
 
   // 八項資源系統（順序固定，星數陣列照這個順序）
   statNames: ['力量', '抵擋', '體力', '敏捷', '智慧', '守護', '靈力', '控制'],
@@ -728,7 +765,8 @@ const GAME = {
     skillCoef: 2.2, skillCd: 6, skillCost: 15, energyRegen: 2, baseInterval: 1.2,
     expBase: 40, expPow: 2.6,
     mobHp: 1.68, mobAtk: 1.47, lateHp: 0.14, lateAtk: 0.13, // v0.8 有裝備後魔物整體調強，維持首區節奏
-    exploreBase: 60, explorePer: 14, exploreSq: 0.6, expMul: 0.75    // 探索度：每區要擊倒的數量；expMul 調整升級速度
+    exploreBase: 60, explorePer: 14, exploreSq: 0.6, expMul: 0.68,   // 探索度：每區要擊倒的數量；expMul 調整升級速度
+    placeBonus: 0.01                                                  // 一個地方的小地區全部探索完：經驗、掉落各 +1%
   }
 };
 
@@ -979,7 +1017,7 @@ GAME.items = {
   '鐵皮散': { kind: 'buff', buff: 'dr', v: 0.12, dur: 1800, seal: '鐵', recipe: { silver: 200, mats: { '甲片': 5 } }, desc: '受到的傷害降低 12%，持續 30 分鐘。' },
   '明目丹': { kind: 'buff', buff: 'crit', v: 0.06, dur: 1800, seal: '目', recipe: { silver: 300, mats: { '蝠翼': 5, '火燼': 3 } }, desc: '爆擊率提高 6%，持續 30 分鐘。' },
   '聚魄香': { kind: 'buff', buff: 'exp', v: 0.20, dur: 1800, seal: '香', recipe: { silver: 300, mats: { '草芯': 5, '火燼': 5 } }, desc: '獲得的經驗提高 20%，持續 30 分鐘。' },
-  '拾遺囊': { kind: 'buff', buff: 'drop', v: 0.25, dur: 1800, seal: '囊', recipe: { silver: 400, mats: { '石核': 3, '殘鐵': 3 } }, desc: '材料掉落率提高 25%，持續 30 分鐘。' }
+  '拾遺囊': { kind: 'buff', buff: 'drop', v: 0.25, dur: 1800, seal: '囊', recipe: { silver: 400, mats: { '石核': 3, '殘鐵': 3 } }, desc: '材料、裝備的掉落率提高 25%，持續 30 分鐘。' }
 };
 GAME.potionRules = { hpCd: 4, enCd: 10, buffCap: 4 * 3600, thresholds: [0.3, 0.4, 0.5, 0.6] };
 
@@ -1374,7 +1412,9 @@ function derive(st) {
     skillName: st.weapon + '・初式'
   };
   const B = st.buffs || {}, bv = k => (B[k] ? GAME.items[B[k].item].v : 0);
-  d.atkBuff = bv('atk'); d.expBuff = bv('exp') + g.exp; d.dropBuff = bv('drop') + g.drop;
+  const nPl = placesDone(st), ex = nPl * GAME.rules.placeBonus;
+  d.atkBuff = bv('atk'); d.expBuff = bv('exp') + g.exp + ex; d.dropBuff = bv('drop') + g.drop + ex;
+  d.boost = { exp: { buff: bv('exp'), gear: g.exp, explore: ex }, drop: { buff: bv('drop'), gear: g.drop, explore: ex }, places: nPl };
   applySkills(st, d, sw);
   d.stunnedBonus += t('stunnedDmg');
   if (d.atkBuff) d.atk = Math.round(d.atk * (1 + d.atkBuff));
@@ -1410,7 +1450,7 @@ function newState() {
     quest: { progress: 0, done: 0 },
     stats: { kills: {}, deaths: 0, playSec: 0, offlineSec: 0, totalExp: 0, bossKills: 0, counterKills: 0, crafted: 0, salvaged: 0 },
     equip: { weapons: {} }, gear: [], gearSeq: 0, gearGift: {}, gearSet: { salv: 1, other: false, autoEquip: true },
-    autoRevive: false, fx: { shake: true, buzz: false },
+    autoRevive: false, fx: { shake: true, buzz: false, scene: true },
     learned: {}, books: {}, pages: 0, ultKnown: {}, ultCharge: 0, skillCfg: {}, skillOrder: {},
     towers: {}, lotus: 0, merit: 0, explore: {},
     lastSave: Date.now()
@@ -1446,6 +1486,7 @@ function migrate(st) {
   if (!st.gearSet) st.gearSet = { salv: 1, other: false, autoEquip: true };
   if (st.stats && st.stats.salvaged === undefined) st.stats.salvaged = 0;
   if (!st.fx) st.fx = { shake: true, buzz: false };
+  if (st.fx.scene === undefined) st.fx.scene = true;
   if (st.autoRevive === undefined) st.autoRevive = false;
   if ((st.v || 0) < 10 || !st.learned) {
     // v0.10 以前的存檔：照等級已經學會的招式全部保留（每把武器都是）
@@ -1472,6 +1513,12 @@ function migrate(st) {
 }
 
 function zoneById(id) { return GAME.zones.find(z => z.id === id); }
+function placesDone(st) {
+  if (!st.explore) return 0;
+  let n = 0;
+  for (const ch of GAME.chapters) if (ch.open) for (const pl of ch.places) if (pl.zones.every(z => (st.explore[z.id] || 0) >= z.need)) n++;
+  return n;
+}
 function exploreOf(st, z) { return Math.min(z.need, (st.explore && st.explore[z.id]) || 0); }
 function explored(st, z) { return exploreOf(st, z) >= z.need; }
 // 開放條件：等級夠，而且上一區已經探索完
@@ -1828,11 +1875,15 @@ function onKillOne(st, rt, m) {
     const z = zoneById(st.zone), before = exploreOf(st, z);
     if (before < z.need) {
       st.explore[z.id] = before + 1;
-      if (before + 1 >= z.need) { const nx = GAME.zones[z.idx + 1]; emit(rt, { t: 'explored', zone: z.id, next: nx ? nx.id : null, lvOk: nx ? zoneLvOk(st, nx.id) : false }); rt.autoMove = true; }
+      if (before + 1 >= z.need) {
+        const nx = GAME.zones[z.idx + 1]; emit(rt, { t: 'explored', zone: z.id, next: nx ? nx.id : null, lvOk: nx ? zoneLvOk(st, nx.id) : false }); rt.autoMove = true;
+        const pl = GAME.chapters.flatMap(c => c.open ? c.places : []).find(p => p.name === z.place);
+        if (pl && pl.zones.every(x => explored(st, x))) { rt.d = derive(st); emit(rt, { t: 'placeDone', place: pl.name, bonus: rt.d.boost.explore }); }
+      }
     }
   }
   emit(rt, { t: 'kill', key: m.key, name: m.name, label: m.label, uid: m.uid, exp, silver, got, rank: m.rank });
-  if (st.equip) { const D = gearDropFor(m); if (rng() < D.chance * (m.rank ? 1 : (m.dropMult || 1))) receiveGear(st, rt, genGear(st, m.lv, rollIdx(D.q)), m.label); }
+  if (st.equip) { const D = gearDropFor(m); if (rng() < D.chance * (1 + rt.d.dropBuff) * (m.rank ? 1 : (m.dropMult || 1))) receiveGear(st, rt, genGear(st, m.lv, rollIdx(D.q)), m.label); }
   if (st.learned) bookDrops(st, rt, m);
   if (m.dot && m.dot.t > 0 && m.dot.plague) {
     const P = m.dot.plague, others = alive(rt).filter(x => x !== m);
@@ -2291,6 +2342,30 @@ function autoPotions(st, rt) {
     emit(rt, { t: 'potion', name: '凝神丹', v: 0 });
   }
 }
+// 手動服藥：點藥水快捷欄
+function drinkItem(st, rt, name) {
+  const it = GAME.items[name];
+  if (!it || !(st.items[name] > 0)) return { ok: false, why: '沒有' + name + '了' };
+  if (it.kind === 'buff') return useBuff(st, rt, name) ? { ok: true } : { ok: false, why: '同一類增益一次只能用一種' };
+  if (rt.mode === 'down') return { ok: false, why: '重傷時不能服藥' };
+  const d = rt.d;
+  if (it.kind === 'hp') {
+    if (rt.potCd > 0) return { ok: false, why: '回復藥還要 ' + Math.ceil(rt.potCd) + ' 秒才能再吃' };
+    if (st.hp >= d.maxHp) return { ok: false, why: '血量是滿的' };
+    if (rt.tower) { const cap = rt.tower.id === 'origin' ? GAME.towerRules.potsOrigin : GAME.towerRules.pots; if (rt.tower.pots >= cap) return { ok: false, why: '這一層的回復藥已經用完了' }; rt.tower.pots++; }
+    st.items[name]--; const before = st.hp; healHp(st, rt, d.maxHp * it.heal * (1 + (d.potion || 0)));
+    rt.potCd = GAME.potionRules.hpCd - (d.potCd || 0); emit(rt, { t: 'potion', name, v: Math.round(st.hp - before), manual: true });
+    return { ok: true };
+  }
+  if (it.kind === 'en') {
+    if (rt.enCd > 0) return { ok: false, why: '凝神丹還要 ' + Math.ceil(rt.enCd) + ' 秒才能再吃' };
+    if (st.en >= d.maxEn) return { ok: false, why: '氣力是滿的' };
+    st.items[name]--; st.en = Math.min(d.maxEn, st.en + d.maxEn * it.restore); rt.enCd = GAME.potionRules.enCd;
+    emit(rt, { t: 'potion', name, v: 0, manual: true });
+    return { ok: true };
+  }
+  return { ok: false, why: '' };
+}
 function tickBuffs(st, rt, dt) {
   let changed = false;
   for (const k in st.buffs) {
@@ -2629,7 +2704,7 @@ if (typeof module !== 'undefined') module.exports = {
   mainStep, mainProgress, mainClaim, mainCanSkip, featureOpen, mainBegin,
   freshState, genGear, gearName, gearBase, affixVal, affixText, gearTotals, equippedList, powerWith, powerNow, gearDelta, equipGear, salvageGear,
   receiveGear, bestGear, ensureWeaponGear, reviveCost, revive, tierFx, tierLine, mainCh,
-  exploreOf, explored, zoneLvOk, zoneExploreOk,
+  exploreOf, explored, zoneLvOk, zoneExploreOk, placesDone, drinkItem,
   rankOf, rankName, towerOpen, towerById, towerBest, towerUnlocked, towerStart, towerEnd, makeMob,
   skillKnown, ultKnown, hasBook, bookName, bookLv, buyBook, exchangePages, gainBook, readBooks, castUlt, ultReady, skillCfg, setSkillCfg, activeOrder, moveSkill, learnBook, equipCount, rollIdx, playableWeapons, autoSalvageable, gearOwner, salvageValue, namedDir
 };
@@ -2963,9 +3038,774 @@ function cloudPanel() {
   return h + '</div>';
 }
 
+/* ---------- 地圖畫面：像素風場景（只負責畫面，戰鬥結果全部照引擎） ---------- */
+const SC = {
+  on: false, cv: null, cx: null, lo: null, lx: null, W: 0, H: 0, lw: 0, lh: 0, PX: 2, dpr: 1,
+  WW: 440, WH: 320, cam: { x: 0, y: 0 }, ground: null, props: [], water: [], key: '', B: null,
+  pl: null, ents: new Map(), wand: [], fx: [], txt: [], amb: [], t: 0, last: 0, running: false,
+  mob: {}, pf: null, pw: '', flash: 0, flashC: '#ffffff', lastKill: null, font: 'sans-serif', ro: null
+};
+const OL = '#1d1a17';
+
+/* ----- 小工具 ----- */
+function srand(seed) { let a = (seed >>> 0) || 1; return () => { a = a + 0x6D2B79F5 | 0; let t = Math.imul(a ^ a >>> 15, 1 | a); t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t; return ((t ^ t >>> 14) >>> 0) / 4294967296; }; }
+function strHash(s) { let h = 2166136261; for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+function rgbOf(c) { const n = parseInt(c.slice(1, 7), 16); return [n >> 16 & 255, n >> 8 & 255, n & 255]; }
+function hexOf(r, g, b) { return '#' + ((1 << 24) | (r << 16) | (g << 8) | b).toString(16).slice(1); }
+function tint(c, f) { const m = v => Math.max(0, Math.min(255, Math.round(f >= 1 ? v + (255 - v) * (f - 1) : v * f))); const [r, g, b] = rgbOf(c); return hexOf(m(r), m(g), m(b)); }
+function mixC(a, b, t) { const A = rgbOf(a), B = rgbOf(b); return hexOf(...A.map((v, i) => Math.round(v + (B[i] - v) * t))); }
+function mkCv(w, h) { const c = document.createElement('canvas'); c.width = w; c.height = h; const x = c.getContext('2d'); x.imageSmoothingEnabled = false; return [c, x]; }
+function R(x, X, Y, W, H, c) { x.fillStyle = c; x.fillRect(X, Y, W, H); }
+function box(x, X, Y, W, H, c) { R(x, X - 1, Y - 1, W + 2, H + 2, OL); R(x, X, Y, W, H, c); }
+// 由幾個圓組成的一團（樹冠、石頭），左上亮、右下暗，外圍描黑邊
+function blob(x, w, h, circ, col, rnd, opt = {}) {
+  const ins = (px, py) => circ.some(([cx, cy, r, sy = 1]) => (px - cx) ** 2 + ((py - cy) / sy) ** 2 <= r * r);
+  const top = Math.min(...circ.map(c => c[1] - c[2] * (c[3] || 1))), bot = Math.max(...circ.map(c => c[1] + c[2] * (c[3] || 1)));
+  for (let py = 0; py < h; py++) for (let px = 0; px < w; px++) {
+    if (!ins(px + .5, py + .5)) continue;
+    if (!ins(px - .5, py + .5) || !ins(px + 1.5, py + .5) || !ins(px + .5, py - .5) || !ins(px + .5, py + 1.5)) { R(x, px, py, 1, 1, opt.ol || OL); continue; }
+    const v = (py - top) / Math.max(1, bot - top) * .7 + px / w * .3 + (rnd() - .5) * .28;
+    let c = v < .36 ? col[2] : v < .68 ? col[1] : col[0];
+    if (opt.snow && (!ins(px + .5, py - 1.5) || (!ins(px + .5, py - 2.5) && rnd() < .7))) c = '#eef3f6';
+    R(x, px, py, 1, 1, c);
+  }
+}
+
+/* ----- 景物 ----- */
+const PROP = {
+  tree(r, o) {
+    const [c, x] = mkCv(26, 34), tc = o.trunk || '#5a4030';
+    R(x, 11, 20, 4, 14, OL); R(x, 12, 20, 2, 13, tc); R(x, 12, 20, 1, 13, tint(tc, .7));
+    blob(x, 26, 25, [[13, 12, 9], [7, 15, 6], [19, 15, 6], [13, 7, 6]].map(([a, b, rr]) => [a + (r() - .5) * 2, b + (r() - .5) * 2, rr]), o.leaf || ['#2f5a2a', '#43773a', '#62994d'], r, { snow: o.snow });
+    if (o.fruit) for (let i = 0; i < 6; i++) R(x, 6 + r() * 14 | 0, 6 + r() * 12 | 0, 1, 1, o.fruit);
+    return [c, 13, 34];
+  },
+  pine(r, o) {
+    const [c, x] = mkCv(21, 37), L = o.leaf || ['#1f3d2c', '#2e5a3d', '#457a52'];
+    R(x, 9, 29, 3, 8, OL); R(x, 10, 29, 1, 7, '#5a4030');
+    for (const [top, bot, half] of [[2, 14, 6], [9, 22, 8], [16, 31, 10]]) for (let y = top; y <= bot; y++) {
+      const hw = Math.max(1, Math.round((y - top) / (bot - top) * half));
+      for (let xx = 10 - hw; xx <= 10 + hw; xx++) {
+        const edge = xx === 10 - hw || xx === 10 + hw || y === bot;
+        let col = edge ? OL : xx < 10 ? L[2] : L[1];
+        if (!edge && r() < .12) col = L[0];
+        if (!edge && o.snow && y - top < 2 + r() * 3) col = '#eef3f6';
+        R(x, xx, y, 1, 1, col);
+      }
+    }
+    return [c, 10, 37];
+  },
+  bamboo(r, o) {
+    const [c, x] = mkCv(20, 42), g = o.c || '#6f9a3f', n = 3 + (r() * 3 | 0);
+    for (let i = 0; i < n; i++) {
+      const bx = 3 + (i * 14 / n | 0) + (r() * 2 | 0), top = 2 + (r() * 12 | 0);
+      R(x, bx - 1, top, 4, 42 - top, OL); R(x, bx, top + 1, 2, 41 - top, g); R(x, bx, top + 1, 1, 41 - top, tint(g, 1.3));
+      for (let y = top + 5; y < 40; y += 6 + (r() * 2 | 0)) R(x, bx, y, 2, 1, tint(g, .55));
+      for (let k = 0; k < 3; k++) { const ly = top + 2 + (r() * 14 | 0), dir = r() < .5 ? -1 : 1; for (let j = 1; j <= 4; j++) R(x, bx + (dir > 0 ? 1 : 0) + dir * j, ly + (j >> 1), 1, 1, j === 4 ? tint(g, .65) : tint(g, 1.1)); }
+    }
+    return [c, 10, 42];
+  },
+  willow(r, o) {
+    const [c, x] = mkCv(28, 36), L = o.leaf || ['#3a6a2e', '#5a8f3e', '#86b85a'];
+    R(x, 12, 17, 4, 19, OL); R(x, 13, 17, 2, 18, '#5a4a38');
+    blob(x, 28, 19, [[14, 9, 9], [7, 11, 6], [21, 11, 6]], L, r);
+    for (let i = 0; i < 10; i++) { const sx = 3 + (r() * 22 | 0), len = 8 + (r() * 13 | 0); for (let y = 12; y < 12 + len; y++) R(x, sx + ((y >> 2) & 1), y, 1, 1, y === 11 + len ? L[0] : r() < .5 ? L[1] : L[2]); }
+    return [c, 14, 36];
+  },
+  dead(r, o) {
+    const [c, x] = mkCv(24, 30), col = o.c || '#3a3230';
+    const line = (x0, y0, x1, y1, t) => { const n = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0)) || 1; for (let i = 0; i <= n; i++) R(x, Math.round(x0 + (x1 - x0) * i / n) - (t >> 1), Math.round(y0 + (y1 - y0) * i / n), t, 1, col); };
+    const b = r() < .5 ? 1 : -1;
+    line(12, 30, 12, 10, 3); line(12, 18, 12 - 7 * b, 9, 2); line(12, 14, 12 + 7 * b, 5, 2); line(12 - 6 * b, 11, 12 - 9 * b, 6, 1); line(12 + 6 * b, 7, 12 + 9 * b, 3, 1); line(12, 11, 11, 3, 1);
+    return [c, 12, 30];
+  },
+  rock(r, o) {
+    const s = o.big ? 1.5 : 1, w = Math.round(18 * s), h = Math.round(13 * s), [c, x] = mkCv(w, h);
+    blob(x, w, h, [[w * .44, h * .6, h * .48], [w * .66, h * .68, h * .36]], o.c || ['#55575c', '#7a7d82', '#a2a5aa'], r, { snow: o.snow });
+    if (o.moss) for (let i = 0; i < 7; i++) R(x, w * .3 + r() * w * .4 | 0, h * .25 + r() * 3 | 0, 1, 1, o.moss);
+    return [c, w >> 1, h];
+  },
+  fence(r, o) {
+    const [c, x] = mkCv(24, 14), wc = o.c || '#7a5a3a';
+    for (const py of [4, 9]) { R(x, 0, py - 1, 24, 3, OL); R(x, 0, py, 24, 1, tint(wc, .85)); }
+    for (const px of [1, 11, 21]) { R(x, px - 1, 0, 4, 14, OL); R(x, px, 1, 2, 13, wc); R(x, px, 1, 1, 13, tint(wc, 1.25)); }
+    return [c, 12, 14];
+  },
+  slantern(r, o) {
+    const [c, x] = mkCv(12, 20), g = ['#5c5e63', '#80838a', '#a8abb1'];
+    R(x, 2, 16, 8, 4, OL); R(x, 3, 17, 6, 2, g[1]);
+    R(x, 4, 10, 4, 7, OL); R(x, 5, 10, 2, 6, g[1]);
+    R(x, 2, 6, 8, 5, OL); R(x, 3, 7, 6, 3, g[2]); R(x, 4, 7, 4, 3, '#f2d58a');
+    R(x, 0, 3, 12, 4, OL); R(x, 1, 4, 10, 2, g[0]); R(x, 5, 1, 2, 3, OL);
+    return [c, 6, 20, '#f2d58a'];
+  },
+  rlantern(r, o) {
+    const [c, x] = mkCv(12, 26);
+    R(x, 3, 3, 2, 23, OL); R(x, 3, 3, 1, 23, '#4a3426'); R(x, 3, 3, 7, 1, '#4a3426');
+    R(x, 5, 5, 6, 9, OL); R(x, 6, 6, 4, 7, '#c8423a'); R(x, 7, 6, 1, 7, '#e8735e'); R(x, 6, 5, 4, 1, '#c9a45c'); R(x, 6, 13, 4, 1, '#c9a45c'); R(x, 7, 14, 2, 2, '#c9a45c');
+    return [c, 4, 26, '#ff8a5a'];
+  },
+  tomb(r, o) {
+    const [c, x] = mkCv(12, 16), g = o.c || ['#4a4a52', '#6c6c76', '#8e8e98'];
+    blob(x, 12, 12, [[6, 6, 5]], g, r);
+    R(x, 1, 6, 10, 8, OL); R(x, 2, 6, 8, 7, g[1]); R(x, 2, 6, 2, 7, g[2]); R(x, 2, 5, 8, 1, g[1]);
+    R(x, 5, 6, 2, 6, g[0]); R(x, 3, 8, 6, 1, g[0]); R(x, 0, 13, 12, 3, '#2a2420'); R(x, 1, 13, 10, 1, '#3a3028');
+    return [c, 6, 16];
+  },
+  stele(r, o) {
+    const [c, x] = mkCv(12, 22), g = ['#5c5850', '#7d786d', '#a29c8e'];
+    R(x, 2, 2, 8, 17, OL); R(x, 3, 3, 6, 15, g[1]); R(x, 3, 3, 2, 15, g[2]); for (let y = 6; y < 16; y += 2) R(x, 6, y, 2, 1, g[0]);
+    R(x, 0, 18, 12, 4, OL); R(x, 1, 19, 10, 2, g[0]);
+    if (r() < .5) x.clearRect(7, 1, 4, 3);
+    return [c, 6, 22];
+  },
+  sword(r, o) {
+    const [c, x] = mkCv(9, 19);
+    R(x, 3, 0, 3, 3, OL); R(x, 4, 1, 1, 2, '#7a5a3a'); R(x, 0, 3, 9, 3, OL); R(x, 1, 4, 7, 1, '#c9a45c');
+    R(x, 3, 6, 3, 10, OL); R(x, 4, 6, 1, 10, '#dfe4e8'); R(x, 3, 6, 1, 9, '#9aa1a8');
+    R(x, 1, 15, 7, 4, o.dirt || '#4a3a2c'); R(x, 2, 15, 5, 1, tint(o.dirt || '#4a3a2c', 1.2));
+    return [c, 4, 19];
+  },
+  ruin(r, o) {
+    const w = 22, h = 16, [c, x] = mkCv(w, h), g = o.c || ['#5a5248', '#7a7062', '#968b7a'], tops = [];
+    const ph = r() * 3; for (let i = 0; i < w; i++) tops.push(2 + Math.round(Math.abs(Math.sin(i * .45 + ph)) * 7 + r()));
+    for (let xx = 0; xx < w; xx++) for (let y = tops[xx]; y < h; y++) {
+      const edge = y === tops[xx] || xx === 0 || xx === w - 1 || (xx > 0 && y < tops[xx - 1]) || (xx < w - 1 && y < tops[xx + 1]);
+      const brick = y % 4 === 0 || (xx + ((y >> 2) & 1) * 3) % 6 === 0;
+      R(x, xx, y, 1, 1, edge ? OL : brick ? g[0] : y < tops[xx] + 2 ? g[2] : g[1]);
+    }
+    return [c, 11, 16];
+  },
+  house(r, o) {
+    const w = 34, h = 31, [c, x] = mkCv(w, h), wall = o.wall || '#cdbb98', roof = o.roof || ['#2f3440', '#454c5c', '#5d6577'];
+    R(x, 3, 14, 28, 17, OL); R(x, 4, 15, 26, 15, wall); R(x, 4, 15, 26, 2, tint(wall, .7));
+    for (const bx of [4, 15, 28]) R(x, bx, 15, 2, 15, '#5a4030');
+    R(x, 19, 20, 6, 10, OL); R(x, 20, 21, 4, 9, '#3a2a20');
+    R(x, 7, 19, 6, 4, OL); R(x, 8, 20, 4, 2, '#f2d58a');
+    for (let y = 2; y < 16; y++) {
+      const x0 = Math.max(0, Math.round((15 - y) * .9) - 1), x1 = w - x0;
+      for (let xx = x0; xx < x1; xx++) { const edge = xx === x0 || xx === x1 - 1 || y === 15 || y === 2; R(x, xx, y, 1, 1, edge ? OL : y % 3 === 0 ? roof[0] : xx < w / 2 ? roof[2] : roof[1]); }
+    }
+    R(x, 0, 13, 3, 2, OL); R(x, w - 3, 13, 3, 2, OL);
+    return [c, 17, 31, '#f2d58a'];
+  },
+  hay(r, o) {
+    const [c, x] = mkCv(16, 12);
+    blob(x, 16, 12, [[8, 8, 7, .75]], ['#9a7a2a', '#c9a23f', '#e6c766'], r);
+    for (let i = 0; i < 6; i++) R(x, 3 + (r() * 10 | 0), 4 + (r() * 6 | 0), 1, 2, '#8a6a22');
+    return [c, 8, 12];
+  },
+  reeds(r, o) {
+    const [c, x] = mkCv(14, 20), col = o.c || '#6f8a3a';
+    for (let i = 0; i < 9; i++) { const bx = 1 + (r() * 12 | 0), top = 2 + (r() * 8 | 0), bend = r() < .5 ? -1 : 1; for (let y = top; y < 20; y++) R(x, bx + (y < top + 4 ? bend : 0), y, 1, 1, y < top + 3 && o.tip ? o.tip : r() < .3 ? tint(col, .7) : col); }
+    return [c, 7, 20];
+  },
+  bush(r, o) {
+    const [c, x] = mkCv(16, 12);
+    blob(x, 16, 12, [[8, 7, 6, .8], [4, 8, 4], [12, 8, 4]], o.leaf || ['#2f5a2a', '#3f7a35', '#5a9a45'], r, { snow: o.snow });
+    return [c, 8, 12];
+  },
+  fbush(r, o) {
+    const [c, x] = mkCv(16, 12), f = o.f || '#e88aa8';
+    blob(x, 16, 12, [[8, 7, 6, .8], [4, 8, 4], [12, 8, 4]], o.leaf || ['#2f5a2a', '#3f7a35', '#5a9a45'], r);
+    for (let i = 0; i < 7; i++) { const px = 3 + (r() * 10 | 0), py = 2 + (r() * 6 | 0); R(x, px, py, 2, 2, f); R(x, px, py, 1, 1, tint(f, 1.4)); }
+    return [c, 8, 12];
+  },
+  ice(r, o) {
+    const [c, x] = mkCv(14, 18), g = ['#6fa3c2', '#a9d3e8', '#e8f6fb'];
+    for (const [cx, ht, hw] of [[3, 10, 2], [11, 12, 2], [7, 17, 3]]) for (let y = 18 - ht; y < 18; y++) { const k = Math.round((y - (18 - ht)) / ht * hw); for (let xx = cx - k; xx <= cx + k; xx++) R(x, xx, y, 1, 1, xx === cx - k || xx === cx + k ? '#2e4a5c' : xx < cx ? g[2] : g[1]); }
+    return [c, 7, 18];
+  },
+  pillar(r, o) {
+    const [c, x] = mkCv(12, 34), g = o.c || ['#3a3640', '#57525e', '#7a7482'];
+    R(x, 0, 0, 12, 4, OL); R(x, 1, 1, 10, 2, g[2]); R(x, 2, 4, 8, 26, OL); R(x, 3, 4, 6, 26, g[1]); R(x, 3, 4, 2, 26, g[2]); R(x, 7, 4, 1, 26, g[0]);
+    R(x, 0, 30, 12, 4, OL); R(x, 1, 31, 10, 2, g[0]);
+    if (o.glow) { R(x, 4, 12, 4, 6, OL); R(x, 5, 13, 2, 4, o.glow); }
+    return [c, 6, 34, o.glow];
+  }
+};
+
+/* ----- 地面花紋 ----- */
+const PATCH = {
+  path(x, r, o) {
+    const W = SC.WW, H = SC.WH, y0 = H * (.3 + r() * .4), A = 16 + r() * 22, f = .008 + r() * .01, ph = r() * 6, w = o.w || 13, c = o.c;
+    for (let px = 0; px < W; px++) { const cy = y0 + Math.sin(px * f + ph) * A; for (let k = -w; k <= w; k++) { const e = Math.abs(k) / w + (r() - .5) * .3; if (e > 1) continue; R(x, px, Math.round(cy + k), 1, 1, e > .82 ? tint(c, .82) : r() < .08 ? tint(c, 1.12) : c); } }
+  },
+  river(x, r, o) {
+    const W = SC.WW, H = SC.WH, y0 = H * (.25 + r() * .5), A = 10 + r() * 14, ph = r() * 6, w = o.w || 20, c = o.c;
+    for (let px = 0; px < W; px++) { const cy = y0 + Math.sin(px * .012 + ph) * A; for (let k = -w - 2; k <= w + 2; k++) { const e = Math.abs(k) / w; R(x, px, Math.round(cy + k), 1, 1, e > 1 ? (o.edge || '#cfd9d6') : e > .8 ? tint(c, 1.15) : r() < .03 ? tint(c, 1.4) : c); } }
+    SC.water.push({ river: true, y0, A, ph, w });
+  },
+  water(x, r, o) {
+    const W = SC.WW, H = SC.WH;
+    for (let n = 0; n < (o.n || 2); n++) {
+      const cx = 40 + r() * (W - 80), cy = 40 + r() * (H - 80), rx = 18 + r() * 26, ry = 9 + r() * 12;
+      for (let py = Math.floor(cy - ry - 3); py < cy + ry + 3; py++) for (let px = Math.floor(cx - rx - 3); px < cx + rx + 3; px++) {
+        const dd = ((px - cx) / rx) ** 2 + ((py - cy) / ry) ** 2 + Math.sin(px * .3 + py * .2) * .05;
+        if (dd > 1.14) continue;
+        R(x, px, py, 1, 1, dd > 1 ? (o.edge || '#cfd9d6') : dd > .78 ? tint(o.c, 1.15) : r() < .04 ? tint(o.c, 1.4) : o.c);
+      }
+      SC.water.push({ cx, cy, rx, ry });
+    }
+  },
+  paddy(x, r, o) {
+    const W = SC.WW, H = SC.WH, cw = 30, ch = 20, ox = r() * 20 | 0, oy = r() * 20 | 0;
+    for (let gy = oy - ch; gy < H; gy += ch + 4) for (let gx = ox - cw; gx < W; gx += cw + 4) {
+      if (r() < .25) continue;
+      R(x, gx, gy, cw, ch, '#4f7a86'); R(x, gx, gy, cw, 1, '#3d636e');
+      for (let yy = gy + 3; yy < gy + ch - 1; yy += 4) for (let xx = gx + 2 + (yy >> 2 & 1) * 2; xx < gx + cw - 1; xx += 4) { R(x, xx, yy, 1, 2, '#6fa04a'); R(x, xx, yy, 1, 1, '#94c25e'); }
+    }
+  },
+  pave(x, r, o) {
+    const W = SC.WW, H = SC.WH;
+    let X0 = 0, Y0 = 0, X1 = W, Y1 = H;
+    if (!o.all) { const w = 120 + r() * 80, h = 70 + r() * 50; X0 = r() * (W - w) | 0; Y0 = r() * (H - h) | 0; X1 = X0 + w; Y1 = Y0 + h; R(x, X0 - 1, Y0 - 1, X1 - X0 + 2, Y1 - Y0 + 2, o.m); }
+    for (let y = Y0; y < Y1; y++) for (let xx = X0; xx < X1; xx++) {
+      const row = Math.floor((y - Y0) / 7), mortar = (y - Y0) % 7 === 0 || (xx - X0 + (row & 1) * 6) % 12 === 0;
+      R(x, xx, y, 1, 1, mortar ? o.m : r() < .06 ? tint(o.c, .9) : (xx - X0 + (row & 1) * 6) % 12 === 1 ? tint(o.c, 1.12) : o.c);
+    }
+    if (o.all) for (let i = 0; i < 30; i++) { const px = r() * W | 0, py = r() * H | 0; R(x, px, py, 2, 1, tint(o.c, .78)); }
+  },
+  flowers(x, r, o) {
+    const W = SC.WW, H = SC.WH;
+    for (let k = 0; k < (o.n || 8); k++) { const cx = r() * W, cy = r() * H, rad = 10 + r() * 16; for (let i = 0; i < rad * 2.2; i++) { const a = r() * 6.28, d = r() * rad; const px = cx + Math.cos(a) * d | 0, py = cy + Math.sin(a) * d * .7 | 0, col = o.c[r() * o.c.length | 0]; R(x, px, py, 1, 1, col); if (r() < .4) R(x, px + 1, py, 1, 1, tint(col, .8)); } }
+  },
+  leaves(x, r, o) { const W = SC.WW, H = SC.WH; for (let k = 0; k < (o.n || 6) * 30; k++) R(x, r() * W | 0, r() * H | 0, r() < .5 ? 2 : 1, 1, o.c[r() * o.c.length | 0]); },
+  wheat(x, r, o) {
+    const W = SC.WW, H = SC.WH;
+    for (let k = 0; k < (o.n || 4); k++) { const X = r() * (W - 80) | 0, Y = r() * (H - 50) | 0, w = 50 + r() * 50 | 0, h = 26 + r() * 24 | 0; R(x, X, Y, w, h, '#a8883a'); for (let yy = Y; yy < Y + h; yy += 2) for (let xx = X + (yy & 2); xx < X + w; xx += 3) R(x, xx, yy, 1, 2, r() < .5 ? '#d6b552' : '#e8cc6a'); }
+  },
+  dirt(x, r, o) { const W = SC.WW, H = SC.WH; for (let k = 0; k < (o.n || 4); k++) { const cx = r() * W, cy = r() * H, rx = 10 + r() * 22, ry = 6 + r() * 10; for (let py = cy - ry | 0; py < cy + ry; py++) for (let px = cx - rx | 0; px < cx + rx; px++) { const dd = ((px - cx) / rx) ** 2 + ((py - cy) / ry) ** 2; if (dd < 1 - r() * .2) R(x, px, py, 1, 1, r() < .1 ? tint(o.c, 1.15) : o.c); } } },
+  blood(x, r, o) { const W = SC.WW, H = SC.WH; for (let k = 0; k < (o.n || 4); k++) { const cx = r() * W, cy = r() * H, rx = 10 + r() * 20, ry = 5 + r() * 9; for (let py = cy - ry | 0; py < cy + ry; py++) for (let px = cx - rx | 0; px < cx + rx; px++) { const dd = ((px - cx) / rx) ** 2 + ((py - cy) / ry) ** 2; if (dd < 1) R(x, px, py, 1, 1, dd > .7 ? '#5a1414' : r() < .05 ? '#b03a30' : '#7a1c1a'); } } },
+  cracks(x, r, o) { const W = SC.WW, H = SC.WH; for (let k = 0; k < (o.n || 8); k++) { let px = r() * W, py = r() * H, a = r() * 6.28; for (let i = 0; i < 10 + r() * 14; i++) { R(x, px | 0, py | 0, 1, 1, 'rgba(0,0,0,.35)'); a += (r() - .5) * 1.2; px += Math.cos(a); py += Math.sin(a) * .6; } } },
+  snow(x, r, o) { const W = SC.WW, H = SC.WH; for (let k = 0; k < (o.n || 6); k++) { const cx = r() * W, cy = r() * H, rx = 12 + r() * 24, ry = 6 + r() * 12; for (let py = cy - ry | 0; py < cy + ry; py++) for (let px = cx - rx | 0; px < cx + rx; px++) { const dd = ((px - cx) / rx) ** 2 + ((py - cy) / ry) ** 2; if (dd < 1 - r() * .15) R(x, px, py, 1, 1, dd > .8 ? '#c8d6de' : '#eef3f6'); } } }
+};
+
+/* ----- 各地方的樣子 ----- */
+const BIOME = {
+  '天霖市': { g: ['#5f7d3e', '#526f36', '#6e8d48'], tuft: '#88aa58', patch: [['path', { c: '#8d7a57' }], ['flowers', { c: ['#ece6a8', '#e6a8b8', '#ffffff'], n: 6 }]], props: [['tree', 5], ['bush', 5], ['fence', 4], ['slantern', 2], ['house', 2], ['rock', 3]] },
+  '五頓村': { g: ['#6e8442', '#5d7238', '#7f9550'], tuft: '#93ad5d', patch: [['wheat', { n: 4 }], ['path', { c: '#8e7550' }]], props: [['hay', 5], ['fence', 5], ['tree', 3, { leaf: ['#3a5f2a', '#4f7d38', '#6b9a48'] }], ['house', 2, { wall: '#d4c29b' }], ['rock', 2]] },
+  '仙緣鎮': { g: ['#7a6440', '#6a5536', '#8a7550'], tuft: '#a0844e', patch: [['path', { c: '#9a8a68' }], ['leaves', { c: ['#c8553d', '#e0823a', '#d9a03a'], n: 9 }]], props: [['tree', 7, { leaf: ['#8a2f22', '#c4482e', '#e57a3c'] }], ['slantern', 3], ['rock', 3], ['bush', 3, { leaf: ['#7a3a22', '#a8502e', '#d07a3a'] }]], amb: 'leaves' },
+  '明臺': { g: ['#5e6a58', '#4f5a4a', '#707c68'], tuft: '#7f8f6a', patch: [['pave', { c: '#8a8a86', m: '#5c5c5a' }], ['cracks', {}]], props: [['pine', 6], ['rock', 6, { big: true }], ['slantern', 2]], amb: 'mist' },
+  '冥月鎮': { g: ['#3e3a48', '#34303e', '#4a4556'], tuft: '#5a5470', patch: [['dirt', { c: '#2e2a33', n: 5 }]], props: [['tomb', 11], ['dead', 5, { c: '#2a2630' }], ['rock', 2, { c: ['#3a3a44', '#55555f', '#72727e'] }]], amb: 'wisps' },
+  '夜蘭山城': { g: ['#2f4a46', '#26403c', '#3a5752'], tuft: '#4f6e62', patch: [['flowers', { c: ['#a98ad8', '#c9a8f0', '#e8d8ff'], n: 10 }]], props: [['pine', 5, { leaf: ['#16302a', '#22463b', '#33604f'] }], ['rock', 5], ['fbush', 5, { f: '#b48ae0' }], ['ruin', 1]], amb: 'fireflies' },
+  '梁山城': { g: ['#7a6448', '#6a553c', '#8a7454'], tuft: '#8f7a52', patch: [['cracks', { n: 14 }], ['dirt', { c: '#5f4a34', n: 4 }]], props: [['rock', 8, { c: ['#5a4a3c', '#7a6652', '#9a846a'] }], ['ruin', 4], ['dead', 4, { c: '#2a2220' }], ['sword', 2]], amb: 'dust' },
+  '月靈峰': { g: ['#3f6e3a', '#345e31', '#4d7f45'], tuft: '#6a9a52', patch: [['water', { c: '#3d7f86', n: 2 }]], props: [['bamboo', 11], ['rock', 3, { moss: '#6a9a52' }], ['bush', 3]], amb: 'mist' },
+  '凝鋒頂城': { g: ['#5c6066', '#4e5258', '#6c7076'], tuft: '#757a6e', patch: [['pave', { c: '#7c7f84', m: '#4a4c50' }], ['cracks', { n: 10 }]], props: [['ruin', 5, { c: ['#4e5258', '#6e7278', '#8e9298'] }], ['sword', 9, { dirt: '#45484d' }], ['rock', 4], ['slantern', 1]], amb: 'dust' },
+  '靜宇村': { g: ['#5a7a3a', '#4c6a32', '#6a8a46'], tuft: '#7ea050', patch: [['paddy', {}], ['path', { c: '#8a7552', w: 8 }]], props: [['hay', 4], ['fence', 4, { c: '#8a7a4a' }], ['house', 2], ['bamboo', 3]], amb: null },
+  '柳青臺': { g: ['#557a44', '#4a6c3c', '#668c52'], tuft: '#7aa05a', patch: [['river', { c: '#4a8a8a' }], ['pave', { c: '#9a9890', m: '#6a6862' }]], props: [['willow', 8], ['rock', 3], ['slantern', 1]], amb: 'fluff' },
+  '華月村': { g: ['#34465a', '#2c3c4f', '#3f5368'], tuft: '#4a6a6a', patch: [['flowers', { c: ['#e88aa8', '#f2c0d0', '#c8a0e8'], n: 14 }], ['water', { c: '#3a5f8a', n: 1, edge: '#d8e4f0' }]], props: [['tree', 4, { leaf: ['#8a4a6a', '#c070a0', '#f0a8cc'] }], ['fbush', 6, { f: '#f2b8d0' }], ['house', 1, { wall: '#b8a888' }], ['rock', 2]], amb: 'fireflies' },
+  '古道': { g: ['#8a7a5c', '#786a4e', '#9a8a6a'], tuft: '#9a8f62', patch: [['path', { c: '#a8977a', w: 18 }], ['cracks', { n: 8 }]], props: [['stele', 6], ['ruin', 3], ['dead', 3], ['rock', 4, { c: ['#6a5e4a', '#8a7c62', '#ab9c80'] }]], amb: 'dust' },
+  '鳳城': { g: ['#6a5a52', '#5a4c46', '#7a6a60'], tuft: null, patch: [['pave', { c: '#8a7c70', m: '#5a4e46', all: true }]], props: [['house', 4, { wall: '#d8c6a8', roof: ['#5a2a26', '#7a3a32', '#9a4a3e'] }], ['rlantern', 6], ['tree', 3, { leaf: ['#7a2420', '#b0382c', '#e0583e'] }], ['fence', 2]], amb: 'embers' },
+  '冷遠道': { g: ['#d7dee3', '#c3ccd3', '#e8eef2'], tuft: '#aab6be', patch: [['water', { c: '#7fa8c0', n: 2, edge: '#f4f8fa' }], ['path', { c: '#a9b4bb', w: 10 }]], props: [['pine', 7, { leaf: ['#1f3a36', '#2e5049', '#456a60'], snow: true }], ['ice', 4], ['rock', 4, { snow: true }], ['fence', 2, { c: '#5a4a3a' }], ['dead', 2, { c: '#3a3a40' }]], amb: 'snow' },
+  '烈血譚': { g: ['#4a2a28', '#3e2220', '#5a3430'], tuft: '#6a3a30', patch: [['blood', { n: 4 }], ['water', { c: '#7a1e1e', n: 1, edge: '#b04a3a' }]], props: [['reeds', 8, { c: '#7a3a2a', tip: '#3a1a14' }], ['sword', 5, { dirt: '#3a1e1a' }], ['dead', 3, { c: '#1e1414' }], ['rock', 3, { c: ['#3a2422', '#5a3632', '#7a4a44'] }]], amb: 'embers' }
+};
+const TOWER_AMB = { star: 'sparks', moon: 'mist', shadow: 'wisps', origin: 'embers', sword: 'dust' };
+function towerBiome(T) {
+  const bg = /^#[0-9a-f]{6}$/i.test(T.bg) ? T.bg : '#3a3448', base = mixC(bg, '#5a5560', .45);
+  return { g: [base, tint(base, .85), tint(base, 1.1)], tuft: null, patch: [['pave', { c: tint(base, 1.25), m: tint(base, .7), all: true }]], props: [['pillar', 6, { c: [tint(base, .7), tint(base, 1.1), tint(base, 1.45)], glow: T.id === 'star' ? '#f2d58a' : T.id === 'moon' ? '#cfe0ff' : T.id === 'origin' ? '#ff9a5a' : null }], ['slantern', 2]], amb: TOWER_AMB[T.id] || 'dust' };
+}
+
+/* ----- 角色外觀 ----- */
+const WLOOK = {
+  萬: ['#8a6a3e', '#2b2420', '#c9a45c'], 天: ['#3f5f8a', '#1f2430', '#9fc3e8'], 皇: ['#9a7a2a', '#2b2420', '#e8c860'], 必: ['#5a6a7a', '#2a2a2a', '#c9a45c'],
+  暗: ['#4a3a5e', '#1e1a24', '#a88ad8'], 武: ['#8a4e2a', '#2b2420', '#e0a050'], 術: ['#2f6a6a', '#1f2a2a', '#7fd8c8'], 神: ['#9a3a2a', '#2a1e1a', '#f0c050'],
+  聖: ['#6a6a3a', '#3a3020', '#c8c870'], 霸: ['#5e3e2a', '#1e1a18', '#c9a45c'], 銀: ['#c8d0d8', '#e8ecf0', '#5a7a9a'], 弓: ['#3e6b3a', '#3a2a1e', '#c9a45c'],
+  玉: ['#4f8a6e', '#1e2a24', '#bfe8d0'], 慧: ['#8a7aa8', '#2a2430', '#f0e0f8'], 降: ['#3a3a46', '#1a1a20', '#c8423a'], 閃: ['#5e3a6e', '#3a1e44', '#8ad870'],
+  星: ['#2e3f73', '#1a1e30', '#f2d58a'], 誅: ['#7a2a35', '#1e1416', '#e8e0d8'], 闇: ['#2a2a34', '#14141a', '#e07a3a'], 仙: ['#e6dccb', '#1e1a1a', '#7aa8c8']
+};
+const PBODY = [
+  '................',
+  '......ooo.......',
+  '.....oHhho......',
+  '....ootttoo.....',
+  '...ohhhhhhhoo...',
+  '..ohhHhhhhhhho..',
+  '..ohHhhhhhhhhho.',
+  '..ohhhhhhhhhhho.',
+  '..ohhhhhhhsssso.',
+  '..ohhhhhhssesso.',
+  '..ohhhhhhssesso.',
+  '..oohhhhhSsssso.',
+  '...oohhhhSSsoo..',
+  '.....oowwwoo....',
+  '....orrwwwrro...',
+  '...olrrrwrrrRo..',
+  '...olrrrwrrrRo..',
+  '...osbbbbbbbso..',
+  '....orrrrrrRo...',
+  '....orrrrrRRo...',
+  '....orrRrrrRo...'
+];
+const PO = { x: 14, y: 14, w: 44, h: 38 }; // 角色在格子裡的位置：腳底在 (22, 38)
+// 兵器：hand=[前手 x,y]、back=[後手 x,y]、p=是否出招中
+function wSeg(x, segs) {
+  const P = segs.map(([x0, y0, a, L, c]) => { const dx = Math.cos(a * Math.PI / 180), dy = Math.sin(a * Math.PI / 180), pts = []; for (let i = 0; i < L; i++) pts.push([Math.round(x0 + dx * i), Math.round(y0 + dy * i), c]); return pts; }).flat();
+  for (const [a, b] of P) R(x, a - 1, b - 1, 3, 3, OL);
+  for (const [a, b, c] of P) R(x, a, b, 1, 1, c);
+}
+function wSegIn(x, x0, y0, a, L, c) { const dx = Math.cos(a * Math.PI / 180), dy = Math.sin(a * Math.PI / 180); for (let i = 1; i < L; i++) R(x, Math.round(x0 + dx * i), Math.round(y0 + dy * i), 1, 1, c); }
+const STEEL = '#e3e8ec', WOOD = '#7a5636', GOLD = '#d8b25a';
+const WDRAW = {
+  長劍: { front(x, [hx, hy], p) { const a = p ? -18 : 58; wSeg(x, [[hx, hy, a + 180, 3, WOOD], [hx + 1, hy, a, 10, STEEL]]); R(x, hx, hy - 1, 2, 2, GOLD); } },
+  雙劍: { back(x, b, p) { const a = p ? -40 : 115; wSeg(x, [[b[0], b[1], a, 8, STEEL]]); }, front(x, [hx, hy], p) { const a = p ? -15 : 62; wSeg(x, [[hx, hy, a, 8, STEEL]]); R(x, hx, hy, 1, 1, GOLD); } },
+  劍盾: { back(x, b, p) { if (!p) wSeg(x, [[b[0], b[1], -110, 9, STEEL]]); }, front(x, [hx, hy], p) { if (p) wSeg(x, [[hx, hy - 1, -12, 11, STEEL]]); const sx = p ? hx - 6 : hx - 1; blob(x, PO.w, PO.h, [[sx + .5, hy - 2.5, 4.6]], ['#5a3a22', '#8a5a32', '#a8743e'], () => .5, { ol: OL }); R(x, sx, hy - 3, 1, 1, GOLD); } },
+  戟: { front(x, [hx, hy], p) { const a = p ? -14 : -76; wSeg(x, [[hx - Math.cos(a * Math.PI / 180) * 3, hy - Math.sin(a * Math.PI / 180) * 3, a, 21, WOOD]]); const tx = Math.round(hx + Math.cos(a * Math.PI / 180) * 17), ty = Math.round(hy + Math.sin(a * Math.PI / 180) * 17); box(x, tx - 1, ty - 2, 2, 4, STEEL); R(x, tx + 1, ty - 1, 2, 2, STEEL); } },
+  長槍: { front(x, [hx, hy], p) { const a = p ? -4 : -78; const c = Math.cos(a * Math.PI / 180), s = Math.sin(a * Math.PI / 180); wSeg(x, [[hx - c * 4, hy - s * 4, a, 19, WOOD], [hx + c * 15, hy + s * 15, a, 5, STEEL]]); R(x, Math.round(hx + c * 14), Math.round(hy + s * 14) + 1, 2, 2, '#c8423a'); } },
+  棍: { front(x, [hx, hy], p) { const a = p ? -25 : -62; wSeg(x, [[hx, hy, a, 12, '#5a3a24'], [hx, hy, a + 180, 8, '#5a3a24']]); const c = Math.cos(a * Math.PI / 180), s = Math.sin(a * Math.PI / 180); R(x, Math.round(hx + c * 11), Math.round(hy + s * 11), 1, 1, GOLD); R(x, Math.round(hx - c * 7), Math.round(hy - s * 7), 1, 1, GOLD); } },
+  槌: { front(x, [hx, hy], p) { const a = p ? -35 : 78, c = Math.cos(a * Math.PI / 180), s = Math.sin(a * Math.PI / 180); wSeg(x, [[hx, hy, a, 7, WOOD]]); box(x, Math.round(hx + c * 7) - 3, Math.round(hy + s * 7) - 2, 6, 5, '#6a6e74'); R(x, Math.round(hx + c * 7) - 3, Math.round(hy + s * 7) - 2, 6, 1, '#9aa0a8'); } },
+  拳套: { back(x, [bx, by]) { box(x, bx - 1, by - 1, 3, 3, '#a8b0b8'); }, front(x, [hx, hy], p) { const dx = p ? 4 : 0, dy = p ? -3 : 0; box(x, hx - 1 + dx, hy - 1 + dy, 3, 3, '#c8d0d8'); R(x, hx + dx, hy - 1 + dy, 1, 1, '#ffffff'); } },
+  法球: { front(x, [hx, hy], p) { const ox = hx + (p ? 7 : 3), oy = hy - (p ? 6 : 7); blob(x, PO.w, PO.h, [[ox + .5, oy + .5, 3.2]], ['#2a5a9a', '#4a8ad8', '#bfe0ff'], () => .5); R(x, ox - 1, oy - 1, 1, 1, '#ffffff'); } },
+  杖: { front(x, [hx, hy], p) { const a = p ? -38 : -86, c = Math.cos(a * Math.PI / 180), s = Math.sin(a * Math.PI / 180); wSeg(x, [[hx - c * 4, hy - s * 4, a, 19, WOOD]]); box(x, Math.round(hx + c * 15) - 1, Math.round(hy + s * 15) - 2, 3, 3, '#5fd0c0'); R(x, Math.round(hx + c * 15) - 1, Math.round(hy + s * 15) - 2, 1, 1, '#e0fff8'); } },
+  法典: { front(x, [hx, hy], p) { if (p) { box(x, hx - 2, hy - 9, 8, 5, '#e8e0c8'); R(x, hx + 1, hy - 9, 1, 5, '#7a5ab0'); R(x, hx - 1, hy - 8, 2, 1, '#a88ad8'); R(x, hx + 3, hy - 7, 2, 1, '#a88ad8'); } else { box(x, hx - 1, hy - 3, 5, 5, '#5a3a8a'); R(x, hx + 3, hy - 3, 1, 5, '#e8e0c8'); R(x, hx, hy - 2, 2, 1, GOLD); } } },
+  弓: { front(x, [hx, hy], p) { const bx = hx + 2; for (let k = -7; k <= 6; k++) { const xx = bx + Math.round(2.6 * (1 - (k / 7) ** 2)); R(x, xx - 1, hy + k - 1, 3, 3, OL); } for (let k = -7; k <= 6; k++) R(x, bx + Math.round(2.6 * (1 - (k / 7) ** 2)), hy + k, 1, 1, '#8a5a32'); for (let k = -6; k <= 5; k++) R(x, bx, hy + k, 1, 1, '#d8d2c0'); if (p) { wSeg(x, [[hx - 4, hy, 0, 11, '#8a6a42']]); R(x, hx + 7, hy, 1, 1, STEEL); } } },
+  玉珠: { front(x, [hx, hy], p) { const d = p ? 4 : 0; for (const [ox, oy] of [[3, -4], [5, -1], [3, 2]]) { box(x, hx + ox + d, hy + oy - (p ? 2 : 0), 2, 2, '#5fc08a'); R(x, hx + ox + d, hy + oy - (p ? 2 : 0), 1, 1, '#d8ffe8'); } } },
+  扇: { front(x, [hx, hy], p) { if (p) { const segs = []; for (let a = -150; a <= -30; a += 12) segs.push([hx, hy - 1, a, 6, '#efe6d2']); wSeg(x, segs); for (let a = -150; a <= -30; a += 24) wSegIn(x, hx, hy - 1, a, 5, '#c8423a'); } else wSeg(x, [[hx, hy, -58, 6, '#efe6d2']]); } },
+  匕首: { front(x, [hx, hy], p) { const a = p ? -6 : 72; wSeg(x, [[hx, hy, a, 6, STEEL]]); R(x, hx, hy, 1, 1, '#3a2a20'); } },
+  毒蠱: { front(x, [hx, hy], p) { box(x, hx - 1, hy - 3, 4, 4, '#4a2a5a'); R(x, hx - 1, hy - 3, 4, 1, '#7ad860'); R(x, hx, hy - 6 - (p ? 2 : 0), 1, 1, '#9ae870'); R(x, hx + 2, hy - 8 - (p ? 2 : 0), 1, 1, '#9ae870'); } },
+  寶輪: { front(x, [hx, hy], p) { const cx = hx + (p ? 8 : 3), cy = hy - (p ? 6 : 4); for (let a = 0; a < 360; a += 30) { const px = Math.round(cx + Math.cos(a * Math.PI / 180) * 3.5), py = Math.round(cy + Math.sin(a * Math.PI / 180) * 3.5); R(x, px - 1, py - 1, 3, 3, OL); } for (let a = 0; a < 360; a += 30) R(x, Math.round(cx + Math.cos(a * Math.PI / 180) * 3.5), Math.round(cy + Math.sin(a * Math.PI / 180) * 3.5), 1, 1, a % 90 === 0 ? '#fff0b0' : GOLD); } },
+  機關獸: { front(x, [hx], p) { const bx = hx + (p ? 8 : 5), by = PO.h - 7; box(x, bx, by, 7, 4, '#9a7a4a'); box(x, bx + 6, by - 3, 4, 3, '#b08a52'); R(x, bx + 8, by - 2, 1, 1, '#ff5a3a'); R(x, bx + 1, by + 4, 1, 2, OL); R(x, bx + 5, by + 4, 1, 2, OL); R(x, bx + 1, by + 1, 5, 1, '#c8a46a'); } },
+  丹爐: { front(x, [hx, hy], p) { const oy = p ? -5 : 0; blob(x, PO.w, PO.h, [[hx + 2.5, hy - 1.5 + oy, 3.2]], ['#6a4a1e', '#a87a32', '#d8a84a'], () => .5); R(x, hx, hy + 1 + oy, 1, 2, OL); R(x, hx + 4, hy + 1 + oy, 1, 2, OL); if (p) { R(x, hx + 1, hy - 6 + oy, 1, 2, '#ff9a3a'); R(x, hx + 3, hy - 7 + oy, 1, 2, '#ffd05a'); } } },
+  琴: { front(x, [hx, hy], p) { box(x, hx - 10, hy - 1, 14, 3, '#4a2e1e'); R(x, hx - 10, hy - 1, 14, 1, '#6a4a32'); for (let i = -8; i < 3; i += 2) R(x, hx + i, hy, 1, 1, '#e8dcc0'); if (p) { R(x, hx - 2, hy - 7, 2, 1, '#ffffff'); R(x, hx - 1, hy - 9, 1, 2, '#ffffff'); R(x, hx + 3, hy - 9, 2, 1, '#ffffff'); R(x, hx + 4, hy - 11, 1, 2, '#ffffff'); } } }
+};
+const WSHOT = { 弓: 'arrow', 法球: 'orb', 杖: 'bolt', 玉珠: 'bead', 扇: 'wind', 匕首: 'knife', 毒蠱: 'bug', 寶輪: 'ring', 法典: 'rune', 丹爐: 'fire', 琴: 'note' };
+// 一個姿勢：f=0~3 走路、pose='idle'|'walk'|'atk'|'sit'
+function playerFrame(w, pose, f) {
+  const look = WLOOK[w] || WLOOK['銀'], item = GAME.weapons[w].item, WD = WDRAW[item] || WDRAW['長劍'];
+  const robe = look[0], pal = { o: OL, h: look[1], H: tint(look[1], 1.6), t: look[2], s: '#f2d2ae', S: '#d6a986', e: '#1d1a17', w: '#ece4d4', r: robe, R: tint(robe, .72), l: tint(robe, 1.18), b: look[2], p: '#3a3530', k: '#2a2420' };
+  const [c, x] = mkCv(PO.w, PO.h), bob = pose === 'walk' ? (f & 1) : pose === 'idle' ? (f & 1) : 0, sit = pose === 'sit' ? 3 : 0;
+  const ox = PO.x, oy = PO.y + bob + sit, atk = pose === 'atk';
+  const hand = [ox + 12 + (atk ? 1 : 0), oy + 17 - (atk ? 2 : 0)], back = [ox + 4, oy + 17];
+  if (WD.back) WD.back(x, back, atk);
+  PBODY.forEach((row, ry) => { for (let i = 0; i < 16; i++) { const ch = row[i]; if (ch !== '.') R(x, ox + i, oy + ry, 1, 1, pal[ch]); } });
+  if (atk) { R(x, ox + 12, oy + 17, 1, 1, pal.R); R(x, ox + 13, oy + 15, 1, 1, pal.s); }
+  if (sit) { box(x, ox + 4, oy + 21, 9, 2, pal.p); }
+  else {
+    const st = pose === 'walk' ? [0, -1, 0, 1][f & 3] : 0, Ly = PO.y + 21 + (pose === 'walk' && (f & 1) ? 0 : 0);
+    for (const [lx, d] of [[ox + 5, -st], [ox + 9, st]]) { R(x, lx + d, Ly, 3, 3, OL); R(x, lx + d + 1, Ly, 1, 1, pal.p); R(x, lx + d + 1, Ly + 1, 1, 1, pal.k); }
+  }
+  WD.front(x, hand, atk);
+  return c;
+}
+function flipCv(src) { const [c, x] = mkCv(src.width, src.height); x.translate(src.width, 0); x.scale(-1, 1); x.drawImage(src, 0, 0); return c; }
+function whiteCv(src, col = '#ffffff') { const [c, x] = mkCv(src.width, src.height); x.drawImage(src, 0, 0); x.globalCompositeOperation = 'source-in'; R(x, 0, 0, c.width, c.height, col); return c; }
+function playerFrames(w) {
+  const F = {};
+  const add = (k, cv) => { F[k] = [cv, flipCv(cv)]; };
+  add('idle0', playerFrame(w, 'idle', 0)); add('idle1', playerFrame(w, 'idle', 1));
+  for (let i = 0; i < 4; i++) add('walk' + i, playerFrame(w, 'walk', i));
+  add('atk', playerFrame(w, 'atk', 0)); add('sit', playerFrame(w, 'sit', 0));
+  F.hurt = [whiteCv(F.idle0[0], '#ff6a5a'), whiteCv(F.idle0[1], '#ff6a5a')];
+  return F;
+}
+
+/* ----- 魔物：把原本的圖縮成小格子，加黑邊 ----- */
+function mobSize(key) { const m = GAME.monsters[key]; return m.rank === 'boss' ? 46 : m.rank === 'elite' ? 36 : 28; }
+function mobSprite(key) {
+  const S = mobSize(key), id = key + ':' + S;
+  if (SC.mob[id]) return SC.mob[id].ready ? SC.mob[id] : null;
+  const ent = SC.mob[id] = { ready: false };
+  const img = new Image();
+  img.onload = () => {
+    const W2 = S + 2, [c, x] = mkCv(W2, W2); x.imageSmoothingEnabled = true; x.drawImage(img, 1, 1, S, S);
+    const id2 = x.getImageData(0, 0, W2, W2), d = id2.data;
+    for (let i = 3; i < d.length; i += 4) d[i] = d[i] > 110 ? 255 : 0;
+    const op = p => d[p * 4 + 3] === 255, add = [];
+    for (let p = 0; p < W2 * W2; p++) if (!op(p)) { const px = p % W2, py = p / W2 | 0; if ((px > 0 && op(p - 1)) || (px < W2 - 1 && op(p + 1)) || (py > 0 && op(p - W2)) || (py < W2 - 1 && op(p + W2))) add.push(p); }
+    for (const p of add) { d[p * 4] = 29; d[p * 4 + 1] = 26; d[p * 4 + 2] = 23; d[p * 4 + 3] = 255; }
+    x.putImageData(id2, 0, 0);
+    // 圖的最下緣當作腳
+    let bot = W2 - 1; outer: for (let py = W2 - 1; py >= 0; py--) for (let px = 0; px < W2; px++) if (d[(py * W2 + px) * 4 + 3]) { bot = py; break outer; }
+    Object.assign(ent, { ready: true, n: c, f: flipCv(c), w: whiteCv(c), wf: whiteCv(flipCv(c)), S: W2, foot: bot + 1 });
+  };
+  img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(mobSvg(key).replace('<svg ', '<svg xmlns="http://www.w3.org/2000/svg" '));
+  return null;
+}
+
+/* ----- 建立場景 ----- */
+function sceneKey() { return rt.tower ? 'T:' + rt.tower.id + ':' + rt.tower.floor : 'Z:' + st.zone; }
+function sceneBuild(key) {
+  SC.key = key; SC.water = []; SC.props = []; SC.ents.clear(); SC.wand = []; SC.fx = []; SC.txt = []; SC.amb = [];
+  let B, seed = strHash(key);
+  if (rt.tower) B = towerBiome(towerById(rt.tower.id));
+  else B = BIOME[zoneById(st.zone).place] || BIOME['天霖市'];
+  SC.B = B;
+  const r = srand(seed), W = SC.WW, H = SC.WH, [c, x] = mkCv(W, H);
+  // 底色：兩層雜訊
+  const img = x.createImageData(W, H), d = img.data, cols = B.g.map(rgbOf), G = 26, gw = Math.ceil(W / G) + 2, nv = [];
+  for (let i = 0; i < gw * (Math.ceil(H / G) + 2); i++) nv.push(r());
+  const sm = t => t * t * (3 - 2 * t);
+  for (let py = 0; py < H; py++) for (let px = 0; px < W; px++) {
+    const gx = px / G, gy = py / G, x0 = gx | 0, y0 = gy | 0, fx = sm(gx - x0), fy = sm(gy - y0);
+    const a = nv[y0 * gw + x0], b = nv[y0 * gw + x0 + 1], cc = nv[(y0 + 1) * gw + x0], dd = nv[(y0 + 1) * gw + x0 + 1];
+    const n = a + (b - a) * fx + (cc - a) * fy + (a - b - cc + dd) * fx * fy + (r() - .5) * .3;
+    const col = cols[n < .38 ? 2 : n < .64 ? 0 : 1], i = (py * W + px) * 4;
+    d[i] = col[0]; d[i + 1] = col[1]; d[i + 2] = col[2]; d[i + 3] = 255;
+  }
+  x.putImageData(img, 0, 0);
+  for (const [k, o] of B.patch || []) PATCH[k](x, r, o || {});
+  if (B.tuft) for (let i = 0; i < W * H / 240; i++) { const px = r() * W | 0, py = r() * H | 0; R(x, px, py, 1, 2, B.tuft); R(x, px - 1, py + 1, 1, 1, tint(B.tuft, .8)); R(x, px + 1, py, 1, 1, tint(B.tuft, 1.15)); }
+  for (let i = 0; i < W * H / 900; i++) { const px = r() * W | 0, py = r() * H | 0; R(x, px, py, 2, 1, tint(B.g[1], .8)); R(x, px, py - 1, 1, 1, tint(B.g[2], 1.15)); }
+  SC.ground = c;
+  // 景物：避開水和彼此
+  const inWater = (px, py) => SC.water.some(w => w.river ? Math.abs(py - (w.y0 + Math.sin(px * .012 + w.ph) * w.A)) < w.w + 6 : ((px - w.cx) / (w.rx + 6)) ** 2 + ((py - w.cy) / (w.ry + 5)) ** 2 < 1);
+  const cache = {};
+  for (const [kind, n, o] of B.props) for (let i = 0; i < n; i++) {
+    for (let tries = 0; tries < 20; tries++) {
+      const px = 12 + r() * (W - 24), py = 26 + r() * (H - 30);
+      if (inWater(px, py) || SC.props.some(p => Math.abs(p.x - px) < 18 && Math.abs(p.y - py) < 10)) continue;
+      const vk = kind + ':' + (i % 3);
+      if (!cache[vk]) cache[vk] = PROP[kind](srand(seed + i * 977 + kind.length), o || {});
+      const [cv, ax, ay, glow] = cache[vk];
+      SC.props.push({ cv: r() < .5 && kind !== 'house' && kind !== 'rlantern' ? (cache[vk + 'f'] = cache[vk + 'f'] || flipCv(cv)) : cv, x: px, y: py, ax, ay, glow, ph: r() * 6 });
+      break;
+    }
+  }
+  // 起始位置、鏡頭
+  SC.pl = { x: W / 2, y: H / 2 + 20, face: 1, st: 'idle', walkT: 0, atk: 0, hurt: 0, pt: null, pause: 1 };
+  SC.cam.x = SC.pl.x - SC.lw / 2; SC.cam.y = SC.pl.y - SC.lh / 2; clampCam();
+  initAmb();
+}
+function clampCam() { SC.cam.x = Math.max(0, Math.min(SC.WW - SC.lw, SC.cam.x)); SC.cam.y = Math.max(0, Math.min(SC.WH - SC.lh, SC.cam.y)); }
+
+/* ----- 氣氛粒子 ----- */
+function initAmb() {
+  SC.amb = []; const k = SC.B && SC.B.amb; if (!k) return;
+  const n = { snow: 46, leaves: 14, fireflies: 14, wisps: 7, fluff: 18, embers: 16, dust: 12, mist: 5, sparks: 16 }[k] || 0;
+  for (let i = 0; i < n; i++) SC.amb.push({ x: Math.random() * SC.lw, y: Math.random() * SC.lh, p: Math.random() * 6.28, s: .5 + Math.random() });
+}
+function drawAmb(x, dt) {
+  const k = SC.B.amb, W = SC.lw, H = SC.lh, t = SC.t;
+  for (const a of SC.amb) {
+    if (k === 'snow') { a.y += (9 + a.s * 8) * dt; a.x += Math.sin(t + a.p) * 4 * dt; R(x, a.x | 0, a.y | 0, 1, 1, '#ffffff'); }
+    else if (k === 'leaves') { a.y += (7 + a.s * 6) * dt; a.x += (Math.sin(t * 1.5 + a.p) * 10 + 4) * dt; R(x, a.x | 0, a.y | 0, 2, 1, a.s > 1 ? '#e0823a' : '#c8553d'); }
+    else if (k === 'fireflies') { a.x += Math.sin(t * .7 + a.p) * 6 * dt; a.y += Math.cos(t * .9 + a.p * 2) * 5 * dt; if (Math.sin(t * 2.4 + a.p * 3) > -.2) { R(x, a.x | 0, a.y | 0, 1, 1, '#f2f59a'); x.globalAlpha = .3; R(x, (a.x | 0) - 1, (a.y | 0) - 1, 3, 3, '#e8f07a'); x.globalAlpha = 1; } }
+    else if (k === 'wisps') { a.y -= (3 + a.s * 3) * dt; a.x += Math.sin(t + a.p) * 5 * dt; x.globalAlpha = .5 + .4 * Math.sin(t * 3 + a.p); R(x, a.x | 0, a.y | 0, 2, 2, '#bfd8ff'); R(x, (a.x | 0) + 0, (a.y | 0) + 2, 1, 2, '#7a9ae0'); x.globalAlpha = 1; }
+    else if (k === 'fluff') { a.x += (6 + a.s * 6) * dt; a.y += Math.sin(t + a.p) * 3 * dt; R(x, a.x | 0, a.y | 0, 1, 1, '#f4f4ee'); }
+    else if (k === 'embers') { a.y -= (6 + a.s * 6) * dt; a.x += Math.sin(t * 2 + a.p) * 3 * dt; if (Math.sin(t * 5 + a.p * 4) > -.4) R(x, a.x | 0, a.y | 0, 1, 1, a.s > 1 ? '#ffb05a' : '#ff6a3a'); }
+    else if (k === 'dust') { a.x += (5 + a.s * 5) * dt; a.y += Math.sin(t * .8 + a.p) * 2 * dt; x.globalAlpha = .5; R(x, a.x | 0, a.y | 0, 1, 1, '#e8dcc0'); x.globalAlpha = 1; }
+    else if (k === 'sparks') { a.y -= 3 * dt; const v = Math.sin(t * 3 + a.p * 5); if (v > .3) { R(x, a.x | 0, a.y | 0, 1, 1, '#fff2b0'); if (v > .85) { R(x, (a.x | 0) - 1, a.y | 0, 3, 1, '#f2d58a'); R(x, a.x | 0, (a.y | 0) - 1, 1, 3, '#f2d58a'); } } }
+    else if (k === 'mist') { a.x += (3 + a.s * 2) * dt; x.globalAlpha = .07; for (let j = 0; j < 3; j++) R(x, (a.x - 18 + j * 4) | 0, (a.y - 4 + j * 2) | 0, 36 - j * 8, 8 - j * 2, '#ffffff'); x.globalAlpha = 1; }
+    if (a.y > H + 4) { a.y = -4; a.x = Math.random() * W; } if (a.y < -6) { a.y = H + 4; a.x = Math.random() * W; }
+    if (a.x > W + 20) { a.x = -20; a.y = Math.random() * H; } if (a.x < -24) a.x = W + 20;
+  }
+}
+
+/* ----- 魔物在場上 ----- */
+const RANGE_PX = { '近': 13, '中': 30, '全': 24, '遠': 44 };
+function newEnt(key, x, y, uid) { const m = GAME.monsters[key]; return { uid, key, rank: m.rank, x, y, face: -1, alpha: 0, flash: 0, lunge: 0, die: 0, ph: Math.random() * 6, tx: x, ty: y, pause: Math.random() * 2, size: mobSize(key), moving: false }; }
+function placeGroup(list) {
+  const P = SC.pl, a0 = Math.atan2(SC.WH / 2 - P.y, SC.WW / 2 - P.x) + (Math.random() - .5) * 2.2;
+  let ax = P.x + Math.cos(a0) * 52, ay = P.y + Math.sin(a0) * 34;
+  ax = Math.max(SC.cam.x + 16, Math.min(SC.cam.x + SC.lw - 16, ax)); ay = Math.max(SC.cam.y + 30, Math.min(SC.cam.y + SC.lh - 8, ay));
+  list.forEach((m, i) => {
+    // 先找附近閒晃、同種的魔物接手
+    let best = -1, bd = 1e9;
+    SC.wand.forEach((w, j) => { if (w.key !== m.key) return; const d = Math.hypot(w.x - P.x, w.y - P.y); if (d < bd && d < 90) { bd = d; best = j; } });
+    let e;
+    if (best >= 0) { e = SC.wand.splice(best, 1)[0]; e.uid = m.uid; }
+    else { const off = (i - (list.length - 1) / 2) * 13; e = newEnt(m.key, ax + Math.sin(a0) * off + (Math.random() - .5) * 6, ay - Math.cos(a0) * off * .7 + (Math.random() - .5) * 6, m.uid); }
+    SC.ents.set(m.uid, e);
+  });
+}
+function spawnWanderer() {
+  const z = zoneById(st.zone), pool = z.spawns.filter(([k]) => !GAME.monsters[k].rank); if (!pool.length) return;
+  let tot = pool.reduce((s, p) => s + p[1], 0), r = Math.random() * tot, key = pool[0][0];
+  for (const [k, w] of pool) { r -= w; if (r <= 0) { key = k; break; } }
+  const P = SC.pl; let x, y, n = 0;
+  do { x = 20 + Math.random() * (SC.WW - 40); y = 30 + Math.random() * (SC.WH - 40); n++; } while (n < 12 && Math.hypot(x - P.x, y - P.y) < 70);
+  SC.wand.push(newEnt(key, x, y, null));
+}
+function moveTo(o, tx, ty, spd, dt) {
+  const dx = tx - o.x, dy = ty - o.y, d = Math.hypot(dx, dy);
+  if (d < .6) return false;
+  const s = Math.min(d, spd * dt); o.x += dx / d * s; o.y += dy / d * s;
+  if (Math.abs(dx) > .5) o.face = dx > 0 ? 1 : -1;
+  return true;
+}
+
+/* ----- 每一格的更新 ----- */
+function sceneUpdate(dt) {
+  SC.t += dt;
+  const key = sceneKey(); if (key !== SC.key) sceneBuild(key);
+  if (SC.pw !== st.weapon) { SC.pw = st.weapon; SC.pf = playerFrames(st.weapon); }
+  const P = SC.pl, mode = rt.mode, mobs = rt.mobs || [], byUid = new Map(mobs.map(m => [m.uid, m]));
+  const fresh = mobs.filter(m => !SC.ents.has(m.uid) && !(m.dead || m.hp <= 0));
+  if (fresh.length && mode !== 'down') placeGroup(fresh);
+  // 參戰的魔物：越多隻圍得越開
+  const nLive = mobs.filter(m => !(m.dead || m.hp <= 0)).length, spread = Math.max(0, nLive - 3) * 3.2;
+  for (const [uid, e] of SC.ents) {
+    const m = byUid.get(uid);
+    if (e.die) { e.die += dt; if (e.die > .8) SC.ents.delete(uid); continue; }
+    if (!m || m.dead || m.hp <= 0 || mode === 'down') { e.die = .001; continue; }
+    e.m = m; e.alpha = Math.min(1, e.alpha + dt * 3); e.flash = Math.max(0, e.flash - dt); e.lunge = Math.max(0, e.lunge - dt);
+    if (mode === 'fight' && !m.stunned) {
+      const dx = e.x - P.x, dy = e.y - P.y, d = Math.hypot(dx, dy) || 1, rad = 15 + e.size * .3 + spread;
+      let tx = P.x + dx / d * rad, ty = P.y + dy / d * rad * .75;
+      for (const [u2, o] of SC.ents) if (u2 !== uid && !o.die) { const ox = e.x - o.x, oy = e.y - o.y, od = Math.hypot(ox, oy); if (od < 15 && od > .01) { tx += ox / od * 7; ty += oy / od * 7; } }
+      e.moving = moveTo(e, tx, ty, e.rank === 'boss' ? 24 : 34, dt);
+    } else e.moving = false;
+    e.face = P.x > e.x ? 1 : -1;
+  }
+  // 閒晃的魔物
+  const want = rt.tower || mode === 'down' ? 0 : zoneById(st.zone).spawns.length ? 3 : 0;
+  while (SC.wand.length < want) spawnWanderer();
+  for (const w of SC.wand) {
+    w.alpha = Math.min(1, w.alpha + dt * 2);
+    if (w.pause > 0) { w.pause -= dt; w.moving = false; continue; }
+    const near = Math.hypot(w.x - P.x, w.y - P.y) < 45 && mode === 'fight';
+    if (near) { w.tx = w.x + (w.x - P.x) * .8; w.ty = w.y + (w.y - P.y) * .8; }
+    w.tx = Math.max(16, Math.min(SC.WW - 16, w.tx)); w.ty = Math.max(28, Math.min(SC.WH - 8, w.ty));
+    w.moving = moveTo(w, w.tx, w.ty, 11, dt);
+    if (!w.moving) { w.pause = 1 + Math.random() * 3; w.tx = w.x + (Math.random() - .5) * 70; w.ty = w.y + (Math.random() - .5) * 45; }
+  }
+  if (want === 0) SC.wand.length = 0;
+  // 主角
+  P.atk = Math.max(0, P.atk - dt); P.hurt = Math.max(0, P.hurt - dt);
+  const T = rt.mob && SC.ents.get(rt.mob.uid);
+  let walking = false;
+  if (mode === 'down') P.st = 'down';
+  else if (mode === 'rest') P.st = 'sit';
+  else if (mode === 'fight' && T && !T.die) {
+    const dx = T.x - P.x, dy = T.y - P.y, d = Math.hypot(dx, dy), want2 = (RANGE_PX[GAME.weapons[st.weapon].range] || 13) + T.size * .22;
+    if (d > want2 + 2) walking = moveTo(P, T.x - dx / d * want2, T.y - dy / d * want2 * .8, 58, dt);
+    P.face = dx >= 0 ? 1 : -1; P.st = walking ? 'walk' : 'idle';
+  } else {
+    if (P.pause > 0) P.pause -= dt;
+    else {
+      if (!P.pt) { const a = Math.random() * 6.28, r = 30 + Math.random() * 60; P.pt = [Math.max(24, Math.min(SC.WW - 24, P.x + Math.cos(a) * r)), Math.max(34, Math.min(SC.WH - 12, P.y + Math.sin(a) * r * .7))]; }
+      walking = moveTo(P, P.pt[0], P.pt[1], 26, dt);
+      if (!walking) { P.pt = null; P.pause = .4 + Math.random() * 1.4; }
+    }
+    P.st = walking ? 'walk' : 'idle';
+  }
+  if (walking) P.walkT += dt;
+  // 鏡頭
+  const cx = P.x - SC.lw / 2, cy = P.y - SC.lh / 2 - 6;
+  SC.cam.x += (cx - SC.cam.x) * Math.min(1, dt * 3); SC.cam.y += (cy - SC.cam.y) * Math.min(1, dt * 3); clampCam();
+  // 特效、文字
+  for (const f of SC.fx) f.t += dt;
+  SC.fx = SC.fx.filter(f => f.t < f.life);
+  for (const t of SC.txt) t.t += dt;
+  SC.txt = SC.txt.filter(t => t.t < t.life);
+  SC.flash = Math.max(0, SC.flash - dt);
+}
+
+/* ----- 畫 ----- */
+function ell(x, cx, cy, rx, ry, c) { for (let yy = -ry; yy <= ry; yy++) { const w = Math.round(rx * Math.sqrt(1 - (yy / (ry + .5)) ** 2)); R(x, cx - w, cy + yy, w * 2 + 1, 1, c); } }
+function ring(x, cx, cy, rx, ry, c) { for (let a = 0; a < 6.28; a += 1 / Math.max(rx, 4)) R(x, Math.round(cx + Math.cos(a) * rx), Math.round(cy + Math.sin(a) * ry), 1, 1, c); }
+function sceneDraw(dt) {
+  const x = SC.lx, cam = { x: Math.round(SC.cam.x), y: Math.round(SC.cam.y) }, W = SC.lw, H = SC.lh, t = SC.t, P = SC.pl;
+  x.drawImage(SC.ground, -cam.x, -cam.y);
+  // 水面閃光
+  for (const w of SC.water) for (let i = 0; i < (w.river ? 10 : 3); i++) {
+    const s = Math.sin(t * 2 + i * 7.1), px = w.river ? (i * 47 + t * 6) % SC.WW : w.cx + Math.cos(i * 2.3 + t * .3) * w.rx * .6, py = w.river ? w.y0 + Math.sin(px * .012 + w.ph) * w.A + Math.sin(i * 3) * w.w * .5 : w.cy + Math.sin(i * 1.7) * w.ry * .5;
+    if (s > .4) R(x, Math.round(px - cam.x), Math.round(py - cam.y), 2, 1, 'rgba(255,255,255,.55)');
+  }
+  // 影子、腳下的圈
+  const vis = (o, m = 30) => o.x > cam.x - m && o.x < cam.x + W + m && o.y > cam.y - 8 && o.y < cam.y + H + 50;
+  const all = [...SC.ents.values(), ...SC.wand];
+  x.globalAlpha = .28;
+  for (const e of all) if (vis(e)) ell(x, Math.round(e.x - cam.x), Math.round(e.y - cam.y), Math.round(e.size * .3), Math.max(2, Math.round(e.size * .1)), '#000000');
+  if (P.st !== 'down') ell(x, Math.round(P.x - cam.x), Math.round(P.y - cam.y), 6, 2, '#000000');
+  x.globalAlpha = 1;
+  ring(x, Math.round(P.x - cam.x), Math.round(P.y - cam.y), 8, 3, 'rgba(120,200,255,.75)');
+  const T = rt.mob && SC.ents.get(rt.mob.uid);
+  if (T && !T.die && rt.mode === 'fight' && SC.ents.size > 1) ring(x, Math.round(T.x - cam.x), Math.round(T.y - cam.y), Math.round(T.size * .38), Math.round(T.size * .13), Math.sin(t * 6) > 0 ? '#f2d58a' : '#c9a45c');
+  for (const e of SC.ents.values()) if (e.rank && !e.die && vis(e)) ring(x, Math.round(e.x - cam.x), Math.round(e.y - cam.y), Math.round(e.size * .45 + Math.sin(t * 3) * 1.5), Math.round(e.size * .16), e.rank === 'boss' ? '#f2d58a' : '#ff8a7a');
+  // 依 y 排序畫景物、魔物、主角
+  const list = [];
+  for (const p of SC.props) if (p.x - p.ax < cam.x + W && p.x + p.cv.width - p.ax > cam.x && p.y - p.ay < cam.y + H && p.y > cam.y) list.push([p.y, 0, p]);
+  for (const e of all) if (vis(e)) list.push([e.y, 1, e]);
+  list.push([P.y, 2, P]);
+  list.sort((a, b) => a[0] - b[0]);
+  for (const [, k, o] of list) {
+    if (k === 0) { x.drawImage(o.cv, Math.round(o.x - o.ax - cam.x), Math.round(o.y - o.ay - cam.y)); if (o.glow && Math.sin(t * 2 + o.ph) > .6) { x.globalAlpha = .25; ell(x, Math.round(o.x - cam.x), Math.round(o.y - o.ay * .6 - cam.y), 5, 4, o.glow); x.globalAlpha = 1; } }
+    else if (k === 1) drawMob(x, o, cam, t);
+    else drawPlayer(x, o, cam, t);
+  }
+  drawFx(x, cam, t);
+  drawAmb(x, dt);
+  if (SC.flash > 0) { x.globalAlpha = Math.min(.55, SC.flash * 1.4); R(x, 0, 0, W, H, SC.flashC); x.globalAlpha = 1; }
+  // 放大到畫面上，再寫字
+  const c = SC.cx, PX = SC.PX;
+  c.setTransform(SC.dpr, 0, 0, SC.dpr, 0, 0); c.imageSmoothingEnabled = false;
+  c.drawImage(SC.lo, 0, 0, W, H, 0, 0, W * PX, H * PX);
+  drawLabels(c, cam, PX, t);
+}
+function drawPlayer(x, P, cam, t) {
+  const F = SC.pf; if (!F) return;
+  const dir = P.face > 0 ? 0 : 1;
+  let fr = P.st === 'walk' ? F['walk' + ((P.walkT * 8 | 0) & 3)] : P.st === 'sit' ? F.sit : F['idle' + ((t * 1.6 | 0) & 1)];
+  if (P.atk > 0) fr = F.atk;
+  const X = Math.round(P.x - cam.x - PO.w / 2), Y = Math.round(P.y - cam.y - PO.h);
+  if (P.st === 'down') {
+    x.save(); x.translate(Math.round(P.x - cam.x), Math.round(P.y - cam.y)); x.rotate(-Math.PI / 2 * P.face); x.globalAlpha = .75; x.drawImage(fr[dir], -PO.w / 2, -PO.h + 4); x.restore(); x.globalAlpha = 1; return;
+  }
+  x.drawImage(fr[dir], X, Y);
+  if (P.hurt > .04) { x.globalAlpha = .45; x.drawImage(F.hurt[dir], X, Y); x.globalAlpha = 1; }
+}
+function drawMob(x, e, cam, t) {
+  const s = mobSprite(e.key); if (!s) return;
+  const flip = e.face > 0, img = flip ? s.f : s.n;
+  const bob = Math.round(Math.sin(t * (e.moving ? 10 : 3) + e.ph) * (e.moving ? 1 : .6));
+  let X = Math.round(e.x - cam.x - s.S / 2), Y = Math.round(e.y - cam.y - s.foot) + bob;
+  if (e.lunge > 0) X += Math.round(e.face * 4 * Math.sin(e.lunge / .22 * Math.PI));
+  let a = e.alpha;
+  if (e.die) { a = Math.max(0, 1 - e.die / .7); Y += Math.round(e.die * 6); }
+  if (e.uid == null) a *= .92;
+  x.globalAlpha = a; x.drawImage(img, X, Y);
+  if (e.flash > 0 && !e.die) { x.globalAlpha = .6 * a; x.drawImage(flip ? s.wf : s.w, X, Y); }
+  if (e.die && e.die < .1) { x.globalAlpha = .45; x.drawImage(flip ? s.wf : s.w, X, Y); }
+  x.globalAlpha = 1;
+  if (e.m && e.m.stunned > 0 && !e.die) for (let i = 0; i < 3; i++) { const a2 = t * 4 + i * 2.1; R(x, Math.round(e.x - cam.x + Math.cos(a2) * 6), Math.round(Y - 2 + Math.sin(a2) * 2), 1, 1, '#ffe27a'); }
+}
+
+/* ----- 特效 ----- */
+function fxAdd(f) { f.t = 0; SC.fx.push(f); if (SC.fx.length > 140) SC.fx.splice(0, SC.fx.length - 140); }
+function burst(x0, y0, c, n = 8, sp = 30, life = .45, up = 0) { for (let i = 0; i < n; i++) { const a = Math.random() * 6.28, v = sp * (.4 + Math.random() * .8); fxAdd({ k: 'p', x: x0, y: y0, vx: Math.cos(a) * v, vy: Math.sin(a) * v * .7 - up, c, life: life * (.6 + Math.random() * .6), g: up ? -10 : 30 }); } }
+function drawFx(x, cam, t) {
+  for (const f of SC.fx) {
+    const k = f.t / f.life;
+    if (f.k === 'p') { const px = f.x + f.vx * f.t, py = f.y + f.vy * f.t + f.g * f.t * f.t * .5; x.globalAlpha = 1 - k * .7; R(x, Math.round(px - cam.x), Math.round(py - cam.y), 1, 1, f.c); }
+    else if (f.k === 'slash') { const n = 9, r0 = f.r; x.globalAlpha = 1 - k; for (let i = 0; i < n; i++) { const a = f.a - .9 + i / (n - 1) * 1.8 * Math.min(1, k * 3); const px = Math.round(f.x + Math.cos(a) * r0 - cam.x), py = Math.round(f.y + Math.sin(a) * r0 * .8 - cam.y); R(x, px, py, 2, 1, i > n - 3 ? '#ffffff' : f.c); } }
+    else if (f.k === 'ring') { x.globalAlpha = 1 - k; ring(x, Math.round(f.x - cam.x), Math.round(f.y - cam.y), Math.round(f.r0 + (f.r1 - f.r0) * k), Math.round((f.r0 + (f.r1 - f.r0) * k) * .45), f.c); }
+    else if (f.k === 'shot') {
+      const tx = f.to ? f.to.x : f.tx, ty = (f.to ? f.to.y - f.to.size * .45 : f.ty), px = f.x + (tx - f.x) * k, py = f.y + (ty - f.y) * k - Math.sin(k * Math.PI) * (f.arc || 0), X = Math.round(px - cam.x), Y = Math.round(py - cam.y), c = f.c;
+      x.globalAlpha = 1;
+      if (f.s === 'arrow') { const ang = Math.atan2(ty - f.y, tx - f.x); for (let i = 0; i < 5; i++) R(x, Math.round(X - Math.cos(ang) * i), Math.round(Y - Math.sin(ang) * i), 1, 1, i === 0 ? '#e3e8ec' : '#8a6a42'); }
+      else if (f.s === 'knife') { R(x, X - 1, Y, 3, 1, '#e3e8ec'); }
+      else if (f.s === 'note') { R(x, X, Y - 3, 1, 4, '#ffffff'); R(x, X - 1, Y, 2, 2, '#ffffff'); R(x, X + 1, Y - 3, 2, 1, '#ffffff'); }
+      else if (f.s === 'ring') { ring(x, X, Y, 3, 3, c); R(x, X, Y, 1, 1, '#fff0b0'); }
+      else if (f.s === 'wind') { for (let i = -2; i <= 2; i++) R(x, X + Math.abs(i), Y + i, 1, 1, '#f0f4ff'); }
+      else if (f.s === 'bug') { R(x, X - 1, Y - 1, 3, 2, '#2a1a2a'); R(x, X, Y - 1, 1, 1, '#9ae870'); }
+      else { R(x, X - 1, Y - 1, 3, 3, c); R(x, X, Y, 1, 1, '#ffffff'); if (Math.random() < .6) fxAdd({ k: 'p', x: px, y: py, vx: 0, vy: 0, c, life: .2, g: 0 }); }
+    }
+    else if (f.k === 'pillar') { x.globalAlpha = (1 - k) * .55; const X = Math.round(f.x - cam.x), Y = Math.round(f.y - cam.y); R(x, X - 5, Y - 60, 11, 60, f.c); x.globalAlpha = (1 - k) * .9; R(x, X - 2, Y - 60, 5, 60, '#ffffff'); }
+    else if (f.k === 'beam') { x.globalAlpha = (1 - k) * .8; const X = Math.round(f.x - cam.x), Y = Math.round(f.y - cam.y); R(x, X - 1, Y - 34, 3, 34, f.c); R(x, X, Y - 40, 1, 40, '#ffffff'); }
+    x.globalAlpha = 1;
+  }
+}
+
+/* ----- 字（用高解析度畫，才清楚） ----- */
+function scText(c, s, X, Y, col, size, w = 700) { c.font = w + ' ' + size + 'px ' + SC.font; c.textAlign = 'center'; c.textBaseline = 'alphabetic'; c.lineJoin = 'round'; c.lineWidth = Math.max(2.5, size / 4.5); c.strokeStyle = 'rgba(16,14,20,.92)'; c.strokeText(s, X, Y); c.fillStyle = col; c.fillText(s, X, Y); }
+function rrect(c, X, Y, W, H, r) { c.beginPath(); c.moveTo(X + r, Y); c.arcTo(X + W, Y, X + W, Y + H, r); c.arcTo(X + W, Y + H, X, Y + H, r); c.arcTo(X, Y + H, X, Y, r); c.arcTo(X, Y, X + W, Y, r); c.closePath(); }
+function plate(c, s, X, Y, col, seal, sealCls) {
+  c.font = '600 10.5px ' + SC.font; const tw = c.measureText(s).width, sw = seal ? 14 : 0, W = tw + 10 + sw, H = 16, x0 = Math.round(X - W / 2);
+  rrect(c, x0, Y, W, H, 4); c.fillStyle = 'rgba(18,16,24,.74)'; c.fill();
+  if (seal) { rrect(c, x0 + 3, Y + 2.5, 11, 11, 2); c.fillStyle = sealCls === 'good' ? '#5aa88a' : sealCls === 'bad' ? '#c8553d' : '#3a3846'; c.fill(); c.font = '700 8.5px ' + SC.font; c.fillStyle = sealCls ? '#14121a' : '#e8e4dc'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText(seal, x0 + 8.5, Y + 8.5); }
+  c.font = '600 10.5px ' + SC.font; c.textAlign = 'left'; c.textBaseline = 'middle'; c.fillStyle = col; c.fillText(s, x0 + 5 + sw, Y + 8.5);
+}
+function drawLabels(c, cam, PX, t) {
+  const P = SC.pl, toX = v => (v - cam.x) * PX, toY = v => (v - cam.y) * PX, T = rt.mob;
+  for (const e of [...SC.wand, ...SC.ents.values()]) {
+    if (e.die || e.alpha < .5) continue;
+    const X = toX(e.x), Y = toY(e.y); if (X < -40 || X > SC.W + 40 || Y < -20 || Y > SC.H + 30) continue;
+    const mon = GAME.monsters[e.key], m = e.m;
+    if (!m) { c.globalAlpha = .7; plate(c, mon.name, X, Y + 3, '#b8b2a8'); c.globalAlpha = 1; continue; }
+    const a = m.attrs[m.stance], k = matchup(st.weapon, a), crowd = SC.ents.size > 4 && T !== m && !m.rank;
+    if (!crowd) plate(c, m.label, X, Y + 3, m.rank === 'boss' ? '#f2d58a' : m.rank === 'elite' ? '#ffb9ad' : T === m ? '#ffffff' : '#d8d2c8', a, k === 'counter' ? 'good' : k === 'countered' ? 'bad' : '');
+    const s = mobSprite(e.key), top = Y - ((s ? s.foot : e.size) - 1) * PX - 7, bw = Math.max(30, e.size * 1.2);
+    c.fillStyle = 'rgba(16,14,20,.85)'; c.fillRect(X - bw / 2 - 1, top - 1, bw + 2, 5); c.fillStyle = '#3a1a18'; c.fillRect(X - bw / 2, top, bw, 3);
+    c.fillStyle = m.rank === 'boss' ? '#e8b84a' : '#d8553d'; c.fillRect(X - bw / 2, top, bw * Math.max(0, m.hp / m.maxHp), 3);
+  }
+  if (P.st !== 'down' && !(rt.mode === 'fight' && SC.ents.size)) plate(c, '御劍者', toX(P.x), toY(P.y) + 3, '#e6f3ee', st.weapon, '');
+  for (const s of SC.txt) {
+    const k = s.t / s.life, X = toX(s.x) + (s.dx || 0), Y = toY(s.y) - (s.rise || 26) * Math.min(1, k * 1.6) - (s.dy || 0);
+    c.globalAlpha = k > .7 ? (1 - k) / .3 : 1;
+    const pop = s.pop ? 1 + Math.max(0, .35 - k) * 1.6 : 1;
+    scText(c, s.s, X, Y, s.c, Math.round(s.size * pop), s.w || 800);
+    c.globalAlpha = 1;
+  }
+}
+function say(x, y, s, c, size = 13, o = {}) { SC.txt.push(Object.assign({ x, y, s, c, size, t: 0, life: .9, dx: (Math.random() - .5) * 14 }, o)); if (SC.txt.length > 40) SC.txt.shift(); }
+
+/* ----- 引擎事件 → 畫面 ----- */
+function sceneEvent(e) {
+  if (!SC.on || !SC.pl || SC.key !== sceneKey()) return;
+  const P = SC.pl, look = WLOOK[st.weapon] || WLOOK['銀'], acc = look[2], item = GAME.weapons[st.weapon].item, head = y => y - 26;
+  const ent = e.uid != null ? SC.ents.get(e.uid) : null;
+  switch (e.t) {
+    case 'hit':
+      if (e.who === 'p') {
+        if (!ent) break;
+        const ex = ent.x, ey = ent.y - ent.size * .45;
+        if (!e.quiet || e.skill) { P.atk = .22; P.face = ent.x >= P.x ? 1 : -1; }
+        const shot = WSHOT[item];
+        if (!e.quiet && shot) fxAdd({ k: 'shot', s: shot, x: P.x + P.face * 6, y: P.y - 14, to: ent, c: acc, life: .16, arc: shot === 'arrow' ? 4 : 0 });
+        else fxAdd({ k: 'slash', x: ex, y: ey, a: P.face > 0 ? 0 : Math.PI, r: 7 + ent.size * .15, c: e.skill ? acc : '#e8eef4', life: .2 });
+        burst(ex, ey, e.crit ? '#ffd86a' : e.skill ? acc : '#ffffff', e.crit ? 10 : 5, e.crit ? 42 : 26, .35);
+        ent.flash = .1;
+        const col = e.crit ? '#ffcf4a' : e.kind === 'counter' ? '#7fe0b0' : e.kind === 'countered' ? '#a8a8b0' : e.skill ? '#fff0c8' : '#ffffff';
+        say(ent.x, ent.y - ent.size, fmt(e.dmg) + (e.crit ? '!' : ''), col, e.crit ? 19 : e.skill ? 15 : 13, { pop: e.crit, life: e.crit ? 1.05 : .85 });
+      } else {
+        if (ent) { ent.lunge = .22; ent.face = P.x > ent.x ? 1 : -1; }
+        P.hurt = .16; burst(P.x, P.y - 12, '#ff6a5a', 5, 24, .3);
+        say(P.x, P.y - 24, '-' + fmt(e.dmg), e.crit ? '#ff6a4a' : '#ff9a8a', e.crit ? 17 : 12, { pop: e.crit, life: .8 });
+      }
+      break;
+    case 'miss': if (e.who === 'p') { if (ent) say(ent.x, ent.y - ent.size, '落空', '#a8a8b0', 11); } else say(P.x, P.y - 24, '落空', '#a8a8b0', 11); break;
+    case 'dodge': say(P.x, P.y - 24, '閃避', '#9fd8ff', 12); if (ent) ent.lunge = .22; break;
+    case 'cast': {
+      say(P.x, P.y - 30, e.name, '#f2d58a', 13, { life: 1.1, dx: 0, rise: 16, w: 700 });
+      P.atk = .25;
+      if (e.aoe) { fxAdd({ k: 'ring', x: P.x, y: P.y - 4, r0: 4, r1: 48, c: acc, life: .45 }); fxAdd({ k: 'ring', x: P.x, y: P.y - 4, r0: 2, r1: 34, c: '#ffffff', life: .35 }); }
+      for (const s of e.fx || []) { const m = /回復 (\d+)/.exec(s); if (m) { say(P.x, P.y - 32, '+' + fmt(+m[1]), '#8af0a8', 14, { dx: 0, life: 1 }); burst(P.x, P.y - 10, '#8af0a8', 8, 18, .7, 16); } else if (/護盾/.test(s)) fxAdd({ k: 'ring', x: P.x, y: P.y - 10, r0: 10, r1: 13, c: '#9fd8ff', life: .7 }); }
+      break;
+    }
+    case 'proc': { const m = /回復 (\d+)/.exec(e.text || ''); if (m) { say(P.x, P.y - 32, '+' + fmt(+m[1]), '#8af0a8', 13, { dx: 0 }); burst(P.x, P.y - 10, '#8af0a8', 6, 16, .6, 14); } else if (!e.quiet) say(P.x, P.y - 36, e.name, '#e6c77a', 11, { dx: 0, rise: 12 }); break; }
+    case 'potion': say(P.x, P.y - 32, e.v ? '+' + fmt(e.v) : e.name, e.v ? '#8af0a8' : '#9fd8ff', 13, { dx: 0 }); burst(P.x, P.y - 10, e.v ? '#8af0a8' : '#9fd8ff', 8, 16, .7, 16); break;
+    case 'kill': if (ent) { SC.lastKill = { x: ent.x, y: ent.y }; burst(ent.x, ent.y - ent.size * .4, '#d8d2c8', 10, 22, .6); if (e.got && Object.keys(e.got).length) { fxAdd({ k: 'beam', x: ent.x, y: ent.y, c: '#e6c77a', life: .6 }); } } break;
+    case 'loot': { const L = SC.lastKill || P, Q = GAME.gear.quality[e.q]; if (e.q >= 2) fxAdd({ k: 'beam', x: L.x, y: L.y, c: Q.color, life: 1.4 }); say(L.x, L.y - 20, e.name, Q.color, e.q >= 3 ? 13 : 11, { dx: 0, life: 1.6, rise: 20 }); break; }
+    case 'levelup': fxAdd({ k: 'pillar', x: P.x, y: P.y, c: '#f2d58a', life: 1.3 }); burst(P.x, P.y - 10, '#f2d58a', 18, 30, 1.2, 24); say(P.x, P.y - 40, '升級！Lv.' + e.lv, '#ffe08a', 16, { dx: 0, life: 1.8, rise: 18, pop: true }); break;
+    case 'explored': burst(P.x, P.y - 12, '#8fdcc0', 14, 26, 1, 20); say(P.x, P.y - 42, '探索完成', '#8fdcc0', 14, { dx: 0, life: 1.6, rise: 14 }); break;
+    case 'placeDone': fxAdd({ k: 'pillar', x: P.x, y: P.y, c: '#8fdcc0', life: 1.4 }); break;
+    case 'down': SC.flash = .4; SC.flashC = '#8a1a14'; break;
+    case 'revive': case 'revivePaid': burst(P.x, P.y - 10, '#8af0a8', 14, 22, .9, 18); break;
+    case 'mobUlt': if (ent) { fxAdd({ k: 'ring', x: ent.x, y: ent.y, r0: 6, r1: 60, c: '#ff5a4a', life: .6 }); say(ent.x, ent.y - ent.size - 6, e.ult, '#ff8a7a', 14, { dx: 0, life: 1.4 }); } SC.flash = .25; SC.flashC = '#c8302a'; break;
+    case 'ult': SC.flash = .5; SC.flashC = '#fff2c0'; fxAdd({ k: 'ring', x: P.x, y: P.y, r0: 4, r1: 90, c: '#f2d58a', life: .8 }); fxAdd({ k: 'ring', x: P.x, y: P.y, r0: 2, r1: 60, c: '#ffffff', life: .6 }); for (const o of SC.ents.values()) burst(o.x, o.y - o.size * .4, '#f2d58a', 14, 40, .8); break;
+    case 'stance': if (ent && ent.m) say(ent.x, ent.y - ent.size - 4, '架勢・' + e.attr, '#c8c0e8', 11, { dx: 0 }); break;
+  }
+}
+
+/* ----- 開關、尺寸、主迴圈 ----- */
+function sceneSize() {
+  const box = $('#scene'); if (!box) return;
+  const r = box.getBoundingClientRect(); if (!r.width) return;
+  SC.dpr = Math.min(3, window.devicePixelRatio || 1); SC.W = r.width; SC.H = r.height;
+  SC.PX = r.width >= 440 ? 3 : 2.5;
+  SC.lw = Math.ceil(SC.W / SC.PX); SC.lh = Math.ceil(SC.H / SC.PX);
+  SC.cv.width = Math.round(SC.W * SC.dpr); SC.cv.height = Math.round(SC.H * SC.dpr);
+  const [lo, lx] = mkCv(SC.lw, SC.lh); SC.lo = lo; SC.lx = lx; SC.cx = SC.cv.getContext('2d');
+  clampCam(); initAmb();
+}
+function sceneInit() {
+  SC.cv = $('#scv'); if (!SC.cv) return;
+  try { SC.font = getComputedStyle(document.body).fontFamily || 'sans-serif'; } catch (e) {}
+  sceneSize();
+  try { SC.ro = new ResizeObserver(() => { sceneSize(); }); SC.ro.observe($('#scene')); } catch (e) { window.addEventListener('resize', sceneSize); }
+}
+function sceneApply() {
+  SC.on = !!(st.fx && st.fx.scene);
+  $('#scene').classList.toggle('hidden', !SC.on); $('#stage').classList.toggle('hidden', SC.on);
+  if (SC.on) { if (!SC.cv) sceneInit(); else sceneSize(); SC.key = ''; sceneWake(); }
+  resetArena();
+}
+function sceneWake() {
+  if (!SC.on || SC.running || document.hidden || !arenaSeen || !SC.lw) return;
+  SC.running = true; SC.last = performance.now(); requestAnimationFrame(sceneLoop);
+}
+function sceneLoop(ts) {
+  if (!SC.on || document.hidden || !arenaSeen) { SC.running = false; return; }
+  const dt = Math.min(.05, Math.max(0, (ts - SC.last) / 1000)); SC.last = ts;
+  try { sceneUpdate(dt); sceneDraw(dt); } catch (err) { console.error(err); }
+  requestAnimationFrame(sceneLoop);
+}
+
+
 /* ---------- 動畫、震動 ---------- */
 let arenaSeen = true, lastShake = 0;
-try { new IntersectionObserver(es => { arenaSeen = es[0].isIntersecting; }).observe(document.querySelector('.arena')); } catch (e) {}
+try { new IntersectionObserver(es => { arenaSeen = es[0].isIntersecting; if (arenaSeen) sceneWake(); }).observe(document.querySelector('.arena')); } catch (e) {}
 function animPanel() { const p = $('#panel'); p.classList.remove('enter'); void p.offsetWidth; p.classList.add('enter'); }
 function pulse(el, cls) { if (!el) return; el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); }
 // 造成爆擊：畫面輕震；被爆擊：畫面重震、四周泛紅（戰鬥畫面不在螢幕上時不震）
@@ -2983,7 +3823,9 @@ document.addEventListener('animationend', e => { if (e.target.classList && e.tar
 function addLog(html) { logs.unshift(html); if (logs.length > 9) logs.length = 9; }
 function handle(e) {
   const m = rt.mob;
+  if (SC.on) sceneEvent(e);
   switch (e.t) {
+    case 'placeDone': addLog('<span class="k-lv">「' + e.place + '」的小地區全部探索完成：經驗、掉落加成 +' + Math.round(GAME.rules.placeBonus * 100) + '%（目前合計 +' + Math.round(e.bonus * 100) + '%）</span>'); toast(e.place + '探索完成，經驗、掉落 +' + Math.round(GAME.rules.placeBonus * 100) + '%', 1); lastBoost = ''; break;
     case 'spawn': addLog(e.mobs.map(x => (x.rank === 'boss' ? '<span class="k-lv">【首領】</span>' : x.rank === 'elite' ? '<span class="k-bad">【精英】</span>' : '') + x.name + ' Lv.' + x.lv).join('、') + ' 出現了'); resetArena(); break;
     case 'move': { const z = zoneById(e.zone); addLog('<span class="k-good">前往' + z.place + '・' + z.name + '</span>'); renderLoc(); panelDirty = true; break; }
     case 'hit':
@@ -3066,6 +3908,7 @@ function handle(e) {
 }
 function mobEl(uid) { return document.querySelector('.mobc[data-uid="' + uid + '"]') || document.querySelector('.mobc'); }
 function floater(e) {
+  if (SC.on) return;
   const host = mobEl(e.uid); const box = host && host.querySelector('.floaters'); if (!box) return;
   const el = document.createElement('span');
   el.className = 'fl' + (e.crit ? ' crit' : '') + (e.kind !== 'neutral' ? ' ' + e.kind : '') + (e.skill ? ' skill' : '');
@@ -3074,6 +3917,7 @@ function floater(e) {
   box.appendChild(el); el.addEventListener('animationend', () => el.remove());
 }
 function shake(uid) {
+  if (SC.on) return;
   const host = mobEl(uid); const el = host && host.querySelector('.mob'); if (!el) return;
   el.classList.add('hit'); setTimeout(() => el.classList.remove('hit'), 90);
 }
@@ -3127,7 +3971,7 @@ function renderExplore() {
 }
 function renderArena() {
   const stage = $('#stage'), info = $('#mobinfo');
-  const zz = zoneById(st.zone), bgc = rt.tower ? towerById(rt.tower.id).bg : zz.bg; stage.className = 'stage'; stage.style.background = 'radial-gradient(ellipse at 50% 85%,' + bgc + ' 0%,#1b1d20 62%)';
+  const zz = zoneById(st.zone), bgc = rt.tower ? towerById(rt.tower.id).bg : zz.bg; stage.className = 'stage' + (SC.on ? ' hidden' : ''); stage.style.background = 'radial-gradient(ellipse at 50% 85%,' + bgc + ' 0%,#1b1d20 62%)';
   const mobs = rt.mobs || [];
   const fighting = rt.mode === 'fight' && mobs.length;
   const fading = rt.mode === 'search' && mobs.length && mobs.every(x => x.dead);
@@ -3136,7 +3980,7 @@ function renderArena() {
     if (shownGroup !== key) {
       shownGroup = key; shownInfo = ''; shownMob = null;
       const size = mobs.length > 5 ? 50 : [150, 118, 96, 78, 64][mobs.length - 1];
-      stage.innerHTML = '<div class="mobs' + (mobs.length > 5 ? ' many' : '') + '">' + mobs.map(m => '<div class="mobc" data-uid="' + m.uid + '"><div class="mob' + (m.rank ? ' elite' : '') + '" style="width:' + size + 'px;height:' + size + 'px">' + mobSvg(m.key) + '</div>' +
+      if (SC.on) $('#scOv').innerHTML = ''; else stage.innerHTML = '<div class="mobs' + (mobs.length > 5 ? ' many' : '') + '">' + mobs.map(m => '<div class="mobc" data-uid="' + m.uid + '"><div class="mob' + (m.rank ? ' elite' : '') + '" style="width:' + size + 'px;height:' + size + 'px">' + mobSvg(m.key) + '</div>' +
         '<div class="mlabel"><span class="seal st"></span><span class="nm">' + m.label + '</span></div><div class="bar hp mini"><i></i></div><div class="floaters"></div></div>').join('') + '</div>';
     }
     for (const m of mobs) {
@@ -3172,7 +4016,9 @@ function renderArena() {
       const z = zoneById(st.zone);
       const txt = rt.mode === 'rest' ? ['原地調息', '血量恢復到九成五後繼續巡守'] :
         rt.mode === 'down' ? ['重傷調養中', '<span id="downT"></span> 後恢復'] : rt.tower ? [towerById(rt.tower.id).name + '　第 ' + rt.tower.floor + ' 層', '往上走的樓梯很暗'] : ['巡守' + z.name, z.place + '・魔物 ' + zoneLvText(z)];
-      stage.innerHTML = '<div class="idle">' + txt[0] + '<small>' + txt[1] + '</small>' + (rt.mode === 'down' ? '<button class="revive" data-revive="1" id="reviveBtn"></button>' : '') + '</div>';
+      const rv = rt.mode === 'down' ? '<button class="revive" data-revive="1" id="reviveBtn"></button>' : '';
+      if (SC.on) $('#scOv').innerHTML = rt.mode === 'down' || rt.mode === 'rest' ? '<div class="cap">' + txt[0] + '<small>' + txt[1] + '</small>' + rv + '</div>' : rt.tower ? '<div class="cap lite">' + txt[0] + '</div>' : '';
+      else stage.innerHTML = '<div class="idle">' + txt[0] + '<small>' + txt[1] + '</small>' + rv + '</div>';
       info.innerHTML = '<div class="note">' + (rt.mode === 'search' ? '搜尋魔物中…' : rt.mode === 'rest' ? '休息時血量恢復較快，靈力越高恢復越快。' :
         '重傷不會損失任何東西。線上要休養 ' + (GAME.rules.downSecOnline / 60) + ' 分鐘，越接近恢復，急救越便宜；離線時照原本的 ' + GAME.rules.downSec + ' 秒。') + '</div>' +
         (rt.mode === 'down' ? '<label class="toggle" style="padding-bottom:0"><span>重傷時自動花銀兩恢復</span><input type="checkbox" id="autoRevive"' + (st.autoRevive ? ' checked' : '') + '></label>' : '');
@@ -3185,6 +4031,54 @@ function renderArena() {
       if (bt && bt.textContent !== t2) { bt.textContent = t2; bt.disabled = !ok; }
     }
   }
+}
+/* ---------- 技能列、藥水列、經驗／掉落加成 ---------- */
+let lastSk = '', lastPot = '', lastBoost = '';
+function renderBars() {
+  const d = rt.d, w = st.weapon, look = (typeof WLOOK !== 'undefined' && WLOOK[w]) || ['#555', '#222', '#c9a45c'];
+  // 技能列：結構有變才重畫，冷卻數字每次只改字
+  const acts = activeOrder(st, d), sk = $('#skBar');
+  const key = w + ':' + acts.map(r => r.i + (skillCfg(st, w, r.i).on ? '' : 'x')).join(',');
+  if (key !== lastSk) {
+    lastSk = key;
+    sk.innerHTML = acts.length ? acts.map(r => '<button class="sk" data-sk="' + r.i + '" style="--c:' + look[2] + '"><span class="ic">' + r.s.name[0] + '<i></i><b></b></span><span class="nm">' + r.s.name + '</span></button>').join('') : '';
+  }
+  for (const r of acts) {
+    const el = sk.querySelector('[data-sk="' + r.i + '"]'); if (!el) continue;
+    const on = skillCfg(st, w, r.i).on, cd = Math.max(0, rt.cds[r.i] || 0), max = Math.max(.1, r.s.cd * (1 - (d.cdr || 0))), noEn = st.en < r.s.cost;
+    const cls = 'sk' + (!on ? ' off' : cd > 0 ? ' cd' : noEn ? ' noen' : ' ok');
+    if (el.className !== cls) el.className = cls;
+    const t = cd > 0 ? (cd >= 10 ? String(Math.ceil(cd)) : cd.toFixed(1)) : '', b = el.querySelector('b');
+    if (b.textContent !== t) b.textContent = t;
+    el.querySelector('i').style.height = (cd / max * 100).toFixed(1) + '%';
+  }
+  // 藥水列
+  const P = GAME.potionRules, names = ['小還丹', '中還丹', '大還丹', '凝神丹'].filter(n => (st.items[n] || 0) > 0 || st.lv >= GAME.items[n].lv)
+    .concat(Object.keys(GAME.items).filter(n => GAME.items[n].kind === 'buff' && ((st.items[n] || 0) > 0 || Object.values(st.buffs).some(b => b.item === n))));
+  const pb = $('#potBar'), pkey = names.join(',');
+  if (pkey !== lastPot) { lastPot = pkey; pb.innerHTML = '<span class="lab">藥品</span>' + names.map(n => { const it = GAME.items[n]; return '<button class="pt ' + it.kind + '" data-pot="' + n + '" title="' + n + '">' + it.seal + '<span class="n"></span><span class="a"></span><span class="tm"></span><i></i></button>'; }).join(''); }
+  for (const n of names) {
+    const el = pb.querySelector('[data-pot="' + n + '"]'); if (!el) continue;
+    const it = GAME.items[n], c = st.items[n] || 0, act = it.kind === 'buff' ? Object.values(st.buffs).find(b => b.item === n) : null;
+    const cdf = it.kind === 'hp' ? Math.max(0, rt.potCd || 0) / P.hpCd : it.kind === 'en' ? Math.max(0, rt.enCd || 0) / P.enCd : 0;
+    const cls = 'pt ' + it.kind + (c ? '' : ' empty') + (act ? ' on' : '');
+    if (el.className !== cls) el.className = cls;
+    const nt = fmt(c); if (el.querySelector('.n').textContent !== nt) el.querySelector('.n').textContent = nt;
+    const at = (it.kind === 'buff' ? st.buffAuto[n] : st.potion.auto[n]) ? '自動' : ''; if (el.querySelector('.a').textContent !== at) el.querySelector('.a').textContent = at;
+    const tm = act ? Math.ceil(act.t / 60) + '分' : ''; if (el.querySelector('.tm').textContent !== tm) el.querySelector('.tm').textContent = tm;
+    el.querySelector('i').style.height = (Math.min(1, cdf) * 100).toFixed(0) + '%';
+  }
+  // 經驗／掉落加成
+  const bx = $('#boosts'), ex = d.expBuff || 0, dr = d.dropBuff || 0, bk = ex.toFixed(3) + ':' + dr.toFixed(3);
+  if (bk !== lastBoost) { lastBoost = bk; bx.innerHTML = (ex > 0 ? '<button data-boost="exp">經驗 ×' + (1 + ex).toFixed(2) + '</button>' : '') + (dr > 0 ? '<button data-boost="drop">掉落 ×' + (1 + dr).toFixed(2) + '</button>' : ''); }
+}
+function boostText(k) {
+  const B = rt.d.boost && rt.d.boost[k]; if (!B) return '';
+  const a = [];
+  if (B.buff) a.push((k === 'exp' ? '聚魄香' : '拾遺囊') + ' +' + Math.round(B.buff * 100) + '%');
+  if (B.gear) a.push('裝備詞條 +' + (B.gear * 100).toFixed(1).replace(/\.0$/, '') + '%');
+  if (B.explore) a.push('探索完成 ' + rt.d.boost.places + ' 個地方 +' + Math.round(B.explore * 100) + '%');
+  return (k === 'exp' ? '經驗加成：' : '掉落加成（材料、裝備）：') + a.join('、');
 }
 function renderUlt() {
   const b = $('#ultBtn'), known = ultKnown(st);
@@ -3238,7 +4132,7 @@ function renderPanel() {
   const d = rt.d, p = $('#panel');
   if (tab === 'map') {
     let h = '<label class="toggle"><span>新的狩獵區開放時自動前往<br><span class="note">升級或探索完成都算；離線時也會照這個設定移動</span></span><input type="checkbox" id="autoMove"' + (st.auto ? ' checked' : '') + '></label>';
-    h += '<p class="note" style="margin:-2px 0 8px">每個小地區要先擊倒一定數量的魔物（探索度），下一個小地區才會開放。</p>';
+    h += '<p class="note" style="margin:-2px 0 8px">每個小地區要先擊倒一定數量的魔物（探索度），下一個小地區才會開放。一個地方的小地區全部探索完，經驗、掉落各 +1%。</p>';
     h += '<div class="chaps">' + GAME.chapters.map(c => '<button data-ch="' + c.id + '" class="' + (c.id === viewChap ? 'on' : '') + (c.open ? '' : ' lock') + '">' + c.no + '<small>' + c.name + '</small></button>').join('') + '</div>';
     const ch = GAME.chapters.find(c => c.id === viewChap);
     if (ch.open) {
@@ -3372,6 +4266,7 @@ function renderPanel() {
     p.innerHTML = '<div class="sec"><h3>巡守紀錄</h3><div class="kv"><span>線上時間</span><span>' + dur(s.playSec) + '</span><span>離線結算時間</span><span>' + dur(s.offlineSec) + '</span>' +
       '<span>主線</span><span>' + (st.main.done ? mainCh(st).chapter + ' 完成' : mainCh(st).chapter.split('　')[0] + stepNo(st.main.step) + '／共 ' + mainCh(st).steps.length + ' 步') + '</span><span>總擊倒</span><span>' + fmt(total) + '</span><span>擊倒首領</span><span>' + fmt(s.bossKills || 0) + '</span>' + rows + '<span>位階</span><span>' + rankName(rankOf(st)) + '（功績 ' + fmt(st.merit || 0) + '）</span><span>天陰五大塔</span><span>' + GAME.towers.map(T => T.name.slice(0, 2) + ' ' + towerBest(st, T.id)).join('・') + '</span><span>蓮子</span><span>' + (st.lotus || 0) + ' 顆</span><span>施放天御</span><span>' + fmt(s.ults || 0) + ' 次</span><span>天御殘頁</span><span>' + (st.pages || 0) + ' 張</span><span>分解裝備</span><span>' + fmt(s.salvaged || 0) + ' 件</span><span>重傷次數</span><span>' + fmt(s.deaths) + '</span></div></div>' +
       '<div class="sec"><h3>設定</h3>' +
+      '<label class="toggle"><span>像素地圖畫面<br><span class="note">關掉會換回簡單的戰鬥畫面，比較省電</span></span><input type="checkbox" id="fxScene"' + (st.fx.scene ? ' checked' : '') + '></label>' +
       '<label class="toggle"><span>爆擊時畫面震動<br><span class="note">造成爆擊輕震、被爆擊重震；戰鬥畫面不在螢幕上時不會震</span></span><input type="checkbox" id="fxShake"' + (st.fx.shake ? ' checked' : '') + '></label>' +
       '<label class="toggle"><span>被爆擊時手機跟著震動</span><input type="checkbox" id="fxBuzz"' + (st.fx.buzz ? ' checked' : '') + '></label>' +
       '<label class="toggle"><span>重傷時自動花銀兩恢復<br><span class="note">只在線上有效；銀兩不夠時就照常休養</span></span><input type="checkbox" id="autoRevive"' + (st.autoRevive ? ' checked' : '') + '></label></div>' +
@@ -3690,7 +4585,7 @@ function showStep(prefix) {
   }
   $('#modalBody').innerHTML = h; $('#modal').classList.remove('hidden');
 }
-function renderAll() { renderUlt(); renderHero(); renderLoc(); lastMain = ''; renderMain(); renderArena(); renderLog(); renderTabs(); renderPanel(); }
+function renderAll() { if (SC.on !== !!(st.fx && st.fx.scene)) sceneApply(); lastSk = lastPot = lastBoost = ''; renderBars(); renderUlt(); renderHero(); renderLoc(); lastMain = ''; renderMain(); renderArena(); renderLog(); renderTabs(); renderPanel(); }
 
 /* ---------- 離線戰報 ---------- */
 function showReport(sum, awaySec) {
@@ -3728,6 +4623,7 @@ document.addEventListener('change', ev => {
   if (ev.target.dataset.son !== undefined) { setSkillCfg(st, st.weapon, +ev.target.dataset.son, { on: ev.target.checked }); rt.d = derive(st); save(); renderPanel(); return; }
   if (ev.target.dataset.scond !== undefined) { setSkillCfg(st, st.weapon, +ev.target.dataset.scond, { cond: ev.target.value }); save(); toast('施放條件：' + GAME.conds.find(c => c[0] === ev.target.value)[1]); return; }
   if (ev.target.id === 'bookW') { bookW = ev.target.value; renderPanel(); return; }
+  if (ev.target.id === 'fxScene') { st.fx.scene = ev.target.checked; save(); sceneApply(); renderAll(); return; }
   if (ev.target.id === 'fxShake') { st.fx.shake = ev.target.checked; save(); if (st.fx.shake) { const was = arenaSeen; arenaSeen = true; shakeScreen(false); arenaSeen = was; } }
   if (ev.target.id === 'fxBuzz') { st.fx.buzz = ev.target.checked; save(); if (st.fx.buzz && navigator.vibrate) try { navigator.vibrate(45); } catch (e) {} }
   if (ev.target.id === 'autoRevive') { st.autoRevive = ev.target.checked; save(); toast(st.autoRevive ? '重傷時會自動花銀兩恢復' : '重傷時照常休養'); shownMob = null; panelDirty = true; }
@@ -3750,6 +4646,13 @@ document.addEventListener('click', ev => {
   if (t.dataset.gobook) { bookW = t.dataset.gobook; tab = 'quest'; townTab = 'book'; renderTabs(); renderPanel(); animPanel(); return; }
   if (t.dataset.buybook) { if (buyBook(st, rt, t.dataset.buybook, +t.dataset.i)) { for (const e of rt.events) handle(e); rt.events.length = 0; save(); } renderAll(); return; }
   if (t.dataset.pages) { if (exchangePages(st, rt, t.dataset.pages)) { for (const e of rt.events) handle(e); rt.events.length = 0; toast('換到' + bookName(t.dataset.pages, 'u')); save(); } renderAll(); return; }
+  if (t.dataset.sk !== undefined) { tab = 'skill'; panelDirty = true; renderTabs(); renderPanel(); animPanel(); $('#tabs').scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
+  if (t.dataset.pot) {
+    const r = drinkItem(st, rt, t.dataset.pot);
+    if (r.ok) { pulse(t, 'used'); for (const e of rt.events) handle(e); rt.events.length = 0; renderLog(); save(); lastPot = ''; renderBars(); } else if (r.why) toast(r.why);
+    return;
+  }
+  if (t.dataset.boost) { toast(boostText(t.dataset.boost), 1); return; }
   if (t.dataset.revive) { revive(st, rt); for (const e of rt.events) handle(e); rt.events.length = 0; save(); renderAll(); return; }
   if (t.dataset.t) { if (tab === 'gear' && t.dataset.t !== 'gear') clearNewGear(); if (tab !== t.dataset.t) setTimeout(animPanel, 0); tab = t.dataset.t; if (tab === 'map') viewChap = GAME.chapters[0].id; panelDirty = true; renderTabs(); renderPanel(); if (t.closest('#loc')) $('#tabs').scrollIntoView({ behavior: 'smooth' }); return; }
   if (t.dataset.ch) { viewChap = t.dataset.ch; renderPanel(); animPanel(); return; }
@@ -3879,7 +4782,7 @@ function tick() {
     while (acc >= 0.1) { step(st, rt, 0.1); acc -= 0.1; }
   }
   if (rt.events.length) { for (const e of rt.events) handle(e); rt.events.length = 0; renderLog(); }
-  renderHero(); renderArena(); renderMain(); renderUlt();
+  renderHero(); renderArena(); renderMain(); renderUlt(); renderBars(); sceneWake();
   if (panelDirty && Date.now() - lastPanelAt > 400 && !(document.activeElement && ['SELECT', 'TEXTAREA'].includes(document.activeElement.tagName))) { renderTabs(); renderPanel(); }
   if (now - lastSaveAt > 5000) save();
   if (cloud.user && !cloud.busy && !cloud.hold && now - cloud.last > CLOUD_EVERY) cloudSync('auto');
@@ -3900,7 +4803,7 @@ function start() {
   } else {
     addLog(GAME.npcs.quest.name + '：首區最近不太平，城外到處都有魔物越界，麻煩你了。');
   }
-  save(); renderAll();
+  save(); sceneApply(); renderAll();
   if (!loaded) showStep('<div class="sub" style="margin-bottom:6px">仙曆五百餘年，天霖國・首區</div>');
   if (cloud.ok && cloudMeta().on) cloudBoot();
   lastWall = Date.now();
@@ -3908,6 +4811,7 @@ function start() {
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) { save(); cloud.hiddenAt = Date.now(); if (cloud.user && !cloud.hold) cloudSync('auto'); }
     else if (cloud.user && cloud.hiddenAt && Date.now() - cloud.hiddenAt > 60000) cloudSync('resume'); // 回來時看看別台有沒有更新
+    if (!document.hidden) sceneWake();
   });
   window.addEventListener('pagehide', save);
 }
