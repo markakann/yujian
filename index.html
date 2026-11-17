@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#121315">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>天星界・御劍者 v0.15</title>
+<title>天星界・御劍者 v0.15.1</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -447,7 +447,7 @@ button:active:not(:disabled){transform:scale(.95)}
 <body>
 <div class="wrap">
   <header>
-    <h1>天星界・御劍者<small>v0.15 暫定名稱</small></h1>
+    <h1>天星界・御劍者<small>v0.15.1 暫定名稱</small></h1>
     <div class="silver" id="silver">銀兩 0</div>
   </header>
 
@@ -498,7 +498,7 @@ button:active:not(:disabled){transform:scale(.95)}
 
 /* ---------- 遊戲資料：名稱、數值都集中在這裡，改這裡就好 ---------- */
 const GAME = {
-  meta: { title: '天星界・御劍者', subtitle: '暫定名稱', version: '0.15', era: '仙曆五百餘年' },
+  meta: { title: '天星界・御劍者', subtitle: '暫定名稱', version: '0.15.1', era: '仙曆五百餘年' },
 
   // 八項資源系統（順序固定，星數陣列照這個順序）
   statNames: ['力量', '抵擋', '體力', '敏捷', '智慧', '守護', '靈力', '控制'],
@@ -3093,7 +3093,27 @@ function rgbOf(c) { const n = parseInt(c.slice(1, 7), 16); return [n >> 16 & 255
 function hexOf(r, g, b) { return '#' + ((1 << 24) | (r << 16) | (g << 8) | b).toString(16).slice(1); }
 function tint(c, f) { const m = v => Math.max(0, Math.min(255, Math.round(f >= 1 ? v + (255 - v) * (f - 1) : v * f))); const [r, g, b] = rgbOf(c); return hexOf(m(r), m(g), m(b)); }
 function mixC(a, b, t) { const A = rgbOf(a), B = rgbOf(b); return hexOf(...A.map((v, i) => Math.round(v + (B[i] - v) * t))); }
-function mkCv(w, h) { const c = document.createElement('canvas'); c.width = w; c.height = h; const x = c.getContext('2d'); x.imageSmoothingEnabled = false; return [c, x]; }
+function mkCv(w, h) {
+  const c = document.createElement('canvas'); c.width = w; c.height = h; const x = c.getContext('2d'); x.imageSmoothingEnabled = false;
+  // 手機切到背景時，瀏覽器可能清掉畫布；清掉或恢復時都要重畫
+  c.addEventListener('contextlost', sceneLost); c.addEventListener('contextrestored', sceneLost);
+  return [c, x];
+}
+function sceneLost() { SC.lost = true; }
+// 角色、魔物、地面的圖全部重做
+function sceneRefreshArt() { SC.lost = false; SC.mob = {}; SC.pf = null; SC.pw = ''; SC.key = ''; SC.checkT = 0; }
+// 每秒看一次：主角的圖、地面還在不在
+function sceneArtOk() {
+  try {
+    for (const cv of [SC.pf && SC.pf.idle0[0], SC.ground]) {
+      if (!cv) continue;
+      const x = cv.getContext('2d');
+      if (x.isContextLost && x.isContextLost()) return false;
+    }
+    if (SC.pf) { const c = SC.pf.idle0[0], d = c.getContext('2d').getImageData(PO.x, PO.y, 16, 21).data; let n = 0; for (let i = 3; i < d.length; i += 4) if (d[i]) n++; if (n < 40) return false; }
+  } catch (e) { return false; }
+  return true;
+}
 function R(x, X, Y, W, H, c) { x.fillStyle = c; x.fillRect(X, Y, W, H); }
 function box(x, X, Y, W, H, c) { R(x, X - 1, Y - 1, W + 2, H + 2, OL); R(x, X, Y, W, H, c); }
 // 由幾個圓組成的一團（樹冠、石頭），左上亮、右下暗，外圍描黑邊
@@ -3568,6 +3588,9 @@ function moveTo(o, tx, ty, spd, dt) {
 /* ----- 每一格的更新 ----- */
 function sceneUpdate(dt) {
   SC.t += dt;
+  SC.checkT = (SC.checkT || 0) - dt;
+  if (SC.lost || (SC.checkT <= 0 && !sceneArtOk())) sceneRefreshArt();
+  if (SC.checkT <= 0) SC.checkT = 1;
   const key = sceneKey(); if (key !== SC.key) sceneBuild(key);
   if (SC.pw !== st.weapon) { SC.pw = st.weapon; SC.pf = playerFrames(st.weapon); }
   const P = SC.pl, mode = rt.mode, mobs = rt.mobs || [], byUid = new Map(mobs.map(m => [m.uid, m]));
@@ -3679,7 +3702,7 @@ function sceneDraw(dt) {
   drawLabels(c, cam, PX, t);
 }
 function drawPlayer(x, P, cam, t) {
-  const F = SC.pf; if (!F) return;
+  const F = SC.pf; if (!F) { SC.pw = ''; return; }
   const dir = P.face > 0 ? 0 : 1;
   let fr = P.st === 'walk' ? F['walk' + ((P.walkT * 8 | 0) & 3)] : P.st === 'sit' ? F.sit : F['idle' + ((t * 1.6 | 0) & 1)];
   if (P.atk > 0) fr = F.atk;
@@ -4896,7 +4919,8 @@ function start() {
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) { save(); cloud.hiddenAt = Date.now(); if (cloud.user && !cloud.hold) cloudSync('auto'); }
     else if (cloud.user && cloud.hiddenAt && Date.now() - cloud.hiddenAt > 60000) cloudSync('resume'); // 回來時看看別台有沒有更新
-    if (!document.hidden) sceneWake();
+    if (!document.hidden) { if (typeof SC !== 'undefined' && SC.hiddenAt && Date.now() - SC.hiddenAt > 5000) sceneRefreshArt(); sceneWake(); }
+    else if (typeof SC !== 'undefined') SC.hiddenAt = Date.now();
   });
   window.addEventListener('pagehide', save);
 }
