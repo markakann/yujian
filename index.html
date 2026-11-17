@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#121315">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>天星界・御劍者 v0.12.1</title>
+<title>天星界・御劍者 v0.13</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -168,6 +168,14 @@ textarea{width:100%;height:80px;background:#0c0d0e;color:var(--text);border:1px 
 .place .subs button:disabled{opacity:.4;cursor:default}
 .place.locked{opacity:.5}
 .place .rare{font-size:10px;color:#ffb9ad;margin-left:4px}
+.place .subs button{position:relative;overflow:hidden}
+.place .subs button .xb{position:absolute;left:0;bottom:0;height:2px;background:var(--jade);opacity:.75}
+.place .subs button.done small{color:#8fc9b4}
+.place .subs button.on.done small{color:#cdeee2}
+.place .ph .xp{font-size:11px;color:var(--muted);margin-left:6px;font-family:var(--sans,inherit);font-weight:400}
+.loc .xbar{height:3px;border-radius:2px;background:rgba(255,255,255,.08);margin-top:5px;overflow:hidden}
+.loc .xbar i{display:block;height:100%;background:var(--jade);transition:width .3s}
+.loc .where .xt{display:block;font-size:11px;color:var(--muted);margin-top:3px}
 .lockplaces{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
 .lockplaces span{font-family:var(--serif);font-size:13px;padding:4px 8px;border:1px dashed var(--line);border-radius:6px;color:var(--muted)}
 .toggle{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:13px;padding:8px 0 10px}
@@ -298,7 +306,7 @@ button:active:not(:disabled){transform:scale(.95)}
 .stage .idle{animation:fadeIn .4s}
 .maincard.ready{animation:readyGlow 1.8s ease-in-out infinite}
 @keyframes readyGlow{50%{box-shadow:0 0 0 3px #c9a45c33}}
-.card.lvup{animation:lvGlow 1.4s ease-out}
+.card.lvup,.loc.lvup{animation:lvGlow 1.4s ease-out}
 @keyframes lvGlow{0%{box-shadow:0 0 0 0 #f2d58a00}25%{box-shadow:0 0 0 4px #f2d58aaa}100%{box-shadow:0 0 0 0 #f2d58a00}}
 .wdetail.enter{animation:panelIn .24s ease-out}
 .tabs button .dot{animation:dotIn .3s cubic-bezier(.2,.9,.3,1.6)}
@@ -394,7 +402,7 @@ button:active:not(:disabled){transform:scale(.95)}
 <body>
 <div class="wrap">
   <header>
-    <h1>天星界・御劍者<small>v0.12.1 暫定名稱</small></h1>
+    <h1>天星界・御劍者<small>v0.13 暫定名稱</small></h1>
     <div class="silver" id="silver">銀兩 0</div>
   </header>
 
@@ -441,7 +449,7 @@ button:active:not(:disabled){transform:scale(.95)}
 
 /* ---------- 遊戲資料：名稱、數值都集中在這裡，改這裡就好 ---------- */
 const GAME = {
-  meta: { title: '天星界・御劍者', subtitle: '暫定名稱', version: '0.12.1', era: '仙曆五百餘年' },
+  meta: { title: '天星界・御劍者', subtitle: '暫定名稱', version: '0.13', era: '仙曆五百餘年' },
 
   // 八項資源系統（順序固定，星數陣列照這個順序）
   statNames: ['力量', '抵擋', '體力', '敏捷', '智慧', '守護', '靈力', '控制'],
@@ -719,17 +727,60 @@ const GAME = {
     reviveCost(lv) { return Math.round(1.5 * (lv + 4) * (lv + 4)); }, // 線上重傷立即恢復要花的銀兩（照剩下的時間打折）
     skillCoef: 2.2, skillCd: 6, skillCost: 15, energyRegen: 2, baseInterval: 1.2,
     expBase: 40, expPow: 2.6,
-    mobHp: 1.68, mobAtk: 1.47, lateHp: 0.14, lateAtk: 0.13 // v0.8 有裝備後魔物整體調強，維持首區節奏
+    mobHp: 1.68, mobAtk: 1.47, lateHp: 0.14, lateAtk: 0.13, // v0.8 有裝備後魔物整體調強，維持首區節奏
+    exploreBase: 60, explorePer: 14, exploreSq: 0.6, expMul: 0.75    // 探索度：每區要擊倒的數量；expMul 調整升級速度
   }
 };
 
-// 把章節攤平成狩獵區清單
+/* ---------- 小地區擴充：一般地方 6 個、主城 8 個 ----------
+   原本的三區保留（排在第一、中間、最後，主線、精英、首領的位置不變），新的插在中間；
+   新區的魔物從這個地方原有的魔物組合；等級照順序重新分配 */
+GAME.layout = {
+  '天霖市': [['tl1'], ['tl4', '東郊菜圃'], ['tl2'], ['tl5', '北渠水門'], ['tl6', '廢磚窯'], ['tl3'], ['tl7', '城隍廟後巷'], ['tl8', '驛道盡頭']],
+  '五頓村': [['wd1'], ['wd4', '打穀場'], ['wd2'], ['wd5', '水車坊'], ['wd6', '村口老槐'], ['wd3']],
+  '仙緣鎮': [['xy1'], ['xy4', '鎮口牌坊'], ['xy2'], ['xy5', '香客小徑'], ['xy6', '祠後竹林'], ['xy3']],
+  '明臺': [['mt1'], ['mt4', '半山涼亭'], ['mt2'], ['mt5', '霧中石橋'], ['mt6', '崖邊古松'], ['mt3']],
+  '冥月鎮': [['my1'], ['my4', '無字碑林'], ['my2'], ['my5', '荒廢義莊'], ['my6', '冷水井巷'], ['my3']],
+  '夜蘭山城': [['yl1'], ['yl4', '半山茶棚'], ['yl2'], ['yl5', '幽蘭石洞'], ['yl6', '礦工宿舍'], ['yl3']],
+  '梁山城': [['ls1'], ['ls4', '燒焦的林地'], ['ls2'], ['ls5', '舊軍營'], ['ls6', '關前哨塔'], ['ls3']],
+  '月靈峰': [['yf1'], ['yf4', '竹海迷徑'], ['yf2'], ['yf5', '雲霧石階'], ['yf6', '觀月臺'], ['yf3']],
+  '凝鋒頂城': [['nf1'], ['nf4', '斷橋'], ['nf2'], ['nf5', '兵器庫遺址'], ['nf6', '劍塚外圍'], ['nf3']],
+  '靜宇村': [['jy1'], ['jy4', '打穀石臼'], ['jy2'], ['jy5', '夜裡的田埂'], ['jy6', '守夜人小屋'], ['jy3']],
+  '柳青臺': [['lq1'], ['lq4', '說書亭'], ['lq2'], ['lq5', '柳絮渡口'], ['lq6', '垂柳深處'], ['lq3']],
+  '華月村': [['hy1'], ['hy4', '酒坊後院'], ['hy2'], ['hy5', '夜螢溪'], ['hy6', '嫁衣橋'], ['hy3']],
+  '古道': [['gd1'], ['gd4', '長亭'], ['gd2'], ['gd5', '荒驛馬廄'], ['gd6', '古道石關'], ['gd3']],
+  '鳳城': [['fc1'], ['fc4', '赤羽林'], ['fc2'], ['fc5', '鳳城夜市'], ['fc6', '巡守分部後院'], ['fc7', '鐘樓'], ['fc8', '城牆根'], ['fc3']],
+  '冷遠道': [['ly1'], ['ly4', '冰窖口'], ['ly2'], ['ly5', '凍林'], ['ly6', '風雪隘口'], ['ly3']],
+  '烈血譚': [['lx1'], ['lx4', '血色蘆葦'], ['lx2'], ['lx5', '沉劍灘'], ['lx6', '對岸'], ['lx3']]
+};
+(function expandPlaces() {
+  const PAIRS = [[0, 1], [1, 2], [0, 2], [2, 1], [1, 0], [2, 0]];
+  for (const ch of GAME.chapters) if (ch.open) for (const pl of ch.places) {
+    const L = GAME.layout[pl.name]; if (!L) continue;
+    const old = {}; for (const z of pl.zones) old[z.id] = z;
+    const pool = []; for (const z of pl.zones) for (const [k] of z.spawns) if (!GAME.monsters[k].rank && !pool.includes(k)) pool.push(k);
+    const a = Math.min(...pl.zones.map(z => z.lv[0])), b = Math.max(...pl.zones.map(z => z.lv[1])), n = L.length;
+    const baseGroup = pl.zones[pl.zones.length - 1].group || [1, 2];
+    let j = 0;
+    pl.zones = L.map(([id, name], i) => {
+      const lo = a + Math.floor(i * (b - a) / n), lv = [lo, Math.min(b, lo + 1)];
+      if (old[id]) { old[id].lv = lv; return old[id]; }
+      const [x, y] = PAIRS[j++ % PAIRS.length].map(v => pool[v % pool.length]);
+      return { id, name, lv, group: i === 1 && a === 1 ? [1, 1] : baseGroup.slice(), spawns: x === y ? [[x, 100]] : [[x, 55], [y, 45]] };
+    });
+  }
+})();
+
+// 把章節攤平成狩獵區清單；每一區要探索（擊倒一定數量的魔物）才會開放下一區
+GAME.explore = { need(z) { return Math.round(GAME.rules.exploreBase + GAME.rules.explorePer * z.lv[0] + GAME.rules.exploreSq * z.lv[0] * z.lv[0]); } };
 GAME.zones = [];
 for (const ch of GAME.chapters) if (ch.open) ch.places.forEach((pl, pi) => pl.zones.forEach(z => {
   z.chapter = ch.name; z.place = pl.name; z.placeIndex = pi; z.bg = pl.bg;
   z.unlock = Math.max(1, z.lv[0] - 1);
+  z.idx = GAME.zones.length;
   GAME.zones.push(z);
 }));
+for (const z of GAME.zones) z.need = GAME.explore.need(z);
 
 /* ---------- 技能：每把武器三招，Lv.1／Lv.8／Lv.15 學會 ----------
    type：active 主動（冷卻好就自動放）、passive 被動（一直有效）、trigger 觸發（條件成立時發動）
@@ -1352,7 +1403,7 @@ function powerOf(d, lv) {
 
 function newState() {
   return {
-    v: 10, lv: 1, exp: 0, weapon: '銀', swordLv: {}, alloc: {}, resetUsed: {}, mastery: {},
+    v: 13, lv: 1, exp: 0, weapon: '銀', swordLv: {}, alloc: {}, resetUsed: {}, mastery: {},
     main: { step: 0, base: 0, surv: 0, gated: true, done: false },
     items: { '小還丹': 10 }, potion: { auto: { '小還丹': true, '中還丹': true, '大還丹': true, '凝神丹': false }, thr: 0.4 }, buffs: {}, buffAuto: {}, board: [], boardDone: 0, silver: 0, mats: {}, zone: GAME.zones[0].id, auto: true,
     hp: null, en: null,
@@ -1361,7 +1412,7 @@ function newState() {
     equip: { weapons: {} }, gear: [], gearSeq: 0, gearGift: {}, gearSet: { salv: 1, other: false, autoEquip: true },
     autoRevive: false, fx: { shake: true, buzz: false },
     learned: {}, books: {}, pages: 0, ultKnown: {}, ultCharge: 0, skillCfg: {}, skillOrder: {},
-    towers: {}, lotus: 0, merit: 0,
+    towers: {}, lotus: 0, merit: 0, explore: {},
     lastSave: Date.now()
   };
 }
@@ -1409,16 +1460,27 @@ function migrate(st) {
   if (!st.towers) st.towers = {};
   if (st.lotus === undefined) st.lotus = 0;
   if (st.merit === undefined) st.merit = 0;
+  if (!st.explore || (st.v || 0) < 13) {
+    // v0.13 以前的存檔：魔物等級比自己低的地區，還有目前所在地區之前的地區，全部算探索完
+    st.explore = st.explore || {};
+    const cur = zoneById(st.zone), ci = cur ? cur.idx : 0;
+    for (const z of GAME.zones) if (z.lv[0] < st.lv || z.idx < ci) st.explore[z.id] = z.need;
+  }
   ensureWeaponGear(st, st.weapon);
-  st.v = 10;
+  st.v = 13;
   return st;
 }
 
 function zoneById(id) { return GAME.zones.find(z => z.id === id); }
-function zoneUnlocked(st, id) { return st.lv >= zoneById(id).unlock; }
-function bestZone(st) { // 怪物最低等級不超過自己等級的最後一區
+function exploreOf(st, z) { return Math.min(z.need, (st.explore && st.explore[z.id]) || 0); }
+function explored(st, z) { return exploreOf(st, z) >= z.need; }
+// 開放條件：等級夠，而且上一區已經探索完
+function zoneLvOk(st, id) { return st.lv >= zoneById(id).unlock; }
+function zoneExploreOk(st, id) { const z = zoneById(id); return z.idx === 0 || explored(st, GAME.zones[z.idx - 1]); }
+function zoneUnlocked(st, id) { return zoneLvOk(st, id) && zoneExploreOk(st, id); }
+function bestZone(st) { // 已經開放的最後一區
   let best = GAME.zones[0];
-  for (const z of GAME.zones) if (z.lv[0] <= st.lv) best = z;
+  for (const z of GAME.zones) { if (zoneUnlocked(st, z.id)) best = z; else break; }
   return best;
 }
 
@@ -1443,7 +1505,7 @@ function makeMob(key, L) {
     atk: Math.round(a.atk * f * (1 + 0.015 * (L - 1)) * (1 + R.lateAtk * over) * GAME.rules.mobAtk),
     pdef: Math.round(a.pdef * f), mdef: Math.round(a.mdef * f),
     interval: a.interval, crit: a.crit || 0.05, bind: b.bind || 0,
-    exp: Math.round(a.exp * Math.pow(f, 1.6)), silver: Math.round(a.silver * f),
+    exp: Math.round(a.exp * Math.pow(f, 1.6) * GAME.rules.expMul), silver: Math.round(a.silver * f),
     drops: b.drops, timer: a.interval * 0.6, stunned: 0,
     ult: b.ult || null, ultT: b.ult ? b.ult.every * 0.6 : 0
   };
@@ -1762,6 +1824,13 @@ function onKillOne(st, rt, m) {
   for (const [mat, p] of m.drops) if (rng() < p * (1 + rt.d.dropBuff) * (m.dropMult || 1)) { st.mats[mat] = (st.mats[mat] || 0) + 1; got[mat] = (got[mat] || 0) + 1; }
   if (st.quest.progress < GAME.quest.target) st.quest.progress++;
   if (m.rank && !rt.tower) addMerit(st, rt, GAME.ranks.merit[m.rank]);
+  if (!rt.tower && st.explore) {
+    const z = zoneById(st.zone), before = exploreOf(st, z);
+    if (before < z.need) {
+      st.explore[z.id] = before + 1;
+      if (before + 1 >= z.need) { const nx = GAME.zones[z.idx + 1]; emit(rt, { t: 'explored', zone: z.id, next: nx ? nx.id : null, lvOk: nx ? zoneLvOk(st, nx.id) : false }); rt.autoMove = true; }
+    }
+  }
   emit(rt, { t: 'kill', key: m.key, name: m.name, label: m.label, uid: m.uid, exp, silver, got, rank: m.rank });
   if (st.equip) { const D = gearDropFor(m); if (rng() < D.chance * (m.rank ? 1 : (m.dropMult || 1))) receiveGear(st, rt, genGear(st, m.lv, rollIdx(D.q)), m.label); }
   if (st.learned) bookDrops(st, rt, m);
@@ -1874,7 +1943,7 @@ function step(st, rt, dt) {
     st.hp = Math.min(d.maxHp, st.hp + d.maxHp * 0.01 * (1 + d.heal) * dt);
     rt.wait -= dt;
     if (rt.wait <= 0) {
-      if (st.auto && rt.autoMove && !rt.tower) { rt.autoMove = false; const b = bestZone(st); if (b.id !== st.zone && b.lv[0] > zoneById(st.zone).lv[0]) { st.zone = b.id; emit(rt, { t: 'move', zone: b.id }); } } // 只在升級後換區，手動前往的地方不會被拉走
+      if (st.auto && rt.autoMove && !rt.tower) { rt.autoMove = false; const b = bestZone(st); if (b.id !== st.zone && b.idx > zoneById(st.zone).idx) { st.zone = b.id; emit(rt, { t: 'move', zone: b.id }); } } // 只在升級或探索完成後往前換區，手動前往的地方不會被拉走
       startFight(st, rt);
     }
     return;
@@ -2146,7 +2215,7 @@ function revive(st, rt) {
 
 /* ---------- 離線結算：用同一套戰鬥規則快轉 ---------- */
 function simulate(st, seconds, rt) {
-  const sum = { seconds, lvFrom: st.lv, lvTo: st.lv, zoneFrom: st.zone, zoneTo: st.zone, exp: 0, silver: 0, kills: {}, mats: {}, deaths: 0, quest: 0, rareKills: 0, mastery: {}, learned: [], used: {}, gear: [0, 0, 0, 0, 0], salv: 0, soul: 0, equipped: [], named: [], bag: 0, books: [], pages: 0, ultFrom: st.ultCharge || 0 };
+  const sum = { seconds, lvFrom: st.lv, lvTo: st.lv, zoneFrom: st.zone, zoneTo: st.zone, exp: 0, silver: 0, kills: {}, mats: {}, deaths: 0, quest: 0, rareKills: 0, mastery: {}, learned: [], used: {}, gear: [0, 0, 0, 0, 0], salv: 0, soul: 0, equipped: [], named: [], bag: 0, books: [], pages: 0, ultFrom: st.ultCharge || 0, explored: [] };
   rt = rt || newRuntime(st);
   if (rt.tower) towerEnd(st, rt, 'away');
   const saveEvents = rt.events; rt.events = [];
@@ -2158,7 +2227,7 @@ function simulate(st, seconds, rt) {
   while (t < seconds) {
     step(st, rt, dt); t += dt;
     if (rt.events.length) {
-      for (const e of rt.events) if (e.t === 'book') sum.books.push(e.name); else if (e.t === 'page') sum.pages++; else if (e.t === 'potion' || e.t === 'buff') sum.used[e.name] = (sum.used[e.name] || 0) + 1; else if (e.t === 'mastery') sum.mastery[e.name] = e.lv; else if (e.t === 'learn') sum.learned.push(e.name); else if (e.t === 'loot') {
+      for (const e of rt.events) if (e.t === 'explored') sum.explored.push(e.zone); else if (e.t === 'book') sum.books.push(e.name); else if (e.t === 'page') sum.pages++; else if (e.t === 'potion' || e.t === 'buff') sum.used[e.name] = (sum.used[e.name] || 0) + 1; else if (e.t === 'mastery') sum.mastery[e.name] = e.lv; else if (e.t === 'learn') sum.learned.push(e.name); else if (e.t === 'loot') {
         sum.gear[e.q]++;
         if (e.q === 4) sum.named.push(e.name);
         if (e.fate === 'equip') sum.equipped.push(e.name); else if (e.fate === 'bag') sum.bag++; else { sum.salv++; sum.soul += e.soul || 0; }
@@ -2560,6 +2629,7 @@ if (typeof module !== 'undefined') module.exports = {
   mainStep, mainProgress, mainClaim, mainCanSkip, featureOpen, mainBegin,
   freshState, genGear, gearName, gearBase, affixVal, affixText, gearTotals, equippedList, powerWith, powerNow, gearDelta, equipGear, salvageGear,
   receiveGear, bestGear, ensureWeaponGear, reviveCost, revive, tierFx, tierLine, mainCh,
+  exploreOf, explored, zoneLvOk, zoneExploreOk,
   rankOf, rankName, towerOpen, towerById, towerBest, towerUnlocked, towerStart, towerEnd, makeMob,
   skillKnown, ultKnown, hasBook, bookName, bookLv, buyBook, exchangePages, gainBook, readBooks, castUlt, ultReady, skillCfg, setSkillCfg, activeOrder, moveSkill, learnBook, equipCount, rollIdx, playableWeapons, autoSalvageable, gearOwner, salvageValue, namedDir
 };
@@ -2968,6 +3038,7 @@ function handle(e) {
     case 'kill': {
       const got = Object.entries(e.got).map(([k, n]) => k + '×' + n).join('、');
       addLog('擊倒' + e.label + '，經驗 +' + e.exp + '，銀兩 +' + e.silver + (got ? '，<span class="k-gold">獲得 ' + got + '</span>' : ''));
+      renderExplore();
       if (!(tab === 'gear' && gearTab !== 'sword')) panelDirty = true; break;
     }
     case 'loot': {
@@ -2978,6 +3049,13 @@ function handle(e) {
       if (e.q === 4) toast('名器現世：' + e.name, 2); else if (e.q === 3) toast('獲得珍品「' + e.name + '」', 1);
       if (e.fate === 'equip') { renderHero(); }
       panelDirty = true; break;
+    }
+    case 'explored': {
+      const z = zoneById(e.zone), nx = e.next ? zoneById(e.next) : null;
+      const tail = !nx ? '' : e.lvOk ? '，「' + nx.place + '・' + nx.name + '」開放了' : '，下一區「' + nx.name + '」要 Lv.' + nx.unlock + ' 才能前往';
+      addLog('<span class="k-good">「' + z.place + '・' + z.name + '」探索完成' + tail + '</span>');
+      toast('「' + z.name + '」探索完成' + tail);
+      pulse($('#loc'), 'lvup'); renderLoc(); panelDirty = true; break;
     }
     case 'levelup': pulse($('.hero').closest('.card'), 'lvup'); addLog('<span class="k-lv">等級提升！Lv.' + e.lv + '</span>'); toast('等級提升至 Lv.' + e.lv + '，獲得 ' + GAME.points.perLevel + ' 點屬性點'); panelDirty = true; renderLoc(); break;
     case 'rest': addLog('傷勢不輕，先原地調息'); break;
@@ -3029,7 +3107,23 @@ function renderLoc() {
   }
   $('#loc').className = 'loc';
   const z = zoneById(st.zone);
-  $('#loc').innerHTML = '<div class="where"><small>' + z.chapter + '・' + z.place + '</small><b>' + z.name + '</b><em>魔物 ' + zoneLvText(z) + '</em></div><button data-t="map">地圖</button>';
+  $('#loc').innerHTML = '<div class="where"><small>' + z.chapter + '・' + z.place + '</small><b>' + z.name + '</b><em>魔物 ' + zoneLvText(z) + '</em><span class="xt" id="xt"></span><div class="xbar"><i id="xbar"></i></div></div><button data-t="map">地圖</button>';
+  renderExplore();
+}
+// 探索度：每次擊倒只更新數字跟進度條
+function exploreText(z) {
+  const n = exploreOf(st, z);
+  if (n >= z.need) {
+    const nx = GAME.zones[z.idx + 1];
+    return '已探索完成' + (nx ? (zoneLvOk(st, nx.id) ? '' : '・下一區「' + nx.name + '」Lv.' + nx.unlock + ' 開放') : '');
+  }
+  return '探索度 ' + n + '／' + z.need + '・探索完成後開放下一區';
+}
+function renderExplore() {
+  if (rt && rt.tower) return;
+  const z = zoneById(st.zone), bar = $('#xbar'), tx = $('#xt'); if (!bar) return;
+  bar.style.width = Math.round(exploreOf(st, z) / z.need * 100) + '%';
+  const t = exploreText(z); if (tx.textContent !== t) tx.textContent = t;
 }
 function renderArena() {
   const stage = $('#stage'), info = $('#mobinfo');
@@ -3143,7 +3237,8 @@ function renderTabs() {
 function renderPanel() {
   const d = rt.d, p = $('#panel');
   if (tab === 'map') {
-    let h = '<label class="toggle"><span>升級後自動前往新的狩獵區<br><span class="note">離線時也會照這個設定移動</span></span><input type="checkbox" id="autoMove"' + (st.auto ? ' checked' : '') + '></label>';
+    let h = '<label class="toggle"><span>新的狩獵區開放時自動前往<br><span class="note">升級或探索完成都算；離線時也會照這個設定移動</span></span><input type="checkbox" id="autoMove"' + (st.auto ? ' checked' : '') + '></label>';
+    h += '<p class="note" style="margin:-2px 0 8px">每個小地區要先擊倒一定數量的魔物（探索度），下一個小地區才會開放。</p>';
     h += '<div class="chaps">' + GAME.chapters.map(c => '<button data-ch="' + c.id + '" class="' + (c.id === viewChap ? 'on' : '') + (c.open ? '' : ' lock') + '">' + c.no + '<small>' + c.name + '</small></button>').join('') + '</div>';
     const ch = GAME.chapters.find(c => c.id === viewChap);
     if (ch.open) {
@@ -3151,9 +3246,11 @@ function renderPanel() {
       for (const pl of ch.places) {
         const cur = pl.zones.some(z => z.id === st.zone), lock = !zoneUnlocked(st, pl.zones[0].id);
         const rare = pl.zones.some(z => z.spawns.some(([k]) => GAME.monsters[k].rank === 'boss')) ? '首領' : pl.zones.some(z => z.spawns.some(([k]) => GAME.monsters[k].rank === 'elite')) ? '精英' : '';
-        h += '<div class="place' + (cur ? ' cur' : '') + (lock ? ' locked' : '') + '"><div class="ph"><b>' + pl.name + (pl.hub ? '<span class="tag" style="margin-left:6px">主城</span>' : '') + (rare ? '<span class="rare">有' + rare + '</span>' : '') + '</b><span>Lv.' + pl.zones[0].lv[0] + '～' + pl.zones[pl.zones.length - 1].lv[1] + '</span></div><div class="subs">' +
-          pl.zones.map(z => { const zl = !zoneUnlocked(st, z.id);
-            return '<button data-z="' + z.id + '" class="' + (z.id === st.zone ? 'on' : '') + '"' + (zl ? ' disabled' : '') + '>' + z.name + '<small>' + (zl ? 'Lv.' + z.unlock + ' 解鎖' : zoneLvText(z)) + '</small></button>'; }).join('') + '</div></div>';
+        const nDone = pl.zones.filter(z => explored(st, z)).length;
+        h += '<div class="place' + (cur ? ' cur' : '') + (lock ? ' locked' : '') + '"><div class="ph"><b>' + pl.name + (pl.hub ? '<span class="tag" style="margin-left:6px">主城</span>' : '') + (rare ? '<span class="rare">有' + rare + '</span>' : '') + '<span class="xp">探索 ' + nDone + '／' + pl.zones.length + '</span></b><span>Lv.' + pl.zones[0].lv[0] + '～' + pl.zones[pl.zones.length - 1].lv[1] + '</span></div><div class="subs">' +
+          pl.zones.map(z => { const zl = !zoneUnlocked(st, z.id), dn = explored(st, z), pc = Math.round(exploreOf(st, z) / z.need * 100);
+            const why = !zoneExploreOk(st, z.id) ? '未探索' : 'Lv.' + z.unlock + ' 解鎖';
+            return '<button data-z="' + z.id + '" class="' + (z.id === st.zone ? 'on' : '') + (dn ? ' done' : '') + '"' + (zl ? ' disabled' : '') + '>' + z.name + '<small>' + (zl ? why : zoneLvText(z) + (dn ? '・已探索' : '・' + pc + '%')) + '</small>' + (!zl && !dn && pc ? '<span class="xb" style="width:' + pc + '%"></span>' : '') + '</button>'; }).join('') + '</div></div>';
       }
     } else {
       h += '<p class="note">' + ch.name + '尚未開放。' + (ch.note ? ch.note + '。' : '') + '</p><div class="lockplaces">' + ch.places.map(n => '<span>' + n + '</span>').join('') + '</div>';
@@ -3561,7 +3658,7 @@ function renderMain() {
   }
   const s = mainStep(st), p = mainProgress(st), skip = !p.done && mainCanSkip(st);
   const go = s.zone && st.zone !== s.zone && !p.done;
-  const k = st.main.step + ':' + p.cur + ':' + p.done + ':' + skip + ':' + go + ':' + (s.zone ? zoneUnlocked(st, s.zone) : '');
+  const k = st.main.step + ':' + p.cur + ':' + p.done + ':' + skip + ':' + go + ':' + (s.zone ? zoneUnlocked(st, s.zone) + ':' + zoneExploreOk(st, s.zone) : '');
   if (lastMain === k) return;
   lastMain = k;
   box.className = 'maincard' + (p.done ? ' ready' : '');
@@ -3570,7 +3667,7 @@ function renderMain() {
     '<div class="mg">' + s.goalText + (s.zone ? '<small>' + zoneTxt(s.zone) + '</small>' : '') + '</div>' +
     '<div class="bar exp"><i style="width:' + (p.cur / p.need * 100) + '%"></i></div>' +
     '<div class="mb"><button data-main="detail">詳情</button>' +
-    (go ? '<button data-main="go"' + (zoneUnlocked(st, s.zone) ? '' : ' disabled') + '>' + (zoneUnlocked(st, s.zone) ? '前往' : 'Lv.' + zoneById(s.zone).unlock + ' 可前往') + '</button>' : '') +
+    (go ? '<button data-main="go"' + (zoneUnlocked(st, s.zone) ? '' : ' disabled') + '>' + (zoneUnlocked(st, s.zone) ? '前往' : !zoneExploreOk(st, s.zone) ? '先探索前面的地區' : 'Lv.' + zoneById(s.zone).unlock + ' 可前往') + '</button>' : '') +
     (p.done ? '<button class="claim" data-main="claim">回報</button>' : skip ? '<button data-main="skip">略過</button>' : '') + '</div>';
 }
 function stepNo(i) { const n = '一二三四五六七八九十'; return '第' + (i < 10 ? n[i] : i < 19 ? '十' + (i === 9 ? '' : n[i - 10]) : '二十') + '步'; }
@@ -3603,11 +3700,12 @@ function showReport(sum, awaySec) {
   $('#modalBody').innerHTML = '<h2>你不在的時候</h2><div class="sub">離開了 ' + dur(awaySec) + (capped ? '，結算上限 ' + (GAME.rules.offlineCapSec / 3600) + ' 小時' : '') + '。' + (sum.zoneTo !== sum.zoneFrom ? '你從' + zoneById(sum.zoneFrom).place + '・' + zoneById(sum.zoneFrom).name + '一路巡守到' + zoneById(sum.zoneTo).place + '・' + zoneById(sum.zoneTo).name + '。' : '你一直在' + zoneById(st.zone).place + '・' + zoneById(st.zone).name + '巡守。') + '</div>' +
     (sum.lvTo > sum.lvFrom ? '<div class="big">Lv.' + sum.lvFrom + ' → Lv.' + sum.lvTo + '</div>' : '') +
     '<div class="kv">' + kills + '<span>經驗</span><span>+' + fmt(sum.exp) + '</span><span>銀兩</span><span>+' + fmt(sum.silver) + '</span>' +
-    (sum.rareKills ? '<span>擊倒精英／首領</span><span>' + sum.rareKills + '</span>' : '') + '<span>委託進度</span><span>+' + sum.quest + '</span><span>重傷</span><span>' + sum.deaths + ' 次</span></div>' +
+    (sum.rareKills ? '<span>擊倒精英／首領</span><span>' + sum.rareKills + '</span>' : '') + (sum.explored && sum.explored.length ? '<span>探索完成</span><span>' + sum.explored.length + ' 區</span>' : '') + '<span>委託進度</span><span>+' + sum.quest + '</span><span>重傷</span><span>' + sum.deaths + ' 次</span></div>' +
     '<p class="note" style="margin:10px 0 4px">獲得材料：' + mats + '</p>' +
     (Object.keys(sum.used).length ? '<p class="note" style="margin-bottom:4px">使用藥品：' + Object.entries(sum.used).map(([k, v]) => k + '×' + v).join('、') + '</p>' : '') +
     (sum.gear.some(x => x) ? '<p class="note" style="margin-bottom:4px">獲得裝備 ' + sum.gear.reduce((a, b) => a + b, 0) + ' 件：' + sum.gear.map((n, q) => n ? '<span style="color:' + QC(q) + '">' + GAME.gear.quality[q].name + ' ' + n + '</span>' : '').filter(Boolean).reverse().join('、') +
       (sum.equipped.length ? '；自動換上 ' + sum.equipped.length + ' 次（' + [...new Set(sum.equipped)].slice(0, 5).join('、') + (new Set(sum.equipped).size > 5 ? '…' : '') + '）' : '') + (sum.bag ? '；放進行囊 ' + sum.bag + ' 件' : '') + (sum.salv ? '；分解 ' + sum.salv + ' 件，精魄 +' + sum.soul : '') + '</p>' : '') +
+    (sum.explored && sum.explored.length ? '<p class="note" style="margin-bottom:4px">探索完成：' + sum.explored.map(id => zoneById(id).name).join('、') + '</p>' : '') +
     (sum.named.length ? '<p style="margin-bottom:6px;font-family:var(--serif);color:#e6b54a">名器現世：' + sum.named.join('、') + '</p>' : '') +
     (sum.books.length ? '<p class="note" style="margin-bottom:4px;color:var(--gold)">撿到技能書：' + sum.books.join('、') + '</p>' : '') +
     (sum.pages ? '<p class="note" style="margin-bottom:4px">撿到天御殘頁 ' + sum.pages + ' 張（共 ' + (st.pages || 0) + ' 張）</p>' : '') +
@@ -3624,7 +3722,7 @@ document.addEventListener('change', ev => {
   if (ev.target.dataset.auto) { st.potion.auto[ev.target.dataset.auto] = ev.target.checked; save(); return; }
   if (ev.target.dataset.bauto) { st.buffAuto[ev.target.dataset.bauto] = ev.target.checked; save(); return; }
   if (ev.target.id === 'potThr') { st.potion.thr = +ev.target.value; save(); toast('血量低於 ' + Math.round(st.potion.thr * 100) + '% 時自動服藥'); return; }
-  if (ev.target.id === 'autoMove') { st.auto = ev.target.checked; save(); toast(st.auto ? '升級後會自動前往新區' : '會留在目前的狩獵區'); }
+  if (ev.target.id === 'autoMove') { st.auto = ev.target.checked; save(); toast(st.auto ? '新的狩獵區開放時會自動前往' : '會留在目前的狩獵區'); }
   if (ev.target.id === 'gAuto') { st.gearSet.autoEquip = ev.target.checked; save(); toast(st.gearSet.autoEquip ? '撿到更好的會自動換上' : '撿到的裝備都先放進行囊'); }
   if (ev.target.id === 'gOther') { st.gearSet.other = ev.target.checked; save(); }
   if (ev.target.dataset.son !== undefined) { setSkillCfg(st, st.weapon, +ev.target.dataset.son, { on: ev.target.checked }); rt.d = derive(st); save(); renderPanel(); return; }
