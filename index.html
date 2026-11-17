@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#121315">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>天星界・御劍者 v0.15.1</title>
+<title>天星界・御劍者 v0.16</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -447,7 +447,7 @@ button:active:not(:disabled){transform:scale(.95)}
 <body>
 <div class="wrap">
   <header>
-    <h1>天星界・御劍者<small>v0.15.1 暫定名稱</small></h1>
+    <h1>天星界・御劍者<small>v0.16 暫定名稱</small></h1>
     <div class="silver" id="silver">銀兩 0</div>
   </header>
 
@@ -498,7 +498,7 @@ button:active:not(:disabled){transform:scale(.95)}
 
 /* ---------- 遊戲資料：名稱、數值都集中在這裡，改這裡就好 ---------- */
 const GAME = {
-  meta: { title: '天星界・御劍者', subtitle: '暫定名稱', version: '0.15.1', era: '仙曆五百餘年' },
+  meta: { title: '天星界・御劍者', subtitle: '暫定名稱', version: '0.16', era: '仙曆五百餘年' },
 
   // 八項資源系統（順序固定，星數陣列照這個順序）
   statNames: ['力量', '抵擋', '體力', '敏捷', '智慧', '守護', '靈力', '控制'],
@@ -777,7 +777,7 @@ const GAME = {
     skillCoef: 2.2, skillCd: 6, skillCost: 15, energyRegen: 2, baseInterval: 1.2,
     expBase: 40, expPow: 2.6,
     mobHp: 1.68, mobAtk: 1.47, lateHp: 0.14, lateAtk: 0.13, // v0.8 有裝備後魔物整體調強，維持首區節奏
-    exploreBase: 60, explorePer: 14, exploreSq: 0.6, expMul: 0.68,   // 探索度：每區要擊倒的數量；expMul 調整升級速度
+    exploreBase: 60, explorePer: 14, exploreSq: 0.6, expMul: 0.64,   // 探索度：每區要擊倒的數量；expMul 調整升級速度
     placeBonus: 0.01                                                  // 一個地方的小地區全部探索完：經驗、掉落各 +1%
   }
 };
@@ -854,18 +854,18 @@ GAME.skills = {
     { name: '穿陣', type: 'trigger', lv: 15, stat: '敏捷', on: 'everyN', n: 4, strike: [1.2, 1.7], ignoreDef: 0.3, aoe: true, desc: '每第 4 次普通攻擊，額外刺出一槍貫穿陣形，對所有魔物造成 {strike} 傷害，無視 30% 防禦（以敏捷計算）。', flavor: '看準甲片之間的那道縫。' }
   ],
   '必': [
-    { name: '盾擊', type: 'active', lv: 1, stat: '抵擋', cd: 6, cost: 15, dmg: [2.1, 2.9], stun: [0.25, 0.40], stunDur: 2, desc: '以盾撞擊，造成 {dmg} 傷害（以抵擋計算），並有 {stun} 機率震懾 2 秒。', flavor: '先聽見悶響，才看見盾。' },
-    { name: '格擋', type: 'trigger', lv: 8, stat: '抵擋', on: 'hitTaken', block: true, chance: [0.20, 0.35], desc: '受到攻擊時有 {chance} 機率完全擋下。', flavor: '盾面上又多了一道痕。' },
+    { name: '盾擊', type: 'active', lv: 1, stat: '抵擋', cd: 4, cost: 12, dmg: [2.6, 3.4], stun: [0.25, 0.40], stunDur: 2, desc: '以盾撞擊，造成 {dmg} 傷害（以抵擋計算），並有 {stun} 機率震懾 2 秒。', flavor: '先聽見悶響，才看見盾。' },
+    { name: '格擋', type: 'trigger', lv: 8, stat: '抵擋', on: 'hitTaken', block: true, chance: [0.20, 0.35], counter: [0.9, 1.3], desc: '受到攻擊時有 {chance} 機率完全擋下，並反擊 {counter} 傷害（以抵擋計算）。', flavor: '盾面上又多了一道痕。' },
     { name: '守誓', type: 'passive', lv: 15, stat: '體力', maxHp: [0.08, 0.20], regen: [0.010, 0.025], desc: '最大血量提高 {maxHp}；血量低於 30% 時，每秒回復 {regen} 血量。', flavor: '答應過的事，倒下前都還算數。' }
   ],
   '暗': [
-    { name: '禁文', type: 'active', lv: 1, stat: '智慧', cd: 6, cost: 15, dmg: [2.2, 3.0], desc: '唸出禁文，造成 {dmg} 魔法傷害。', flavor: '字一個一個從書頁上浮起來。' },
-    { name: '封印', type: 'active', lv: 8, stat: '守護', cd: 12, cost: 15, dmg: [1.2, 1.6], slow: [0.25, 0.45], dur: 6, desc: '以文字封住魔物，造成 {dmg} 魔法傷害（以守護計算），並使牠的攻擊間隔延長 {slow}，持續 6 秒。', flavor: '把它的動作，寫慢一點。' },
+    { name: '禁文', type: 'active', lv: 1, stat: '守護', cd: 6, cost: 10, dmg: [2.2, 3.0], chain: 0.7, desc: '唸出禁文，造成 {dmg} 魔法傷害，再跳到另一隻魔物造成 70%（以守護計算）。', flavor: '字一個一個從書頁上浮起來。' },
+    { name: '封印', type: 'active', lv: 8, stat: '守護', cd: 12, cost: 12, dmg: [1.6, 2.2], slow: [0.25, 0.45], dur: 6, aoe: true, desc: '以文字封住所有魔物，各造成 {dmg} 魔法傷害（以守護計算），並使牠們的攻擊間隔延長 {slow}，持續 6 秒。', flavor: '把它的動作，寫慢一點。' },
     { name: '頁障', type: 'passive', lv: 15, stat: '守護', mdef: [0.15, 0.30], dr: [0.15, 0.25], when: 'countered', desc: '魔法防禦提高 {mdef}；被剋制時受到的傷害再降低 {dr}。', flavor: '書頁一層一層翻開，擋在身前。' }
   ],
   '武': [
-    { name: '碎岩', type: 'active', lv: 1, stat: '體力', cd: 7, cost: 15, dmg: [2.2, 2.9], defDown: [0.20, 0.35], dur: 6, desc: '重槌砸下，造成 {dmg} 傷害（以體力計算），並使魔物物理防禦降低 {defDown}，持續 6 秒。', flavor: '槌還沒抬起來，地面就先裂了。' },
-    { name: '震地', type: 'trigger', lv: 8, stat: '控制', on: 'everyN', n: 5, chance: [0.50, 0.80], stunEff: 1.5, aoe: true, desc: '每第 5 次普通攻擊震動地面，每隻魔物各有 {chance} 機率被震懾 1.5 秒。', flavor: '腳底先麻，接著是膝蓋。' },
+    { name: '碎岩', type: 'active', lv: 1, stat: '體力', cd: 6, cost: 15, dmg: [2.8, 3.6], defDown: [0.20, 0.35], dur: 6, desc: '重槌砸下，造成 {dmg} 傷害（以體力計算），並使魔物物理防禦降低 {defDown}，持續 6 秒。', flavor: '槌還沒抬起來，地面就先裂了。' },
+    { name: '震地', type: 'trigger', lv: 8, stat: '控制', on: 'everyN', n: 4, chance: [0.50, 0.80], stunEff: 1.5, strike: [1.2, 1.6], aoe: true, desc: '每第 4 次普通攻擊震動地面，對所有魔物造成 {strike} 傷害，每隻各有 {chance} 機率被震懾 1.5 秒。', flavor: '腳底先麻，接著是膝蓋。' },
     { name: '鐵骨', type: 'passive', lv: 15, stat: '體力', dr: [0.08, 0.18], when: 'phys', desc: '受到的物理傷害降低 {dr}。', flavor: '挨過的槌，都長成了骨頭。' }
   ],
   '術': [
@@ -879,9 +879,9 @@ GAME.skills = {
     { name: '鍛身', type: 'passive', lv: 15, stat: '體力', maxHp: [0.06, 0.15], pdef: [0.06, 0.15], mdef: [0.06, 0.15], desc: '最大血量、物理防禦、魔法防禦各提高 {maxHp}。', flavor: '每一拳都先打在自己身上。' }
   ],
   '聖': [
-    { name: '撲擊', type: 'trigger', lv: 1, stat: '敏捷', on: 'periodic', period: 2.5, strike: [0.8, 1.2], desc: '機關獸每 2.5 秒自動撲擊一次，造成 {strike} 傷害（以敏捷計算）。', flavor: '齒輪咬合的聲音，比爪子先到。' },
+    { name: '撲擊', type: 'trigger', lv: 1, stat: '敏捷', on: 'periodic', period: 2, strike: [1.0,  1.5], desc: '機關獸每 2 秒自動撲擊一次，造成 {strike} 傷害（以敏捷計算）。', flavor: '齒輪咬合的聲音，比爪子先到。' },
     { name: '鐵甲', type: 'active', lv: 8, stat: '守護', cd: 15, cost: 20, shield: [0.15, 0.28], desc: '機關獸展開甲片，吸收最大血量 {shield} 的傷害。', flavor: '一片一片扣上，像魚鱗。' },
-    { name: '齊攻', type: 'active', lv: 15, stat: '敏捷', cd: 8, cost: 15, dmg: [1.1, 1.5], hits: 2, desc: '你與機關獸同時出手，造成兩次 {dmg} 傷害（以敏捷計算）。', flavor: '你出手的時候，牠也剛好撲上去。' }
+    { name: '齊攻', type: 'active', lv: 15, stat: '敏捷', cd: 8, cost: 15, dmg: [1.3,  1.8], hits: 2, desc: '你與機關獸同時出手，造成兩次 {dmg} 傷害（以敏捷計算）。', flavor: '你出手的時候，牠也剛好撲上去。' }
   ],
   '霸': [
     { name: '掄棍', type: 'active', lv: 1, stat: '抵擋', cd: 6, cost: 15, dmg: [1.9, 2.6], aoe: true, desc: '掄棍橫掃，對所有魔物造成 {dmg} 傷害（以抵擋計算）。', flavor: '棍子轉一圈，周圍的空氣都退開。' },
@@ -904,8 +904,8 @@ GAME.skills = {
     { name: '玉護', type: 'passive', lv: 15, stat: '守護', mdef: [0.12, 0.25], dr: [0.08, 0.15], when: 'hpAbove70', desc: '魔法防禦提高 {mdef}；血量高於 70% 時受到的傷害降低 {dr}。', flavor: '珠子繞著身子轉，碰到的東西都慢下來。' }
   ],
   '慧': [
-    { name: '扇風', type: 'active', lv: 1, stat: '控制', cd: 6, cost: 15, dmg: [1.8, 2.4], stun: [0.30, 0.50], stunDur: 1.5, aoe: true, desc: '扇出一陣風，對所有魔物造成 {dmg} 魔法傷害（以控制計算），每隻各有 {stun} 機率被震懾 1.5 秒。', flavor: '扇面一合，風才開始吹。' },
-    { name: '迷霧', type: 'active', lv: 8, stat: '控制', cd: 13, cost: 15, slow: [0.30, 0.50], dur: 6, aoe: true, desc: '扇起迷霧，使所有魔物的攻擊間隔延長 {slow}，持續 6 秒。', flavor: '霧裡看不清是誰在出手。' },
+    { name: '扇風', type: 'active', lv: 1, stat: '控制', cd: 5, cost: 12, dmg: [2.4, 3.2], stun: [0.30, 0.50], stunDur: 1.5, aoe: true, desc: '扇出一陣風，對所有魔物造成 {dmg} 魔法傷害（以控制計算），每隻各有 {stun} 機率被震懾 1.5 秒。', flavor: '扇面一合，風才開始吹。' },
+    { name: '迷霧', type: 'active', lv: 8, stat: '控制', cd: 13, cost: 10, slow: [0.4,  0.6], dur: 8, aoe: true, desc: '扇起迷霧，使所有魔物的攻擊間隔延長 {slow}，持續 8 秒。', flavor: '霧裡看不清是誰在出手。' },
     { name: '借勢', type: 'passive', lv: 15, stat: '控制', stunnedBonus: [0.25, 0.50], desc: '魔物被震懾時，你造成的傷害提高 {stunnedBonus}。', flavor: '它停下來的時候，就輪到你了。' }
   ],
   '降': [
@@ -929,7 +929,7 @@ GAME.skills = {
     { name: '連誅', type: 'passive', lv: 15, stat: '敏捷', killHaste: [0.05, 0.09], desc: '每擊倒一隻魔物，攻擊速度提高 {killHaste}，持續 5 秒，最多疊 3 層。', flavor: '一個倒下，下一個已經在劍下。' }
   ],
   '闇': [
-    { name: '爐火', type: 'active', lv: 1, stat: '靈力', cd: 7, cost: 15, dmg: [1.1, 1.5], dot: [0.25, 0.40], dur: 6, aoe: true, dotName: '灼燒', desc: '爐口噴火，對所有魔物造成 {dmg} 魔法傷害並灼燒，每秒受到 {dot} 傷害，持續 6 秒（以靈力計算）。', flavor: '爐火一開，四周的影子都縮了一下。' },
+    { name: '爐火', type: 'active', lv: 1, stat: '靈力', cd: 5, cost: 12, dmg: [1.3,  1.8], dot: [0.4, 0.6], dur: 6, aoe: true, dotName: '灼燒', desc: '爐口噴火，對所有魔物造成 {dmg} 魔法傷害並灼燒，每秒受到 {dot} 傷害，持續 6 秒（以靈力計算）。', flavor: '爐火一開，四周的影子都縮了一下。' },
     { name: '煉丹', type: 'trigger', lv: 8, stat: '靈力', on: 'brew', period: 15, max: 2, below: 0.5, heal: [0.12, 0.22], desc: '戰鬥中每 15 秒煉成一顆丹，最多存 2 顆；血量低於一半時自動服下，回復最大血量 {heal}（再加上治療提升）。', flavor: '爐子從來不熄，丹也從來不缺。' },
     { name: '爐壁', type: 'passive', lv: 15, stat: '守護', dr: [0.10, 0.22], when: 'magic', healUp: [0.10, 0.25], desc: '受到的魔法傷害降低 {dr}，治療提升再提高 {healUp}。', flavor: '爐壁燒得越熱，外面的東西越近不了身。' }
   ],
@@ -961,7 +961,7 @@ GAME.sub = {
   '智慧': [{ k: 'matk', name: '魔法攻擊', f: S => GAME.formula.atk(S) - GAME.formula.atkBase, formula: '智慧^1.237' }, { k: 'mcrit', name: '魔法爆擊率', v: 0.00025, pct: 1 }, { k: 'mcd', name: '魔法爆擊傷害', v: 0.002, pct: 1 }],
   '守護': [{ k: 'mdef', name: '魔法防禦', f: S => GAME.formula.def(S), formula: '守護^1.228' }, { k: 'mtough', name: '魔法韌性', f: S => GAME.formula.tough(S), formula: '守護^1.012', note: '每 10 點，被魔法爆擊的機率 -1%' }, { k: 'shieldUp', name: '護盾強度', v: 0.003, pct: 1 }],
   '靈力': [{ k: 'men', name: '靈氣', v: 1, note: '魔法武器' }, { k: 'heal', name: '治療提升', v: 0.005, pct: 1 }, { k: 'potion', name: '藥效', v: 0.005, pct: 1 }],
-  '控制': [{ k: 'stun', name: '控場機率', v: 0.002, pct: 1 }, { k: 'resist', name: '閃避控制', v: 0.0015, pct: 1, note: '躲開暈眩、定身' }, { k: 'stunDur', name: '控場時間', v: 0.005, pct: 1 }]
+  '控制': [{ k: 'stun', name: '控場機率', v: 0.003, pct: 1 }, { k: 'resist', name: '閃避控制', v: 0.0015, pct: 1, note: '躲開暈眩、定身' }, { k: 'stunDur', name: '控場時間', v: 0.005, pct: 1 }]
 };
 // 門檻獎勵：看「加點換算後的數值」，到了就解鎖（高星的屬性比較快到）
 GAME.tiers = {
@@ -1335,6 +1335,7 @@ GAME.towerRules = {
   bossEvery: 10,
   between: 0.15,              // 層與層之間回復的血量（元蓮塔除外）
   clearSec: 3,                // 通過一層後，倒數幾秒自動往上走
+  bossSoft(F) { return Math.min(1, 0.4 + F * 0.02); }, // 前幾隻守塔者弱一點：第 10 層 60%、第 20 層 80%、第 30 層起 100%
   pots: 3, potsOrigin: 5,      // 塔裡每層最多服幾顆回復藥
   hpBase: 1.2, hpPer: 0.2, atkBase: 1.1, atkPer: 0.1, bossHp: 0.4, bossAtk: 0.7
 };
@@ -1428,7 +1429,7 @@ function derive(st) {
     heal: SPI * 0.005 + t('heal'),
     potion: SPI * 0.005 + t('potion'), restUp: t('restUp'), potCd: t('potCd'), healDouble: t('healDouble'),
     shieldUp: GRD * 0.003 + t('shieldUp'), startShield: t('startShield'),
-    stun: Math.min(0.5, CTL * 0.002 + t('stun')),
+    stun: Math.min(0.5, CTL * 0.003 + t('stun')),
     resist: Math.min(0.8, CTL * 0.0015 + t('resist')),
     stunDur: CTL * 0.005 + t('stunDur'),
     downCut: Math.min(0.5, t('downCut')),
@@ -1600,7 +1601,7 @@ function resolveSkill(d, sw, s, i, ml) {
   const sf = Math.min(1.6, 1 + sv * 0.003); // 吃的屬性越高，非傷害效果越強（最多 1.6 倍）
   const r = { i, s, ml, t, sf };
   r.magic = s.stat === '智慧' ? true : s.stat === '力量' ? false : d.magic;
-  r.atk = Math.round((sv * 2 + 10 + (d.wAtk || 0)) * (1 + GAME.sword.atkPerLv * sw) * (1 + (d.atkPct || 0) + ((r.magic ? d.tAtkM : d.tAtkP) || 0)) * (1 + (d.atkBuff || 0))); // 傷害以這項屬性計算，兵器的攻擊也算進去
+  r.atk = Math.round((GAME.formula.atk(sv) + (d.wAtk || 0)) * (1 + GAME.sword.atkPerLv * sw) * (1 + (d.atkPct || 0) + ((r.magic ? d.tAtkM : d.tAtkP) || 0)) * (1 + (d.atkBuff || 0))); // 傷害以這項屬性計算，兵器的攻擊也算進去
   for (const k of COEF_KEYS) if (s[k]) r[k] = lerp(s[k], t);
   for (const k of SCALE_KEYS) if (s[k]) r[k] = lerp(s[k], t) * sf;
   if (s.heal) r.heal = lerp(s.heal, t);
@@ -1852,7 +1853,7 @@ function mobAttack(st, rt, m) {
       emit(rt, { t: 'proc', name: rt.guard.name, text: '擋下了' + m.label + '的攻擊，反擊（還能擋 ' + rt.guard.n + ' 次）' });
       hitMob(st, rt, rt.guard.atk, rt.guard.magic, rt.guard.coef, { skill: rt.guard.name, proc: true, sure: true }, m);
     }
-    else if (blocked) { dmg = 0; emit(rt, { t: 'proc', name: blocked.s.name, text: '擋下了' + m.label + '的攻擊' }); gainMastery(st, rt, blocked.i); }
+    else if (blocked) { dmg = 0; emit(rt, { t: 'proc', name: blocked.s.name, text: '擋下了' + m.label + '的攻擊' + (blocked.counter ? '，順勢反擊' : '') }); gainMastery(st, rt, blocked.i); if (blocked.counter) procStrike(st, rt, blocked, blocked.counter, m); }
     else {
       if (half) dmg *= 0.5;
       const guard = m.type === 'phys' && d.block && rng() < d.block;
@@ -2124,9 +2125,9 @@ const ALL_ATTRS = GAME.groups.flatMap(g => g.members);
 function towerGroup(st, rt) {
   const T = towerById(rt.tower.id), F = rt.tower.floor, L = GAME.towerRules.lv(F), boss = F % GAME.towerRules.bossEvery === 0;
   const pickPool = () => T.id === 'sword' ? (rng() < 0.6 ? 'jianying' : 'canying') : TOWER_POOL[Math.floor(rng() * TOWER_POOL.length)];
-  let n = T.id === 'moon' ? Math.min(12, 3 + Math.floor(F / 4) + (boss ? 3 : 0)) : 2 + Math.min(2, Math.floor(F / 8));
+  let n = T.id === 'moon' ? Math.min(12, 3 + Math.floor(F / 4) + (boss ? 1 : 0)) : 2 + Math.min(2, Math.floor(F / 8));
   const list = [];
-  if (boss) { const b = makeMob(T.boss, L + 1); b.maxHp = b.hp = Math.round(b.hp * GAME.towerRules.bossHp); b.atk = Math.round(b.atk * GAME.towerRules.bossAtk); list.push(b); n = Math.min(n, T.id === 'moon' ? n : 2); }
+  if (boss) { const b = makeMob(T.boss, L + 1), soft = GAME.towerRules.bossSoft(F); b.maxHp = b.hp = Math.round(b.hp * GAME.towerRules.bossHp * soft); b.atk = Math.round(b.atk * GAME.towerRules.bossAtk * soft); list.push(b); n = Math.min(n, T.id === 'moon' ? n : 2); }
   while (list.length < n) list.push(makeMob(pickPool(), L));
   const k = list.length, f = k === 1 ? 1 : 1 / (0.5 + 0.5 * k);
   const enemyOf = counterTargets(st.weapon).beatenBy;
