@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#121315">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>天星界・御劍者 v0.18</title>
+<title>天星界・御劍者 v0.18.1</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -464,7 +464,7 @@ button:active:not(:disabled){transform:scale(.95)}
 .potbar .pt .a{position:absolute;bottom:2px;left:4px;font-family:var(--sans);font-size:9px;color:var(--jade)}
 .potbar .pt .tm{position:absolute;bottom:2px;right:3px;font-family:var(--sans);font-size:9px;color:var(--gold)}
 .potbar .pt i{position:absolute;left:0;right:0;bottom:0;background:rgba(10,10,14,.6)}
-.potbar .pt.hp{color:#ff9a8a}.potbar .pt.en{color:#9fd8ff}.potbar .pt.buff{color:#f2d58a}
+.potbar .pt.hp{color:#ff9a8a}.potbar .pt.hot{color:#9ee08a}.potbar .pt.en{color:#9fd8ff}.potbar .pt.buff{color:#f2d58a}
 .potbar .pt.on{border-color:var(--gold)}
 .potbar .pt.empty{opacity:.4}
 .potbar .pt.used{animation:potUse .35s ease-out}
@@ -533,7 +533,7 @@ button:active:not(:disabled){transform:scale(.95)}
 
 /* ---------- 遊戲資料：名稱、數值都集中在這裡，改這裡就好 ---------- */
 const GAME = {
-  meta: { title: '天星界・御劍者', subtitle: '暫定名稱', version: '0.18', era: '仙曆五百餘年' },
+  meta: { title: '天星界・御劍者', subtitle: '暫定名稱', version: '0.18.1', era: '仙曆五百餘年' },
 
   // 八項資源系統（順序固定，星數陣列照這個順序）
   statNames: ['力量', '抵擋', '體力', '敏捷', '智慧', '守護', '靈力', '控制'],
@@ -959,7 +959,8 @@ const GAME = {
     // v0.17 第三章以後（Lv.40 起）：經驗、精魄、探索度、魔物強度另外照這幾個數字走
     lateFrom: 40, expFrom: 39, expLate: 0.11, expLateCap: 25, soulBase: 1.5, soulLate: 0.10,   // 精魄：每次掉落的數量（期望值）
     exploreLateBase: 800, exploreLatePer: 4,                          // Lv.40 以後地區很多，每區的探索度改成平緩成長
-    mobHpLate: 0, mobAtkLate: 0
+    mobHpLate: 0, mobAtkLate: 0,
+    newbieAtk: 0.7, newbieTo: 8                                        // v0.18.1 Lv.1 魔物攻擊 ×0.7，到 Lv.8 回到 ×1
   }
 };
 
@@ -1405,6 +1406,7 @@ GAME.ults = {
 /* ---------- 藥品：回復藥用銀兩買，增益藥用材料調製 ---------- */
 GAME.shopNpc = { name: '宋苓', title: '天霖市・百草堂掌櫃', seal: '苓' };
 GAME.items = {
+  '止血草': { kind: 'hot', amt: 3.5, tick: 0.12, dur: 3, lv: 1, seal: '草', desc: '巡守司發給新人的草藥。嚼下去之後 3 秒內慢慢收口，每 0.12 秒回復 3.5 點血（共 87 點）。不賣，用完就沒了。' },
   '小還丹': { kind: 'hp', heal: 0.25, price: 30, lv: 1, seal: '小', desc: '回復最大血量 25%。' },
   '中還丹': { kind: 'hp', heal: 0.40, price: 150, lv: 8, seal: '中', desc: '回復最大血量 40%。' },
   '大還丹': { kind: 'hp', heal: 0.60, price: 400, lv: 15, seal: '大', desc: '回復最大血量 60%。' },
@@ -2150,9 +2152,9 @@ function powerOf(d, lv) {
 
 function newState() {
   return {
-    v: 15, lv: 1, exp: 0, weapon: '銀', swordLv: {}, alloc: {}, resetUsed: {}, mastery: {},
+    v: 16, lv: 1, exp: 0, weapon: '銀', swordLv: {}, alloc: {}, resetUsed: {}, mastery: {},
     main: { step: 0, base: 0, surv: 0, gated: true, done: false },
-    items: { '小還丹': 10 }, potion: { auto: { '小還丹': true, '中還丹': true, '大還丹': true, '凝神丹': false }, thr: 0.4 }, buffs: {}, buffAuto: {}, board: [], boardDone: 0, silver: 0, mats: {}, zone: GAME.zones[0].id, auto: true,
+    items: { '小還丹': 10, '止血草': 15 }, herbGiven: true, potion: { auto: { '止血草': true, '小還丹': true, '中還丹': true, '大還丹': true, '凝神丹': false }, thr: 0.4 }, buffs: {}, buffAuto: {}, board: [], boardDone: 0, silver: 0, mats: {}, zone: GAME.zones[0].id, auto: true,
     hp: null, en: null,
     quest: { progress: 0, done: 0 },
     stats: { kills: {}, deaths: 0, playSec: 0, offlineSec: 0, totalExp: 0, bossKills: 0, counterKills: 0, crafted: 0, salvaged: 0, zk: {}, towerFloors: 0, bounties: 0 },
@@ -2222,8 +2224,10 @@ function migrate(st) {
   if (!st.stats.zk) st.stats.zk = {};
   fillBounties(st); refreshBounties(st);
   shopInit(st);
+  if (!st.herbGiven) { st.herbGiven = true; if (st.lv <= 5) st.items['止血草'] = (st.items['止血草'] || 0) + 15; }
+  if (st.potion && st.potion.auto['止血草'] === undefined) st.potion.auto['止血草'] = true;
   ensureWeaponGear(st, st.weapon);
-  st.v = 15;
+  st.v = 16;
   return st;
 }
 
@@ -2261,11 +2265,12 @@ function makeMob(key, L) {
   const f = lvScale(L), ramp = 1 + 0.02 * (L - 1);
   const over = Math.max(0, L - 21), R = GAME.rules; // 第二章以後魔物再加強：玩家御心、裝備、門檻都會疊上去
   const late = Math.max(0, L - R.lateFrom);        // 第三章以後
+  const newbie = L < R.newbieTo ? R.newbieAtk + (1 - R.newbieAtk) * (L - 1) / (R.newbieTo - 1) : 1; // 新手期：Lv.8 以前魔物出手比較輕
   const hp = Math.round(a.hp * Math.pow(f, 1.15) * ramp * (1 + R.lateHp * over) * (1 + R.mobHpLate * late) * R.mobHp);
   return {
     key, name: b.name, rank: b.rank || '', lv: L, attrs: b.attrs.slice(), stance: 0, type: b.type,
     hp, maxHp: hp,
-    atk: Math.round(a.atk * f * (1 + 0.015 * (L - 1)) * (1 + R.lateAtk * over) * (1 + R.mobAtkLate * late) * GAME.rules.mobAtk),
+    atk: Math.round(a.atk * f * (1 + 0.015 * (L - 1)) * (1 + R.lateAtk * over) * (1 + R.mobAtkLate * late) * newbie * GAME.rules.mobAtk),
     pdef: Math.round(a.pdef * f), mdef: Math.round(a.mdef * f),
     interval: a.interval, crit: a.crit || 0.05, bind: b.bind || 0,
     exp: Math.round(a.exp * Math.pow(f, 1.6) * GAME.rules.expMul * (1 + R.expLate * Math.min(R.expLateCap, Math.max(0, L - R.expFrom)))), silver: Math.round(a.silver * f),
@@ -2713,6 +2718,7 @@ function step(st, rt, dt) {
   mainTick(st, rt, dt);
   bountyTick(st, rt, dt);
   shopTick(st, dt);
+  tickHot(st, rt, dt);
   d = rt.d;
   if (rt.drBuff.t > 0) rt.drBuff.t -= dt;
   if (rt.mode === 'down') {
@@ -3085,13 +3091,29 @@ function autoPotions(st, rt) {
   const d = rt.d, P = st.potion;
   const potCap = rt.tower ? (rt.tower.id === 'origin' ? GAME.towerRules.potsOrigin : GAME.towerRules.pots) : 99;
   if (rt.potCd <= 0 && st.hp < d.maxHp * P.thr && (!rt.tower || rt.tower.pots < potCap)) {
-    const n = ['大還丹', '中還丹', '小還丹'].find(x => P.auto[x] && st.items[x] > 0); // 先用效果最好的
-    if (n) { if (rt.tower) rt.tower.pots++; st.items[n]--; const before = st.hp; healHp(st, rt, d.maxHp * GAME.items[n].heal * (1 + (d.potion || 0))); rt.potCd = GAME.potionRules.hpCd - (d.potCd || 0); emit(rt, { t: 'potion', name: n, v: Math.round(st.hp - before) }); }
+    const amt = x => { const it = GAME.items[x]; return it.kind === 'hot' ? it.amt * Math.round(it.dur / it.tick) : d.maxHp * it.heal; };
+    const n = ['大還丹', '中還丹', '小還丹', '止血草'].filter(x => P.auto[x] && st.items[x] > 0 && !(x === '止血草' && rt.hot)).sort((a, b) => amt(b) - amt(a))[0]; // 先用回得最多的
+    if (n && GAME.items[n].kind === 'hot') { if (rt.tower) rt.tower.pots++; startHot(st, rt, n, false); }
+    else if (n) { if (rt.tower) rt.tower.pots++; st.items[n]--; const before = st.hp; healHp(st, rt, d.maxHp * GAME.items[n].heal * (1 + (d.potion || 0))); rt.potCd = GAME.potionRules.hpCd - (d.potCd || 0); emit(rt, { t: 'potion', name: n, v: Math.round(st.hp - before) }); }
   }
   if (rt.enCd <= 0 && P.auto['凝神丹'] && st.items['凝神丹'] > 0 && st.en < 15) {
     st.items['凝神丹']--; st.en = Math.min(d.maxEn, st.en + d.maxEn * GAME.items['凝神丹'].restore); rt.enCd = GAME.potionRules.enCd;
     emit(rt, { t: 'potion', name: '凝神丹', v: 0 });
   }
+}
+// 止血草：3 秒內每 0.12 秒回一點血，跟回復藥共用冷卻
+function startHot(st, rt, n, manual) {
+  const it = GAME.items[n];
+  st.items[n]--; rt.hot = { n: Math.round(it.dur / it.tick), tick: it.tick, amt: it.amt, t: 0 };
+  rt.potCd = GAME.potionRules.hpCd - (rt.d.potCd || 0);
+  emit(rt, { t: 'potion', name: n, v: Math.round(it.amt * rt.hot.n), manual });
+}
+function tickHot(st, rt, dt) {
+  const h = rt.hot; if (!h) return;
+  if (rt.mode === 'down') { rt.hot = null; return; }
+  h.t += dt;
+  while (h.t >= h.tick && h.n > 0) { h.t -= h.tick; h.n--; healHp(st, rt, h.amt); }
+  if (h.n <= 0) rt.hot = null;
 }
 // 手動服藥：點藥水快捷欄
 function drinkItem(st, rt, name) {
@@ -3106,6 +3128,13 @@ function drinkItem(st, rt, name) {
     if (rt.tower) { const cap = rt.tower.id === 'origin' ? GAME.towerRules.potsOrigin : GAME.towerRules.pots; if (rt.tower.pots >= cap) return { ok: false, why: '這一層的回復藥已經用完了' }; rt.tower.pots++; }
     st.items[name]--; const before = st.hp; healHp(st, rt, d.maxHp * it.heal * (1 + (d.potion || 0)));
     rt.potCd = GAME.potionRules.hpCd - (d.potCd || 0); emit(rt, { t: 'potion', name, v: Math.round(st.hp - before), manual: true });
+    return { ok: true };
+  }
+  if (it.kind === 'hot') {
+    if (rt.potCd > 0) return { ok: false, why: '回復藥還要 ' + Math.ceil(rt.potCd) + ' 秒才能再吃' };
+    if (st.hp >= d.maxHp) return { ok: false, why: '血量是滿的' };
+    if (rt.tower) { const cap = rt.tower.id === 'origin' ? GAME.towerRules.potsOrigin : GAME.towerRules.pots; if (rt.tower.pots >= cap) return { ok: false, why: '這一層的回復藥已經用完了' }; rt.tower.pots++; }
+    startHot(st, rt, name, true);
     return { ok: true };
   }
   if (it.kind === 'en') {
@@ -5115,7 +5144,7 @@ function renderHero() {
   const mmss = t => Math.floor(t / 60) + ':' + String(Math.floor(t % 60)).padStart(2, '0');
   let c = '';
   c += '<span class="rank">' + rankName(rankOf(st)) + '</span>';
-  for (const n of ['小還丹', '中還丹', '大還丹']) if (st.items[n] > 0 || (n === '小還丹' && st.potion.auto[n])) c += '<span' + ((st.items[n] || 0) < 5 ? ' class="low"' : '') + '>' + n + ' ×' + (st.items[n] || 0) + '</span>';
+  for (const n of ['止血草', '小還丹', '中還丹', '大還丹']) if (st.items[n] > 0 || (n === '小還丹' && st.potion.auto[n])) c += '<span' + ((st.items[n] || 0) < 5 ? ' class="low"' : '') + '>' + n + ' ×' + (st.items[n] || 0) + '</span>';
   for (const k in st.buffs) c += '<span class="buff">' + st.buffs[k].item + ' ' + mmss(st.buffs[k].t) + '</span>';
   if (c !== lastChips) { $('#pChips').innerHTML = c; lastChips = c; }
 }
@@ -5240,14 +5269,14 @@ function renderBars() {
     el.querySelector('i').style.height = (cd / max * 100).toFixed(1) + '%';
   }
   // 藥水列
-  const P = GAME.potionRules, names = ['小還丹', '中還丹', '大還丹', '凝神丹'].filter(n => (st.items[n] || 0) > 0 || st.lv >= GAME.items[n].lv)
+  const P = GAME.potionRules, names = ['止血草', '小還丹', '中還丹', '大還丹', '凝神丹'].filter(n => (st.items[n] || 0) > 0 || (n !== '止血草' && st.lv >= GAME.items[n].lv))
     .concat(Object.keys(GAME.items).filter(n => GAME.items[n].kind === 'buff' && ((st.items[n] || 0) > 0 || Object.values(st.buffs).some(b => b.item === n))));
   const pb = $('#potBar'), pkey = names.join(',');
   if (pkey !== lastPot) { lastPot = pkey; pb.innerHTML = '<span class="lab">藥品</span>' + names.map(n => { const it = GAME.items[n]; return '<button class="pt ' + it.kind + '" data-pot="' + n + '" title="' + n + '">' + it.seal + '<span class="n"></span><span class="a"></span><span class="tm"></span><i></i></button>'; }).join(''); }
   for (const n of names) {
     const el = pb.querySelector('[data-pot="' + n + '"]'); if (!el) continue;
     const it = GAME.items[n], c = st.items[n] || 0, act = it.kind === 'buff' ? Object.values(st.buffs).find(b => b.item === n) : null;
-    const cdf = it.kind === 'hp' ? Math.max(0, rt.potCd || 0) / P.hpCd : it.kind === 'en' ? Math.max(0, rt.enCd || 0) / P.enCd : 0;
+    const cdf = it.kind === 'hp' || it.kind === 'hot' ? Math.max(0, rt.potCd || 0) / P.hpCd : it.kind === 'en' ? Math.max(0, rt.enCd || 0) / P.enCd : 0;
     const cls = 'pt ' + it.kind + (c ? '' : ' empty') + (act ? ' on' : '');
     if (el.className !== cls) el.className = cls;
     const nt = fmt(c); if (el.querySelector('.n').textContent !== nt) el.querySelector('.n').textContent = nt;
@@ -5356,7 +5385,7 @@ function renderPanel() {
     h += '<div class="sec"><h3>藥品</h3><label class="toggle"><span>血量低於多少時，自動服用回復藥</span><select id="potThr">' + GAME.potionRules.thresholds.map(t => '<option value="' + t + '"' + (st.potion.thr === t ? ' selected' : '') + '>' + Math.round(t * 100) + '%</option>').join('') + '</select></label>';
     for (const [n, it] of Object.entries(GAME.items)) {
       const have = st.items[n] || 0, active = it.kind === 'buff' && st.buffs[it.buff];
-      if (!have && !active && it.kind === 'buff') continue;
+      if (!have && !active && (it.kind === 'buff' || it.kind === 'hot')) continue;
       if (it.kind === 'buff') {
         const blocked = active && active.item !== n;
         h += '<div class="itemrow"><span class="seal bf">' + it.seal + '</span><div><b>' + n + '<em>×' + fmt(have) + '</em></b><small>' + it.desc + (active && !blocked ? '　剩 ' + Math.ceil(active.t / 60) + ' 分鐘' : blocked ? '　（已有' + active.item + '生效中）' : '') + '</small></div>' +
