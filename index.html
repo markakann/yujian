@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#121315">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>天星界・御劍者 v0.17</title>
+<title>天星界・御劍者 v0.18</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -398,6 +398,17 @@ button:active:not(:disabled){transform:scale(.95)}
 /* 天陰五大塔 */
 .subtabs.four{grid-template-columns:repeat(4,1fr)}
 .subtabs.four button{font-size:13px;padding:8px 2px}
+.subtabs.five{grid-template-columns:repeat(5,1fr);gap:4px}
+.subtabs.five button{font-size:12.5px;padding:8px 1px}
+.dyes{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:8px}
+.dyes button{border:1px solid var(--line);border-radius:8px;padding:6px 2px;font-size:12px;line-height:1.35;background:var(--panel)}
+.dyes button i{display:block;width:22px;height:22px;border-radius:50%;margin:0 auto 4px;border:2px solid #0006}
+.dyes button.on{border-color:var(--gold);background:var(--panel2)}
+.dyes button small{display:block;font-size:10px;color:var(--muted)}
+.skup{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:8px}
+.skup .cost{font-size:11.5px;line-height:1.6;flex:1}
+.skup .btn{width:auto;padding:8px 14px;font-size:13px;flex-shrink:0}
+.tiertag{font-size:10px;padding:1px 5px;border-radius:4px;background:#5a4a1e;color:#f6e2b0;margin-left:4px;font-style:normal}
 .rankcard{background:linear-gradient(135deg,#2a2418,#23262a 70%);border:1px solid #6e5a2f;border-radius:12px;padding:12px;margin-bottom:12px}
 .rankcard .rk{display:flex;align-items:baseline;justify-content:space-between;gap:8px}
 .rankcard .rk b{font-family:var(--serif);font-size:22px;color:#f2d58a;letter-spacing:.08em}
@@ -522,7 +533,7 @@ button:active:not(:disabled){transform:scale(.95)}
 
 /* ---------- 遊戲資料：名稱、數值都集中在這裡，改這裡就好 ---------- */
 const GAME = {
-  meta: { title: '天星界・御劍者', subtitle: '暫定名稱', version: '0.17', era: '仙曆五百餘年' },
+  meta: { title: '天星界・御劍者', subtitle: '暫定名稱', version: '0.18', era: '仙曆五百餘年' },
 
   // 八項資源系統（順序固定，星數陣列照這個順序）
   statNames: ['力量', '抵擋', '體力', '敏捷', '智慧', '守護', '靈力', '控制'],
@@ -622,7 +633,9 @@ const GAME = {
     '靈骨': { seal: '骨', desc: '降靈臺上送不走的魂，留下的一截骨' },
     '丹砂': { seal: '丹', desc: '古丹城煉剩的丹砂，五百年來沒人收' },
     '花魄': { seal: '花', desc: '百花大地的花魂，開在有人倒下的地方' },
-    '蝕月鱗': { seal: '蝕', desc: '蝕月身上的鱗，背面映著另一個月亮' }
+    '蝕月鱗': { seal: '蝕', desc: '蝕月身上的鱗，背面映著另一個月亮' },
+    // 天陰塔
+    '天陰蓮心': { seal: '蓮', desc: '守塔者倒下時留下的一點蓮心，極少見。名品淬鍊要用' }
   },
 
   // 魔物原型：同等級時的強度，等級越高照同一條曲線放大
@@ -1185,7 +1198,18 @@ for (const z of GAME.zones) z.need = GAME.explore.need(z);
    type：active 主動（冷卻好就自動放）、passive 被動（一直有效）、trigger 觸發（條件成立時發動）
    stat：吃的屬性。傷害類以這項屬性計算攻擊力；其他效果隨這項屬性變強
    數值寫 [熟練 Lv.1, 熟練 Lv.10]；說明裡的 {鍵} 會換成目前數值 */
-GAME.mastery = { max: 10, need(lv) { return Math.round(40 * Math.pow(lv, 1.5)); } }; // 主動技約 7 小時練滿
+GAME.mastery = { max: 10, need(lv) { return Math.round(40 * Math.pow(lv, 1.5)); } };
+// v0.18 招式升級：不再靠熟練度，改花銀兩、精魄和各區材料（Lv.2～6 首區、7～8 青區、9～10 柳區）
+// sug 是這一級建議的角色等級：只會要那時候拿得到的材料
+GAME.skillUp = {
+  bands: [[2, 6, ['草芯', '獸牙', '火燼', '甲片', '石核', '蝠翼', '殘鐵']], [7, 8, ['鴉羽', '柳絲', '月露', '古銅', '赤羽', '霜晶']], [9, 10, ['曲弦', '鷲羽', '龍鱗', '參鬚', '影絲', '凝蓮']]],
+  sug: { 2: 3, 3: 6, 4: 10, 5: 14, 6: 17, 7: 26, 8: 33, 9: 46, 10: 54 },
+  cost(w, i, L) { // 升到 L 級要花的
+    const all = this.bands.find(b => L >= b[0] && L <= b[1])[2], ok = all.filter(m => (MAT_LV[m] || 1) <= this.sug[L]), list = ok.length ? ok : all;
+    let h = 0; for (const ch of w) h += ch.charCodeAt(0);
+    return { silver: Math.round(60 * Math.pow(L, 3.5) / 10) * 10, mats: { '精魄': 3 * L * L, [list[(h + i * 3 + L) % list.length]]: 3 + 3 * L } };
+  }
+};
 GAME.skills = {
   '萬': [
     { name: '橫掃', type: 'active', lv: 1, stat: '抵擋', cd: 6, cost: 15, dmg: [2.0, 2.7], aoe: true, desc: '以戟橫掃，對所有魔物造成 {dmg} 傷害（以抵擋計算）。', flavor: '戟桿掃過的地方，草都伏下去。' },
@@ -1340,7 +1364,7 @@ function tierLine(fx) {
 
 /* ---------- 技能書：第一招入門就會；第二、三招要讀書；天御要讀天御書 ---------- */
 GAME.books = {
-  price: { 1: 800, 2: 3000 },               // 書肆的價錢（第二招、第三招）
+  price: { 1: 5000, 2: 20000 },               // 書肆的價錢（第二招、第三招）
   drop: { normal: 0.002, elite: 0.10, boss: 0.10 },   // 魔物掉落技能書
   ultDrop: { elite: 0.04, boss: 0.06 },     // 精英、首領掉落天御書
   pageDrop: { elite: 0.4, boss: 1 },        // 天御殘頁
@@ -1385,11 +1409,11 @@ GAME.items = {
   '中還丹': { kind: 'hp', heal: 0.40, price: 150, lv: 8, seal: '中', desc: '回復最大血量 40%。' },
   '大還丹': { kind: 'hp', heal: 0.60, price: 400, lv: 15, seal: '大', desc: '回復最大血量 60%。' },
   '凝神丹': { kind: 'en', restore: 0.5, price: 80, lv: 5, seal: '神', desc: '回復一半的氣力或靈氣。' },
-  '虎骨酒': { kind: 'buff', buff: 'atk', v: 0.15, dur: 1800, seal: '虎', recipe: { silver: 200, mats: { '獸牙': 5 } }, desc: '攻擊提高 15%，持續 30 分鐘。' },
-  '鐵皮散': { kind: 'buff', buff: 'dr', v: 0.12, dur: 1800, seal: '鐵', recipe: { silver: 200, mats: { '甲片': 5 } }, desc: '受到的傷害降低 12%，持續 30 分鐘。' },
-  '明目丹': { kind: 'buff', buff: 'crit', v: 0.06, dur: 1800, seal: '目', recipe: { silver: 300, mats: { '蝠翼': 5, '火燼': 3 } }, desc: '爆擊率提高 6%，持續 30 分鐘。' },
-  '聚魄香': { kind: 'buff', buff: 'exp', v: 0.20, dur: 1800, seal: '香', recipe: { silver: 300, mats: { '草芯': 5, '火燼': 5 } }, desc: '獲得的經驗提高 20%，持續 30 分鐘。' },
-  '拾遺囊': { kind: 'buff', buff: 'drop', v: 0.25, dur: 1800, seal: '囊', recipe: { silver: 400, mats: { '石核': 3, '殘鐵': 3 } }, desc: '材料、裝備的掉落率提高 25%，持續 30 分鐘。' }
+  '虎骨酒': { kind: 'buff', buff: 'atk', v: 0.15, dur: 1800, seal: '虎', buy: 18, desc: '攻擊提高 15%，持續 30 分鐘。' },
+  '鐵皮散': { kind: 'buff', buff: 'dr', v: 0.12, dur: 1800, seal: '鐵', buy: 18, desc: '受到的傷害降低 12%，持續 30 分鐘。' },
+  '明目丹': { kind: 'buff', buff: 'crit', v: 0.06, dur: 1800, seal: '目', buy: 20, desc: '爆擊率提高 6%，持續 30 分鐘。' },
+  '聚魄香': { kind: 'buff', buff: 'exp', v: 0.20, dur: 1800, seal: '香', buy: 22, desc: '獲得的經驗提高 20%，持續 30 分鐘。' },
+  '拾遺囊': { kind: 'buff', buff: 'drop', v: 0.25, dur: 1800, seal: '囊', buy: 22, desc: '材料、裝備的掉落率提高 25%，持續 30 分鐘。' }
 };
 GAME.potionRules = { hpCd: 4, enCd: 10, buffCap: 4 * 3600, thresholds: [0.3, 0.4, 0.5, 0.6] };
 
@@ -1492,6 +1516,10 @@ GAME.gear = {
     '迅': { keys: ['aspd', 'cdr'], desc: '攻擊速度、技能冷卻' }
   },
   namedBoost: 1.3,
+  // v0.18 名品分階：照裝備等級分五階（首區、青區、柳區、孤區、息區），越後面的詞條越強
+  tiers: { at: [22, 40, 62, 82], mult: [0.9, 1.0, 1.12, 1.25, 1.4], names: ['一階', '二階', '三階', '四階', '五階'], area: ['首區', '青區', '柳區', '孤區', '息區'] },
+  // 名品淬鍊：把名品的等級拉到自己目前的等級，詞條保留；要銀兩、該階地區材料和天陰蓮心
+  refine: { minGap: 3, n: 15, mats: [['石核', '殘鐵'], ['柳絲', '霜晶'], ['影絲', '凝蓮'], ['葉紋', '夢砂'], ['丹砂', '花魄']], heart: [0, 1, 2, 3, 4], silver(lv) { return 40 * (lv + 4) * (lv + 4); } },
   // 掉落：q 是凡、良、精、珍、名的權重；名品只會是兵器
   drop: {
     normal: { chance: 0.02, q: [62, 28, 9, 1, 0] },
@@ -1571,7 +1599,7 @@ GAME.main = {
       reward: { silver: 1500, expPct: 0.3 } },
     { title: '備藥', lv: 14, npc: '宋苓',
       lines: ['往夜蘭山城的路不好走。', '帶上一帖補藥，別每次都撐到最後一口氣才想起我。'],
-      goal: { type: 'stat', key: 'crafted', n: 1 }, goalText: '在百草堂調製任一種增益藥 1 份',
+      goal: { type: 'stat', key: 'crafted', n: 1 }, goalText: '在百草堂買任一種增益藥 1 份',
       reward: { silver: 600, expPct: 0.1, items: { '虎骨酒': 2 } } },
     { title: '礦坑', zone: 'yl3', lv: 15, npc: '夜蘭山城・礦工',
       lines: ['礦坑裡的石頭會自己翻身。', '我們以為挖到了礦脈，挖開才知道，那是一道背脊。'],
@@ -1583,7 +1611,8 @@ GAME.main = {
       reward: { silver: 3000, expPct: 0.3, mats: { '殘鐵': 5 } } },
     { title: '靈泉', zone: 'yf2', lv: 18, npc: '月靈峰・採藥人',
       lines: ['泉水照得出一個人最熟的那一招。', '再往上就是凝鋒頂城。上去之前，把你最順手的那一招練熟。'],
-      goal: { type: 'mastery', n: 5 }, goalText: '任一招熟練度達到 Lv.5',
+      goal: { type: 'mastery', n: 4 }, goalText: '把任一招升到 Lv.4',
+      hint: '到「技能」花銀兩、精魄和首區的材料升級招式。',
       reward: { silver: 2000, expPct: 0.15, items: { '大還丹': 3 } } },
     { title: '劍塚', zone: 'nf3', lv: 21, npc: '凝鋒頂城・守劍人',
       lines: ['劍塚裡埋的，是沒有回家的御劍者留下的劍。', '最近那些劍會在半夜一起響，像在等誰回來。', '你去的話，別回頭看。'],
@@ -1986,7 +2015,7 @@ GAME.towerRules = {
   between: 0.15,              // 層與層之間回復的血量（元蓮塔除外）
   clearSec: 3,                // 通過一層後，倒數幾秒自動往上走
   bossSoft(F) { return Math.min(1, 0.4 + F * 0.02); }, // 前幾隻守塔者弱一點：第 10 層 60%、第 20 層 80%、第 30 層起 100%
-  pots: 3, potsOrigin: 5,      // 塔裡每層最多服幾顆回復藥
+  pots: 3, potsOrigin: 5, heartRepeat: 0.25,      // 塔裡每層最多服幾顆回復藥
   hpBase: 1.2, hpPer: 0.2, atkBase: 1.1, atkPer: 0.1, bossHp: 0.4, bossAtk: 0.7
 };
 // 御劍者位階：20 階，每階分下、中、上三品，共 60 品；靠功績晉升
@@ -2121,7 +2150,7 @@ function powerOf(d, lv) {
 
 function newState() {
   return {
-    v: 14, lv: 1, exp: 0, weapon: '銀', swordLv: {}, alloc: {}, resetUsed: {}, mastery: {},
+    v: 15, lv: 1, exp: 0, weapon: '銀', swordLv: {}, alloc: {}, resetUsed: {}, mastery: {},
     main: { step: 0, base: 0, surv: 0, gated: true, done: false },
     items: { '小還丹': 10 }, potion: { auto: { '小還丹': true, '中還丹': true, '大還丹': true, '凝神丹': false }, thr: 0.4 }, buffs: {}, buffAuto: {}, board: [], boardDone: 0, silver: 0, mats: {}, zone: GAME.zones[0].id, auto: true,
     hp: null, en: null,
@@ -2140,7 +2169,7 @@ function freshState() {
   const st = newState();
   ensureWeaponGear(st, st.weapon);
   st.equip['衣甲'] = genGear(st, 1, 0, { slot: '衣甲' });
-  fillBounties(st);
+  fillBounties(st); shopInit(st);
   return st;
 }
 // 舊存檔升級：v0.1 的息區狩獵區已移到第五章
@@ -2192,8 +2221,9 @@ function migrate(st) {
   for (const k of ['towerFloors', 'bounties']) if (st.stats[k] === undefined) st.stats[k] = 0;
   if (!st.stats.zk) st.stats.zk = {};
   fillBounties(st); refreshBounties(st);
+  shopInit(st);
   ensureWeaponGear(st, st.weapon);
-  st.v = 14;
+  st.v = 15;
   return st;
 }
 
@@ -2257,7 +2287,7 @@ const SCALE_KEYS = ['dr', 'pdef', 'mdef', 'maxHp', 'cdr', 'tough', 'resist', 're
 const COEF_KEYS = ['dmg', 'strike', 'counter', 'dot', 'carryPoison'];
 // ml：熟練等級；回傳這一招目前的數值
 function resolveSkill(d, sw, s, i, ml) {
-  const t = (ml - 1) / (GAME.mastery.max - 1);
+  const t = Math.sqrt((ml - 1) / (GAME.mastery.max - 1)); // v0.18：前幾級成長較快，Lv.10 的數值不變
   const sv = d.stats[statIdx(s.stat)];
   const sf = Math.min(1.6, 1 + sv * 0.003); // 吃的屬性越高，非傷害效果越強（最多 1.6 倍）
   const r = { i, s, ml, t, sf };
@@ -2335,12 +2365,17 @@ function gainExp(st, rt, amount) {
     if (st.lv === GAME.ult.lv && !ultKnown(st)) emit(rt, { t: 'needBook', name: GAME.ult.name + '・' + GAME.ults[st.weapon].name, book: bookName(st.weapon, 'u'), ult: true });
   }
 }
-function gainMastery(st, rt, i) {
-  const w = st.weapon;
+function gainMastery() {} // v0.18 起招式改用材料升級（upgradeSkill），使用招式不再累積熟練度
+function skillUpCost(st, w, i) { const ml = masteryOf(st, w, i)[0]; return ml >= GAME.mastery.max ? null : GAME.skillUp.cost(w, i, ml + 1); }
+function upgradeSkill(st, rt, w, i) {
+  const s = GAME.skills[w] && GAME.skills[w][i];
+  if (!s || !skillKnown(st, w, i) || st.lv < s.lv) return false;
+  const c = skillUpCost(st, w, i); if (!c || !canAfford(st, c)) return false;
+  st.silver -= c.silver; for (const k in c.mats) st.mats[k] -= c.mats[k];
   if (!st.mastery[w]) st.mastery[w] = [[1, 0], [1, 0], [1, 0]];
-  const m = st.mastery[w][i];
-  if (m[0] >= GAME.mastery.max) return;
-  if (++m[1] >= GAME.mastery.need(m[0])) { m[1] = 0; m[0]++; rt.d = derive(st); emit(rt, { t: 'mastery', name: GAME.skills[w][i].name, lv: m[0] }); }
+  const m = st.mastery[w][i]; m[0]++; m[1] = 0;
+  if (rt) { if (w === st.weapon) rt.d = derive(st); emit(rt, { t: 'mastery', name: s.name, lv: m[0], w }); }
+  return true;
 }
 
 // 目前還活著的魔物
@@ -2677,6 +2712,7 @@ function step(st, rt, dt) {
   tickBuffs(st, rt, dt);
   mainTick(st, rt, dt);
   bountyTick(st, rt, dt);
+  shopTick(st, dt);
   d = rt.d;
   if (rt.drBuff.t > 0) rt.drBuff.t -= dt;
   if (rt.mode === 'down') {
@@ -2844,6 +2880,7 @@ function towerFloorDone(st, rt) {
       if (st.equip) receiveGear(st, rt, genGear(st, R.lv(F), 3), T.name);
     }
   }
+  if (F % R.bossEvery === 0 && (first || rng() < R.heartRepeat)) { st.mats['天陰蓮心'] = (st.mats['天陰蓮心'] || 0) + 1; rew.heart = 1; } // 天陰蓮心：守塔者第一次必掉，之後 25%
   if (T.id !== 'origin') healHp(st, rt, rt.d.maxHp * R.between);
   rt.tower.clear = { floor: F, first, rew, boss: F % R.bossEvery === 0 };
   rt.mob = null; rt.mode = 'clear'; rt.wait = R.clearSec;   // 勝利畫面，倒數後往上一層
@@ -3100,10 +3137,13 @@ function useBuff(st, rt, name) {
   if (rt) { rt.d = derive(st); emit(rt, { t: 'buff', name }); }
   return true;
 }
+// 增益藥用銀兩買，價錢跟著等級走
+function itemPrice(st, name) { const it = GAME.items[name]; return !it ? 0 : it.price || (it.buy ? Math.round(it.buy * Math.pow(st.lv + 4, 1.4) / 10) * 10 : 0); }
 function buyItem(st, name, n) {
-  const it = GAME.items[name];
-  if (!it || !it.price || st.lv < it.lv || st.silver < it.price * n) return false;
-  st.silver -= it.price * n; st.items[name] = (st.items[name] || 0) + n;
+  const it = GAME.items[name], pr = itemPrice(st, name);
+  if (!it || !pr || (it.lv && st.lv < it.lv) || st.silver < pr * n) return false;
+  st.silver -= pr * n; st.items[name] = (st.items[name] || 0) + n;
+  if (it.kind === 'buff') st.stats.crafted = (st.stats.crafted || 0) + n; // 主線〈備藥〉算這個
   return true;
 }
 function canCraft(st, name, n = 1) {
@@ -3264,8 +3304,9 @@ function gearBase(it) {
   return r;
 }
 // 一條詞條的實際數值：roll 是 0～1 的骰值；fixed 是名器的固定詞條
+function namedTier(lv) { let t = 0; for (const a of GAME.gear.tiers.at) if (lv >= a) t++; return t; }
 function affixVal(it, k, roll, fixed) {
-  const G = GAME.gear, boost = fixed ? G.namedBoost : 1;
+  const G = GAME.gear, boost = (fixed ? G.namedBoost : 1) * (it.q === 4 && k[0] !== 's' ? G.tiers.mult[namedTier(it.lv)] : 1);
   if (k[0] === 's') return Math.max(1, Math.round((it.lv + 4) * lerp(G.statAffix, roll) * boost));
   return Math.round(lerp(G.affixes[k].range, roll) * boost * 10000) / 10000;
 }
@@ -3295,9 +3336,9 @@ function genGear(st, lv, q, opt = {}) {
   const used = new Set();
   if (it.q === 4) {
     it.n = opt.n !== undefined ? opt.n : randInt(0, 3);
-    for (const k of G.dirs[namedDir(it)].keys) { it.a.push([k, round3(0.6 + rng() * 0.4), 1]); used.add(k); }
+    for (const k of G.dirs[namedDir(it)].keys) { it.a.push([k, round3(0.85 + rng() * 0.15), 1]); used.add(k); } // v0.18 名品的固定詞條差距縮小
   }
-  const tilt = it.q / 16; // 品質越高，詞條骰值越不會太低
+  const tilt = it.q === 4 ? 0.6 : it.q / 16; // 品質越高，詞條骰值越不會太低
   while (it.a.length < G.quality[it.q].affix) { const k = pickAffix(it, used); used.add(k); it.a.push([k, round3(tilt + rng() * (1 - tilt))]); }
   return it;
 }
@@ -3569,10 +3610,71 @@ function rerollBounty(st, i) {
   return true;
 }
 
+
+/* ---------- v0.18 萬寶齋：精魄、天御殘頁限量補貨（離線也算時間），外觀染坊 ---------- */
+GAME.shop = {
+  npc: { name: '陸平', title: '天霖市・萬寶齋掌櫃', seal: '寶', line: '東西不多，每隔一陣子補一次貨。銀兩擺著不用，可不會自己變成劍。' },
+  soul: { every: 4 * 3600, batch(lv) { return 50 + 5 * lv; }, price(lv) { return 3 * (lv + 4); } },
+  page: { every: 6 * 3600, batch() { return 2; }, price(lv) { return 4000 + 600 * lv; } },
+  postNow(lv) { return 100 * (lv + 4); },   // 懸賞立刻貼出
+  dyes: [['月白', '#dcd6c8'], ['墨黑', '#2c2a30'], ['竹青', '#4f7a5a'], ['緋紅', '#a83a34'], ['靛藍', '#2f4a7a'], ['杏黃', '#c8a050'], ['藕荷', '#a888a8'], ['鴉青', '#3a4a5a'], ['赭石', '#8a5a3a'], ['霜灰', '#9aa2aa'], ['胭脂', '#c86a7a'], ['松綠', '#2e5a4a']],
+  dyePrice(i) { return 20000 * (i + 1); }
+};
+function shopInit(st) {
+  if (!st.shop) st.shop = {};
+  for (const k of ['soul', 'page']) if (st.shop[k] === undefined) { st.shop[k] = GAME.shop[k].batch(st.lv); st.shop[k + 'T'] = GAME.shop[k].every; }
+  if (!st.dyes) st.dyes = [];
+  if (!st.dye) st.dye = {};
+}
+function shopTick(st, dt) {
+  if (!st.shop) return;
+  for (const k of ['soul', 'page']) if ((st.shop[k + 'T'] -= dt) <= 0) { st.shop[k] = GAME.shop[k].batch(st.lv); st.shop[k + 'T'] = GAME.shop[k].every; }
+}
+function buyShop(st, k, n) {
+  shopInit(st);
+  const S = GAME.shop[k], c = S.price(st.lv) * n;
+  if (!S || n <= 0 || st.shop[k] < n || st.silver < c) return false;
+  st.silver -= c; st.shop[k] -= n;
+  if (k === 'soul') st.mats['精魄'] = (st.mats['精魄'] || 0) + n; else st.pages = (st.pages || 0) + n;
+  return true;
+}
+function buyDye(st, i) {
+  shopInit(st);
+  if (!GAME.shop.dyes[i] || st.dyes.includes(i) || st.silver < GAME.shop.dyePrice(i)) return false;
+  st.silver -= GAME.shop.dyePrice(i); st.dyes.push(i);
+  return true;
+}
+function setDye(st, w, i) { shopInit(st); if (i === null || i === undefined) delete st.dye[w]; else if (st.dyes.includes(i)) st.dye[w] = i; else return false; return true; }
+// 回報後等新懸賞的那一格：花銀兩立刻貼出來
+function postBounty(st, i) {
+  const b = st.bounty && st.bounty.list[i], c = GAME.shop.postNow(st.lv);
+  if (!b || b.type !== 'wait' || st.silver < c) return false;
+  st.silver -= c; st.bounty.list[i] = genBounty(st, st.bounty.list.filter((_, j) => j !== i));
+  return true;
+}
+// 名品淬鍊
+function refineCost(st, it) {
+  const R = GAME.gear.refine;
+  if (!it || it.q !== 4 || st.lv < it.lv + R.minGap) return null;
+  const L = st.lv, t = namedTier(L), mats = {};
+  for (const m of R.mats[t]) mats[m] = R.n;
+  if (R.heart[t]) mats['天陰蓮心'] = R.heart[t];
+  return { lv: L, tier: t, silver: R.silver(L), mats };
+}
+function refineNamed(st, rt, id) {
+  const it = st.gear.find(x => x.id === id) || Object.values(st.equip.weapons || {}).find(x => x && x.id === id);
+  const c = refineCost(st, it); if (!c || !canAfford(st, c)) return null;
+  st.silver -= c.silver; for (const k in c.mats) st.mats[k] -= c.mats[k];
+  const from = it.lv; it.lv = c.lv;
+  if (rt) rt.d = derive(st);
+  return { it, from, to: c.lv, tier: c.tier };
+}
+
 if (typeof module !== 'undefined') module.exports = {
   GAME, setRng, posOf, counters, matchup, counterTargets, groupOf, expNeed, derive, newState, migrate, zoneById, zoneUnlocked, bestZone,
   spawn, newRuntime, step, simulate, swordCost, canAfford, upgradeSword,
-  codexStar, codexStars, codexLevel, codexNeed, codexClaim, codexWhere, fillBounties, bountyStale, genBounty, bountyProgress, claimBounty, rerollBounty, bountyText, bountyReady,
+  codexStar, codexStars, codexLevel, codexNeed, codexClaim, codexWhere, fillBounties, bountyStale,
+  itemPrice, skillUpCost, upgradeSkill, namedTier, shopInit, buyShop, buyDye, setDye, postBounty, refineCost, refineNamed, genBounty, bountyProgress, claimBounty, rerollBounty, bountyText, bountyReady,
   allocOf, pointsTotal, pointsFree, addPoints, autoPoints, resetCostFor, resetPoints, round3, resolveSkill, masteryOf, statIdx,
   useBuff, buyItem, canCraft, craftItem, genRequest, fillBoard, turnIn, rerollRequest, MAT_LV,
   mainStep, mainProgress, mainClaim, mainCanSkip, featureOpen, mainBegin,
@@ -3975,6 +4077,7 @@ function askCloud(c, why) {
 }
 function applyCloud(c) {
   st = parseSave(JSON.parse(c.data));
+  viewChap = curChap();
   rt = newRuntime(st); logs = []; resetArena(); pend = [0, 0, 0, 0, 0, 0, 0, 0]; selWeapon = null;
   setCloudMeta({ seen: c.t, play: playOf(st) });
   $('#modal').classList.add('hidden');
@@ -4381,7 +4484,7 @@ const WDRAW = {
   扇: { front(x, [hx, hy], p) { if (p) { const segs = []; for (let a = -150; a <= -30; a += 12) segs.push([hx, hy - 1, a, 6, '#efe6d2']); wSeg(x, segs); for (let a = -150; a <= -30; a += 24) wSegIn(x, hx, hy - 1, a, 5, '#c8423a'); } else wSeg(x, [[hx, hy, -58, 6, '#efe6d2']]); } },
   匕首: { front(x, [hx, hy], p) { const a = p ? -6 : 72; wSeg(x, [[hx, hy, a, 6, STEEL]]); R(x, hx, hy, 1, 1, '#3a2a20'); } },
   毒蠱: { front(x, [hx, hy], p) { box(x, hx - 1, hy - 3, 4, 4, '#4a2a5a'); R(x, hx - 1, hy - 3, 4, 1, '#7ad860'); R(x, hx, hy - 6 - (p ? 2 : 0), 1, 1, '#9ae870'); R(x, hx + 2, hy - 8 - (p ? 2 : 0), 1, 1, '#9ae870'); } },
-  寶輪: { front(x, [hx, hy], p) { const cx = hx + (p ? 8 : 3), cy = hy - (p ? 6 : 4); for (let a = 0; a < 360; a += 30) { const px = Math.round(cx + Math.cos(a * Math.PI / 180) * 3.5), py = Math.round(cy + Math.sin(a * Math.PI / 180) * 3.5); R(x, px - 1, py - 1, 3, 3, OL); } for (let a = 0; a < 360; a += 30) R(x, Math.round(cx + Math.cos(a * Math.PI / 180) * 3.5), Math.round(cy + Math.sin(a * Math.PI / 180) * 3.5), 1, 1, a % 90 === 0 ? '#fff0b0' : GOLD); } },
+  寶輪: { front() {} }, // 寶輪浮在身後，另外畫（drawRing）
   機關獸: { front(x, [hx], p) { const bx = hx + (p ? 8 : 5), by = PO.h - 7; box(x, bx, by, 7, 4, '#9a7a4a'); box(x, bx + 6, by - 3, 4, 3, '#b08a52'); R(x, bx + 8, by - 2, 1, 1, '#ff5a3a'); R(x, bx + 1, by + 4, 1, 2, OL); R(x, bx + 5, by + 4, 1, 2, OL); R(x, bx + 1, by + 1, 5, 1, '#c8a46a'); } },
   丹爐: { front(x, [hx, hy], p) { const oy = p ? -5 : 0; blob(x, PO.w, PO.h, [[hx + 2.5, hy - 1.5 + oy, 3.2]], ['#6a4a1e', '#a87a32', '#d8a84a'], () => .5); R(x, hx, hy + 1 + oy, 1, 2, OL); R(x, hx + 4, hy + 1 + oy, 1, 2, OL); if (p) { R(x, hx + 1, hy - 6 + oy, 1, 2, '#ff9a3a'); R(x, hx + 3, hy - 7 + oy, 1, 2, '#ffd05a'); } } },
   琴: { front(x, [hx, hy], p) { box(x, hx - 10, hy - 1, 14, 3, '#4a2e1e'); R(x, hx - 10, hy - 1, 14, 1, '#6a4a32'); for (let i = -8; i < 3; i += 2) R(x, hx + i, hy, 1, 1, '#e8dcc0'); if (p) { R(x, hx - 2, hy - 7, 2, 1, '#ffffff'); R(x, hx - 1, hy - 9, 1, 2, '#ffffff'); R(x, hx + 3, hy - 9, 2, 1, '#ffffff'); R(x, hx + 4, hy - 11, 1, 2, '#ffffff'); } } }
@@ -4390,7 +4493,7 @@ const WSHOT = { 弓: 'arrow', 法球: 'orb', 杖: 'bolt', 玉珠: 'bead', 扇: '
 // 一個姿勢：f=0~3 走路、pose='idle'|'walk'|'atk'|'sit'
 function playerFrame(w, pose, f) {
   const look = WLOOK[w] || WLOOK['銀'], item = GAME.weapons[w].item, WD = WDRAW[item] || WDRAW['長劍'];
-  const robe = look[0], pal = { o: OL, h: look[1], H: tint(look[1], 1.6), t: look[2], s: '#f2d2ae', S: '#d6a986', e: '#1d1a17', w: '#ece4d4', r: robe, R: tint(robe, .72), l: tint(robe, 1.18), b: look[2], p: '#3a3530', k: '#2a2420' };
+  const dye = st.dye && st.dye[w] !== undefined && GAME.shop.dyes[st.dye[w]], robe = dye ? dye[1] : look[0], pal = { o: OL, h: look[1], H: tint(look[1], 1.6), t: look[2], s: '#f2d2ae', S: '#d6a986', e: '#1d1a17', w: '#ece4d4', r: robe, R: tint(robe, .72), l: tint(robe, 1.18), b: look[2], p: '#3a3530', k: '#2a2420' };
   const [c, x] = mkCv(PO.w, PO.h), bob = pose === 'walk' ? (f & 1) : pose === 'idle' ? (f & 1) : 0, sit = pose === 'sit' ? 3 : 0;
   const ox = PO.x, oy = PO.y + bob + sit, atk = pose === 'atk';
   const hand = [ox + 12 + (atk ? 1 : 0), oy + 17 - (atk ? 2 : 0)], back = [ox + 4, oy + 17];
@@ -4553,19 +4656,21 @@ function sceneUpdate(dt) {
   if (SC.lost || (SC.checkT <= 0 && !sceneArtOk())) sceneRefreshArt();
   if (SC.checkT <= 0) SC.checkT = 1;
   const key = sceneKey(); if (key !== SC.key) sceneBuild(key);
-  if (SC.pw !== st.weapon) { SC.pw = st.weapon; SC.pf = playerFrames(st.weapon); }
+  const pkey = st.weapon + ':' + (st.dye ? st.dye[st.weapon] : ''); // 換武器或染色都要重畫
+  if (SC.pw !== pkey) { SC.pw = pkey; SC.pf = playerFrames(st.weapon); }
   const P = SC.pl, mode = rt.mode, mobs = rt.mobs || [], byUid = new Map(mobs.map(m => [m.uid, m]));
   const fresh = mobs.filter(m => !SC.ents.has(m.uid) && !(m.dead || m.hp <= 0));
   if (fresh.length && mode !== 'down') placeGroup(fresh);
   // 參戰的魔物：越多隻圍得越開
   const nLive = mobs.filter(m => !(m.dead || m.hp <= 0)).length, spread = Math.max(0, nLive - 3) * 3.2;
+  const reach = RANGE_PX[GAME.weapons[st.weapon].range] || 13, ringR = e => Math.min(15, reach) + e.size * .3 + spread; // 魔物圍上來的半徑
   for (const [uid, e] of SC.ents) {
     const m = byUid.get(uid);
     if (e.die) { e.die += dt; if (e.die > .8) SC.ents.delete(uid); continue; }
     if (!m || m.dead || m.hp <= 0 || mode === 'down') { e.die = .001; continue; }
     e.m = m; e.alpha = Math.min(1, e.alpha + dt * 3); e.flash = Math.max(0, e.flash - dt); e.lunge = Math.max(0, e.lunge - dt);
     if (mode === 'fight' && !m.stunned) {
-      const dx = e.x - P.x, dy = e.y - P.y, d = Math.hypot(dx, dy) || 1, rad = 15 + e.size * .3 + spread;
+      const dx = e.x - P.x, dy = e.y - P.y, d = Math.hypot(dx, dy) || 1, rad = ringR(e);
       let tx = P.x + dx / d * rad, ty = P.y + dy / d * rad * .75;
       for (const [u2, o] of SC.ents) if (u2 !== uid && !o.die) { const ox = e.x - o.x, oy = e.y - o.y, od = Math.hypot(ox, oy); if (od < 15 && od > .01) { tx += ox / od * 7; ty += oy / od * 7; } }
       e.moving = moveTo(e, tx, ty, e.rank === 'boss' ? 24 : 34, dt);
@@ -4586,15 +4691,16 @@ function sceneUpdate(dt) {
   }
   if (want === 0) SC.wand.length = 0;
   // 主角
-  P.atk = Math.max(0, P.atk - dt); P.hurt = Math.max(0, P.hurt - dt); P.win = Math.max(0, (P.win || 0) - dt);
+  P.atk = Math.max(0, P.atk - dt); P.hurt = Math.max(0, P.hurt - dt); P.win = Math.max(0, (P.win || 0) - dt); P.ringOut = Math.max(0, (P.ringOut || 0) - dt);
   const T = rt.mob && SC.ents.get(rt.mob.uid);
   let walking = false;
   if (mode === 'down') P.st = 'down';
   else if (mode === 'rest') P.st = 'sit';
   else if (mode === 'clear') P.st = 'idle';
   else if (mode === 'fight' && T && !T.die) {
-    const dx = T.x - P.x, dy = T.y - P.y, d = Math.hypot(dx, dy), want2 = (RANGE_PX[GAME.weapons[st.weapon].range] || 13) + T.size * .22;
-    if (d > want2 + 2) walking = moveTo(P, T.x - dx / d * want2, T.y - dy / d * want2 * .8, 58, dt);
+    const dx = T.x - P.x, dy = T.y - P.y, d = Math.hypot(dx, dy), want2 = Math.max(reach + T.size * .22, ringR(T));
+    // 只有離得比魔物圍上來的距離還遠時才靠過去，避免一邊打一邊把魔物推到地圖邊
+    if (d > want2 + 6) walking = moveTo(P, T.x - dx / d * want2, T.y - dy / d * want2 * .8, 58, dt);
     P.face = dx >= 0 ? 1 : -1; P.st = walking ? 'walk' : 'idle';
   } else {
     if (P.pause > 0) P.pause -= dt;
@@ -4673,8 +4779,17 @@ function drawPlayer(x, P, cam, t) {
   if (P.st === 'down') {
     x.save(); x.translate(Math.round(P.x - cam.x), Math.round(P.y - cam.y)); x.rotate(-Math.PI / 2 * P.face); x.globalAlpha = .75; x.drawImage(fr[dir], -PO.w / 2, -PO.h + 4); x.restore(); x.globalAlpha = 1; return;
   }
+  if (GAME.weapons[st.weapon].item === '寶輪' && !(P.ringOut > 0)) drawRing(x, ringPos(P, t), cam, t);
   x.drawImage(fr[dir], X, Y - hop);
   if (P.hurt > .04) { x.globalAlpha = .45; x.drawImage(F.hurt[dir], X, Y); x.globalAlpha = 1; }
+}
+// 寶輪：浮在主角身後、肩膀上方，慢慢上下飄，一顆亮點繞著轉
+function ringPos(P, t) { return [P.x - P.face * 7, P.y - 24 + Math.sin(t * 2.2) * 1.5]; }
+function drawRing(x, [rx, ry], cam, t, spin = 1) {
+  const cx = Math.round(rx - cam.x), cy = Math.round(ry - cam.y), r = 4.5, hot = (t * 5 * spin) % 12 | 0;
+  for (let k = 0; k < 12; k++) { const a = k / 12 * Math.PI * 2; R(x, Math.round(cx + Math.cos(a) * r) - 1, Math.round(cy + Math.sin(a) * r * .9) - 1, 3, 3, OL); }
+  for (let k = 0; k < 12; k++) { const a = k / 12 * Math.PI * 2; R(x, Math.round(cx + Math.cos(a) * r), Math.round(cy + Math.sin(a) * r * .9), 1, 1, k === hot ? '#ffffff' : k % 3 === 0 ? '#fff0b0' : '#f2d58a'); }
+  R(x, cx, cy, 1, 1, '#5a7ad8');
 }
 function drawMob(x, e, cam, t) {
   const s = mobSprite(e.key); if (!s) return;
@@ -4703,12 +4818,14 @@ function drawFx(x, cam, t) {
     else if (f.k === 'slash') { const n = 9, r0 = f.r; x.globalAlpha = 1 - k; for (let i = 0; i < n; i++) { const a = f.a - .9 + i / (n - 1) * 1.8 * Math.min(1, k * 3); const px = Math.round(f.x + Math.cos(a) * r0 - cam.x), py = Math.round(f.y + Math.sin(a) * r0 * .8 - cam.y); R(x, px, py, 2, 1, i > n - 3 ? '#ffffff' : f.c); } }
     else if (f.k === 'ring') { x.globalAlpha = 1 - k; ring(x, Math.round(f.x - cam.x), Math.round(f.y - cam.y), Math.round(f.r0 + (f.r1 - f.r0) * k), Math.round((f.r0 + (f.r1 - f.r0) * k) * .45), f.c); }
     else if (f.k === 'shot') {
-      const tx = f.to ? f.to.x : f.tx, ty = (f.to ? f.to.y - f.to.size * .45 : f.ty), px = f.x + (tx - f.x) * k, py = f.y + (ty - f.y) * k - Math.sin(k * Math.PI) * (f.arc || 0), X = Math.round(px - cam.x), Y = Math.round(py - cam.y), c = f.c;
+      const kk = f.boom ? (k < .5 ? k * 2 : (1 - k) * 2) : k; // 寶輪：飛出去再飛回來
+      if (f.boom) { const P0 = ringPos(SC.pl, t); if (k >= .5) { f.x = P0[0]; f.y = P0[1]; } }
+      const tx = f.to ? f.to.x : f.tx, ty = (f.to ? f.to.y - f.to.size * .45 : f.ty), px = f.x + (tx - f.x) * kk, py = f.y + (ty - f.y) * kk - Math.sin(k * Math.PI) * (f.arc || 0), X = Math.round(px - cam.x), Y = Math.round(py - cam.y), c = f.c;
       x.globalAlpha = 1;
       if (f.s === 'arrow') { const ang = Math.atan2(ty - f.y, tx - f.x); for (let i = 0; i < 5; i++) R(x, Math.round(X - Math.cos(ang) * i), Math.round(Y - Math.sin(ang) * i), 1, 1, i === 0 ? '#e3e8ec' : '#8a6a42'); }
       else if (f.s === 'knife') { R(x, X - 1, Y, 3, 1, '#e3e8ec'); }
       else if (f.s === 'note') { R(x, X, Y - 3, 1, 4, '#ffffff'); R(x, X - 1, Y, 2, 2, '#ffffff'); R(x, X + 1, Y - 3, 2, 1, '#ffffff'); }
-      else if (f.s === 'ring') { ring(x, X, Y, 3, 3, c); R(x, X, Y, 1, 1, '#fff0b0'); }
+      else if (f.s === 'ring') { if (f.boom) drawRing(x, [px, py], cam, t, 4); else { ring(x, X, Y, 3, 3, c); R(x, X, Y, 1, 1, '#fff0b0'); } }
       else if (f.s === 'wind') { for (let i = -2; i <= 2; i++) R(x, X + Math.abs(i), Y + i, 1, 1, '#f0f4ff'); }
       else if (f.s === 'bug') { R(x, X - 1, Y - 1, 3, 2, '#2a1a2a'); R(x, X, Y - 1, 1, 1, '#9ae870'); }
       else { R(x, X - 1, Y - 1, 3, 3, c); R(x, X, Y, 1, 1, '#ffffff'); if (Math.random() < .6) fxAdd({ k: 'p', x: px, y: py, vx: 0, vy: 0, c, life: .2, g: 0 }); }
@@ -4776,7 +4893,8 @@ function sceneEvent(e) {
         const ex = ent.x, ey = ent.y - ent.size * .45;
         if (!e.quiet || e.skill) { P.atk = .22; P.face = ent.x >= P.x ? 1 : -1; }
         const shot = WSHOT[item];
-        if (!e.quiet && shot) fxAdd({ k: 'shot', s: shot, x: P.x + P.face * 6, y: P.y - 14, to: ent, c: acc, life: .16, arc: shot === 'arrow' ? 4 : 0 });
+        if (!e.quiet && shot === 'ring') { const [rx, ry] = ringPos(P, SC.t); fxAdd({ k: 'shot', s: 'ring', boom: true, x: rx, y: ry, to: ent, c: acc, life: .42 }); P.ringOut = .42; }
+        else if (!e.quiet && shot) fxAdd({ k: 'shot', s: shot, x: P.x + P.face * 6, y: P.y - 14, to: ent, c: acc, life: .16, arc: shot === 'arrow' ? 4 : 0 });
         else fxAdd({ k: 'slash', x: ex, y: ey, a: P.face > 0 ? 0 : Math.PI, r: 7 + ent.size * .15, c: e.skill ? acc : '#e8eef4', life: .2 });
         burst(ex, ey, e.crit ? '#ffd86a' : e.skill ? acc : '#ffffff', e.crit ? 10 : 5, e.crit ? 42 : 26, .35);
         ent.flash = .1;
@@ -4908,7 +5026,8 @@ function handle(e) {
     case 'towerFloor': {
       const r = e.rew, a = [];
       if (e.first) { a.push('功績 +' + r.merit); a.push('銀兩 +' + fmt(r.silver)); a.push('精魄 +' + r.soul); if (r.lotus) a.push('<span class="k-lv">蓮子 +1（屬性點 +1）</span>'); if (r.pages) a.push('天御殘頁 +' + r.pages); }
-      addLog('<span class="k-good">通過' + e.name + '第 ' + e.floor + ' 層</span>' + (e.first ? '：' + a.join('、') : '（已通過過，沒有獎勵）'));
+      if (r.heart) a.push('<span class="k-lv">天陰蓮心 +1</span>');
+      addLog('<span class="k-good">通過' + e.name + '第 ' + e.floor + ' 層</span>' + (a.length ? '：' + a.join('、') : '（已通過過，沒有獎勵）'));
       if (r.lotus) toast('得到一顆' + towerById(e.id).lotus + '子，屬性點 +1', 1);
       renderLoc(); panelDirty = true; break;
     }
@@ -4930,7 +5049,7 @@ function handle(e) {
     case 'potion': addLog('<span class="k-good">服下' + e.name + (e.v ? '，回復 ' + e.v : '') + '</span>'); break;
     case 'buff': addLog('<span class="k-gold">' + (e.auto ? e.name + '效果結束，自動補上一份' : '使用' + e.name + '：' + GAME.items[e.name].desc.replace('。', '')) + '</span>'); panelDirty = true; break;
     case 'buffEnd': addLog(e.name + '的效果結束了'); panelDirty = true; break;
-    case 'mastery': addLog('<span class="k-lv">' + e.name + '熟練度提升至 Lv.' + e.lv + '</span>'); toast(e.name + ' 熟練 Lv.' + e.lv); panelDirty = true; break;
+    case 'mastery': addLog('<span class="k-lv">' + e.name + '升到 Lv.' + e.lv + '</span>'); toast(e.name + ' 升到 Lv.' + e.lv); panelDirty = true; break;
     case 'learn': addLog('<span class="k-lv">' + (e.book ? '讀完書，' : '') + '學會新招式：' + (e.w && e.w !== st.weapon ? e.w + '的' : '') + e.name + '</span>'); toast('學會新招式：' + e.name); panelDirty = true; break;
     case 'needBook': addLog('<span class="k-gold">' + e.book + '可以研讀了：到城鎮的書肆購買' + (e.ult ? '，或從精英、首領身上取得' : '，或等魔物掉落') + '</span>'); toast(e.book + ' 可以研讀了', 1); panelDirty = true; break;
     case 'book': addLog('<span class="k-gold">' + (e.src === 'shop' ? '買下' : e.src === 'pages' ? '用殘頁換到' : e.src === 'main' ? '得到' : '從' + e.src + '身上撿到') + e.name + '</span>'); if (e.src !== 'shop' && e.src !== 'pages') toast('撿到' + e.name, 1); panelDirty = true; break;
@@ -5176,6 +5295,8 @@ function costRows(cost) {
   }
   return h;
 }
+// 目前所在的章節（地圖、圖鑑預設打開這一章）
+function curChap() { const z = zoneById(st.zone); return ((z && GAME.chapters.find(c => c.name === z.chapter)) || GAME.chapters[0]).id; }
 function questReady() { return bountyReady(st); }
 function codexReady() { return codexLevel(st) > (st.codexClaimed || 0); }
 // 行囊裡有新的、而且比身上更好的裝備，或是新的名器
@@ -5253,7 +5374,7 @@ function renderPanel() {
     }
     p.innerHTML = h + '</div>';
   } else if (tab === 'quest') {
-    let h = '<div class="subtabs four"><button data-town="quest" class="' + (townTab === 'quest' ? 'on' : '') + '">委託</button><button data-town="shop" class="' + (townTab === 'shop' ? 'on' : '') + '">百草堂</button><button data-town="book" class="' + (townTab === 'book' ? 'on' : '') + '">書肆</button><button data-town="tower" class="' + (townTab === 'tower' ? 'on' : '') + '">天陰塔</button></div>';
+    let h = '<div class="subtabs five">' + [['quest', '委託'], ['shop', '百草堂'], ['mart', '萬寶齋'], ['book', '書肆'], ['tower', '天陰塔']].map(([k, n]) => '<button data-town="' + k + '" class="' + (townTab === k ? 'on' : '') + '">' + n + '</button>').join('') + '</div>';
     if (townTab === 'quest') {
       const N = GAME.npcs, B = GAME.bounty, left = B.streakEvery - ((st.bounty.streak || 0) % B.streakEvery);
       h += '<div class="npc quest"><div class="giver"><span class="seal mid">' + N.quest.seal + '</span><div><b>' + N.quest.name + '</b><br><span>' + N.quest.title + '</span></div></div>' +
@@ -5270,6 +5391,8 @@ function renderPanel() {
       });
       const N2 = GAME.npcs;
       h += '<div class="npc quest locked" style="margin-top:14px"><div class="giver"><span class="seal mid" style="background:#3a2f4a;color:#e3d6f5">' + N2.fate.seal + '</span><div><b>' + N2.fate.name + '</b><br><span>' + N2.fate.title + '</span></div></div><p>' + N2.fate.text + '</p></div>';
+    } else if (townTab === 'mart') {
+      h += martPanel();
     } else if (townTab === 'book') {
       h += bookPanel();
     } else if (townTab === 'tower') {
@@ -5278,19 +5401,18 @@ function renderPanel() {
       h += '<div class="npc quest locked"><p>百草堂還沒開門。完成主線〈百草〉後開放。</p></div>';
     } else {
       const S = GAME.shopNpc;
-      h += '<div class="npc quest"><div class="giver"><span class="seal mid" style="background:#2f4a3a;color:#d6efe0">' + S.seal + '</span><div><b>' + S.name + '</b><br><span>' + S.title + '</span></div></div><p>回復藥用銀兩買；增益藥要帶材料來，我幫你調。</p></div>';
+      h += '<div class="npc quest"><div class="giver"><span class="seal mid" style="background:#2f4a3a;color:#d6efe0">' + S.seal + '</span><div><b>' + S.name + '</b><br><span>' + S.title + '</span></div></div><p>回復藥、增益藥都用銀兩買。增益藥用的藥材越來越貴，價錢會跟著你的等級走。</p></div>';
       h += '<div class="sec"><h3>回復藥</h3>';
       for (const [n, it] of Object.entries(GAME.items)) if (it.price) {
         const lock = st.lv < it.lv;
         h += '<div class="itemrow"><span class="seal' + (it.kind === 'en' ? ' en' : '') + '">' + it.seal + '</span><div><b>' + n + '<em>持有 ' + fmt(st.items[n] || 0) + '</em></b><small>' + it.desc + (lock ? '　Lv.' + it.lv + ' 開放' : '　每顆 ' + it.price + ' 銀兩') + '</small></div>' +
           '<div class="ctl"><button data-buy="' + n + '" data-n="1"' + (!lock && st.silver >= it.price ? '' : ' disabled') + '>買 1</button><button data-buy="' + n + '" data-n="10"' + (!lock && st.silver >= it.price * 10 ? '' : ' disabled') + '>買 10</button></div></div>';
       }
-      h += '</div><div class="sec"><h3>調製增益藥</h3>';
-      for (const [n, it] of Object.entries(GAME.items)) if (it.recipe) {
-        const rc = it.recipe;
-        const cost = '<span class="' + (st.silver >= rc.silver ? 'ok' : 'no') + '">銀兩 ' + rc.silver + '</span>' + Object.entries(rc.mats).map(([k, v]) => '、<span class="' + ((st.mats[k] || 0) >= v ? 'ok' : 'no') + '">' + k + ' ' + v + '（有 ' + fmt(st.mats[k] || 0) + '）</span>').join('');
-        h += '<div class="itemrow"><span class="seal bf">' + it.seal + '</span><div><b>' + n + '<em>持有 ' + fmt(st.items[n] || 0) + '</em></b><small>' + it.desc + '</small><div class="reccost">' + cost + '</div></div>' +
-          '<div class="ctl"><button data-craft="' + n + '" data-n="1"' + (canCraft(st, n, 1) ? '' : ' disabled') + '>調製 1</button><button data-craft="' + n + '" data-n="5"' + (canCraft(st, n, 5) ? '' : ' disabled') + '>調製 5</button></div></div>';
+      h += '</div><div class="sec"><h3>增益藥</h3>';
+      for (const [n, it] of Object.entries(GAME.items)) if (it.kind === 'buff') {
+        const pr = itemPrice(st, n);
+        h += '<div class="itemrow"><span class="seal bf">' + it.seal + '</span><div><b>' + n + '<em>持有 ' + fmt(st.items[n] || 0) + '</em></b><small>' + it.desc + '　每份 ' + fmt(pr) + ' 銀兩</small></div>' +
+          '<div class="ctl"><button data-buy="' + n + '" data-n="1"' + (st.silver >= pr ? '' : ' disabled') + '>買 1</button><button data-buy="' + n + '" data-n="5"' + (st.silver >= pr * 5 ? '' : ' disabled') + '>買 5</button></div></div>';
       }
       h += '</div>';
     }
@@ -5350,12 +5472,40 @@ function renderPanel() {
   panelDirty = false; lastPanelAt = Date.now();
 }
 
+function martPanel() {
+  shopInit(st);
+  const N = GAME.shop.npc, S = GAME.shop, sh = st.shop, hm = x => { const h = Math.floor(x / 3600), m = Math.floor(x % 3600 / 60); return (h ? h + ' 小時 ' : '') + m + ' 分'; };
+  let h = '<div class="npc quest"><div class="giver"><span class="seal mid" style="background:#4a3a1e;color:#f6e2b0">' + N.seal + '</span><div><b>' + N.name + '</b><br><span>' + N.title + '</span></div></div><p>' + N.line + '</p></div>';
+  const row = (k, seal, name, desc, unit) => {
+    const pr = S[k].price(st.lv), left = sh[k], b = S[k].batch(st.lv), n10 = Math.min(left, unit);
+    return '<div class="itemrow"><span class="seal">' + seal + '</span><div><b>' + name + '<em>剩 ' + fmt(left) + ' / ' + fmt(b) + '</em></b><small>' + desc + '　每份 ' + fmt(pr) + ' 銀兩・' + hm(sh[k + 'T']) + '後補貨</small></div>' +
+      '<div class="ctl"><button data-mart="' + k + '" data-n="1"' + (left >= 1 && st.silver >= pr ? '' : ' disabled') + '>買 1</button>' + (unit > 1 ? '<button data-mart="' + k + '" data-n="' + n10 + '"' + (n10 >= 1 && st.silver >= pr * n10 ? '' : ' disabled') + '>買 ' + n10 + '</button>' : '') + '</div></div>';
+  };
+  h += '<div class="sec"><h3>限量貨</h3>' + row('soul', '魄', '精魄', '注劍、升級招式都要用', 50) + row('page', '頁', '天御殘頁', GAME.books.pages + ' 張到書肆換一本天御書', 1) +
+    '<p class="note">每隔一段時間補一次貨（離線也算），補貨時直接補滿，沒買完的不會累積。</p></div>';
+  const cur = st.dye[st.weapon];
+  h += '<div class="sec"><h3>外觀染坊</h3><p class="note">買下的顏色每把武器都能用；換顏色不用錢，只改外觀，不影響戰力。目前：' + wName(st.weapon) + (cur !== undefined ? '・' + S.dyes[cur][0] : '・原色') + '</p><div class="dyes">' +
+    '<button data-dye="-1" class="' + (cur === undefined ? 'on' : '') + '"><i style="background:' + (WLOOK[st.weapon] || WLOOK['銀'])[0] + '"></i>原色<small>不用錢</small></button>' +
+    S.dyes.map(([n, c], i) => { const own = st.dyes.includes(i), pr = S.dyePrice(i); return '<button data-dye="' + i + '" class="' + (cur === i ? 'on' : '') + '"' + (!own && st.silver < pr ? ' disabled' : '') + '><i style="background:' + c + '"></i>' + n + '<small>' + (own ? (cur === i ? '使用中' : '換上') : fmt(pr)) + '</small></button>'; }).join('') + '</div></div>';
+  return h;
+}
+function refinePanel() {
+  const T = GAME.gear.tiers, list = Object.values(st.equip.weapons || {}).filter(it => it && it.q === 4).concat(st.gear.filter(it => it.q === 4));
+  let h = '<div class="sec" style="margin-top:14px"><h3>名品淬鍊</h3><p class="note">名品照裝備等級分五階（' + T.area.map((a, i) => a + T.names[i]).join('、') + '），階數越高，詞條越強。淬鍊會把名品的等級拉到你目前的等級，詞條保留；要銀兩、該階地區的材料，二階以上還要天陰蓮心（天陰塔守塔者掉落）。</p>';
+  if (!list.length) return h + '<p class="note">你還沒有名品。精英和首領有機會掉落。</p></div>';
+  for (const it of list) {
+    const c = refineCost(st, it), t = namedTier(it.lv);
+    h += '<div class="itemrow">' + gearSealHtml(it) + '<div>' + gearNameHtml(it) + '<small>' + (c ? '淬鍊到 Lv.' + c.lv + '（' + T.names[c.tier] + '）：' + costRows(c) : '已經跟你的等級差不多了（再升 ' + (it.lv + GAME.gear.refine.minGap - st.lv) + ' 級才能淬鍊）') + '</small></div>' +
+      '<div class="ctl">' + (c ? '<button data-refine="' + it.id + '"' + (canAfford(st, c) ? '' : ' disabled') + '>淬鍊</button>' : '') + '</div></div>';
+  }
+  return h + '</div>';
+}
 function recTabs() {
   return '<div class="subtabs"><button data-rec="rec" class="' + (recTab === 'rec' ? 'on' : '') + '">紀錄與設定</button><button data-rec="codex" class="' + (recTab === 'codex' ? 'on' : '') + '">魔物圖鑑' + (codexReady() ? ' <span class="k-gold">●</span>' : '') + '</button></div>';
 }
 const mmss = x => Math.floor(x / 60) + ':' + String(Math.floor(x % 60)).padStart(2, '0');
 function bountyCard(b, i) {
-  if (b.type === 'wait') return '<div class="npc quest bnty locked"><div class="bh"><span><span class="bt">空位</span></span><span class="bg">巡守司</span></div><p>上一張剛回報完，新的懸賞令還在路上。</p><div class="goal">' + mmss(Math.max(0, b.t)) + ' 後貼出</div></div>';
+  if (b.type === 'wait') { const pc = GAME.shop.postNow(st.lv); return '<div class="npc quest bnty locked"><div class="bh"><span><span class="bt">空位</span></span><span class="bg">巡守司</span></div><p>上一張剛回報完，新的懸賞令還在路上。</p><div class="goal">' + mmss(Math.max(0, b.t)) + ' 後貼出</div><div class="ptbar one"><button class="btn ghost" data-bpost="' + i + '"' + (st.silver >= pc ? '' : ' disabled') + '>立刻貼出（銀兩 ' + fmt(pc) + '）</button></div></div>'; }
   const T = bountyText(b), pr = bountyProgress(st, b), stale = bountyStale(st, b), rc = stale ? 0 : GAME.bounty.rerollCost(st.lv), R = b.reward;
   const z = b.zone ? zoneById(b.zone) : null, here = zoneById(st.zone);
   let goZ = null; // 前往：同一個地方挑已開放、等級最接近的一區
@@ -5449,7 +5599,7 @@ function gearSealHtml(it, slot) {
   return '<span class="seal gs" style="background:' + QC(it.q) + '">' + (it.s === '武器' ? it.w : GAME.gear.slotSeal[it.s]) + '</span>';
 }
 function gearNameHtml(it, extra) {
-  return '<b class="gn" style="color:' + QC(it.q) + '">' + gearName(it) + '<em>Lv.' + it.lv + '・' + GAME.gear.quality[it.q].name + '</em>' + (extra || '') + '</b>';
+  return '<b class="gn" style="color:' + QC(it.q) + '">' + gearName(it) + '<em>Lv.' + it.lv + '・' + GAME.gear.quality[it.q].name + (it.q === 4 ? '・' + GAME.gear.tiers.names[namedTier(it.lv)] : '') + '</em>' + (extra || '') + '</b>';
 }
 function deltaHtml(it) {
   const own = gearOwner(st, it), dp = gearDelta(st, it);
@@ -5469,7 +5619,7 @@ function gearWear() {
   }
   h += '<p class="note" style="margin-top:8px">兵器每把武器各穿各的；頭冠、衣甲、護腕、靴履、佩飾所有武器共用。品質由低到高：' +
     GAME.gear.quality.map(Q => '<span style="color:' + Q.color + '">' + Q.name + '</span>').join('、') + '。名品是有名字的名器，只會是兵器。</p>';
-  return h;
+  return h + refinePanel();
 }
 function gearBag() {
   const S = st.gearSet, mine = st.gear.filter(it => gearOwner(st, it) === st.weapon);
@@ -5625,17 +5775,17 @@ function ultCard(w, d) {
 }
 function skillPanel(w, d, mine) {
   const list = GAME.skills[w] || [], sw = st.swordLv[w] || 0;
-  let h = '<div class="sec"><h3>' + wName(w) + '的招式</h3><p class="note">第一招入門就會；第二、三招要讀技能書才學得會。招式每用一次累積熟練度，最高 Lv.' + GAME.mastery.max + '；被動技每擊倒一隻魔物累積一次。→ 後面是熟練滿級時的數值。</p></div>';
+  let h = '<div class="sec"><h3>' + wName(w) + '的招式</h3><p class="note">第一招入門就會；第二、三招要讀技能書才學得會。招式用銀兩、精魄和各區材料升級，最高 Lv.' + GAME.mastery.max + '（Lv.2～6 用首區材料、7～8 青區、9～10 柳區）。→ 後面是 Lv.' + GAME.mastery.max + ' 的數值。</p></div>';
   h += ultCard(w, d);
   const order = activeOrder(st, d, w).map(r => r.i);
   list.forEach((s, i) => {
     const known = skillKnown(st, w, i), lvOk = st.lv >= s.lv, learned = known && lvOk, [ml, xp] = masteryOf(st, w, i);
     const cur = resolveSkill(d, sw, s, i, ml), max = resolveSkill(d, sw, s, i, GAME.mastery.max), ty = TYPE_TXT[s.type];
-    const need = GAME.mastery.need(ml), maxed = ml >= GAME.mastery.max;
-    h += '<div class="skill' + (learned ? '' : ' lock') + '"><div class="sh"><b>' + s.name + '</b><span class="pill ' + ty[1] + '">' + ty[0] + '</span><span class="lvreq">' + (learned ? '熟練 Lv.' + ml : known ? 'Lv.' + s.lv + ' 學會' : 'Lv.' + s.lv + ' 可研讀') + '</span></div>' +
+    const maxed = ml >= GAME.mastery.max, up = learned && !maxed ? skillUpCost(st, w, i) : null;
+    h += '<div class="skill' + (learned ? '' : ' lock') + '"><div class="sh"><b>' + s.name + '</b><span class="pill ' + ty[1] + '">' + ty[0] + '</span><span class="lvreq">' + (learned ? '招式 Lv.' + ml + (maxed ? '（已滿）' : '') : known ? 'Lv.' + s.lv + ' 學會' : 'Lv.' + s.lv + ' 可研讀') + '</span></div>' +
       '<div class="sm">吃' + s.stat + (s.cd ? '・冷卻 ' + s.cd + ' 秒・耗 ' + s.cost + ' ' + d.enName : '') + '</div>' +
       '<div class="sd">' + skillDesc(s, cur, max) + '</div>' +
-      (learned ? '<div class="barrow"><span>熟練</span><div class="bar exp"><i style="width:' + (maxed ? 100 : xp / need * 100) + '%"></i></div><em>' + (maxed ? '已滿' : xp + ' / ' + need) + '</em></div>' : '') +
+      (up ? '<div class="skup"><div class="cost">升到 Lv.' + (ml + 1) + '：' + costRows(up) + '</div><button class="btn" data-skup="' + i + '" data-skw="' + w + '"' + (canAfford(st, up) ? '' : ' disabled') + '>升級</button></div>' : '') +
       (!known ? bookLine(w, i) : '');
     if (mine && learned && s.type === 'active') {
       const c = skillCfg(st, w, i), k = order.indexOf(i);
@@ -5796,7 +5946,7 @@ document.addEventListener('click', ev => {
   if (t.dataset.boost) { toast(boostText(t.dataset.boost), 1); return; }
   if (t.dataset.tnext) { if (towerNext(st, rt)) { for (const e of rt.events) handle(e); rt.events.length = 0; renderLog(); } return; }
   if (t.dataset.revive) { revive(st, rt); for (const e of rt.events) handle(e); rt.events.length = 0; save(); renderAll(); return; }
-  if (t.dataset.t) { if (tab === 'gear' && t.dataset.t !== 'gear') clearNewGear(); if (tab !== t.dataset.t) setTimeout(animPanel, 0); tab = t.dataset.t; if (tab === 'map') viewChap = GAME.chapters[0].id; panelDirty = true; renderTabs(); renderPanel(); if (t.closest('#loc')) $('#tabs').scrollIntoView({ behavior: 'smooth' }); return; }
+  if (t.dataset.t) { if (tab === 'gear' && t.dataset.t !== 'gear') clearNewGear(); if (tab !== t.dataset.t) setTimeout(animPanel, 0); tab = t.dataset.t; if (tab === 'map') viewChap = curChap(); panelDirty = true; renderTabs(); renderPanel(); if (t.closest('#loc')) $('#tabs').scrollIntoView({ behavior: 'smooth' }); return; }
   if (t.dataset.ch) { viewChap = t.dataset.ch; renderPanel(); animPanel(); return; }
   if (t.dataset.main) {
     const a = t.dataset.main, s = mainStep(st);
@@ -5823,7 +5973,7 @@ document.addEventListener('click', ev => {
     lastMain = ''; renderAll(); return;
   }
   if (t.dataset.town) { townTab = t.dataset.town; renderPanel(); animPanel(); return; }
-  if (t.dataset.rec) { recTab = t.dataset.rec; renderPanel(); animPanel(); return; }
+  if (t.dataset.rec) { recTab = t.dataset.rec; if (recTab === 'codex') { cxChap = curChap(); cxSel = null; } renderPanel(); animPanel(); return; }
   if (t.dataset.cxch) { cxChap = t.dataset.cxch; cxSel = null; renderPanel(); return; }
   if (t.dataset.cx) { cxSel = cxSel === t.dataset.cx ? null : t.dataset.cx; renderPanel(); return; }
   if (t.dataset.bclaim !== undefined) {
@@ -5838,6 +5988,11 @@ document.addEventListener('click', ev => {
     }
     renderAll(); return;
   }
+  if (t.dataset.bpost !== undefined) { if (postBounty(st, +t.dataset.bpost)) { toast('新的懸賞令貼出來了'); save(); } renderAll(); return; }
+  if (t.dataset.mart) { const n = +t.dataset.n; if (buyShop(st, t.dataset.mart, n)) { toast('買了' + (t.dataset.mart === 'soul' ? '精魄' : '天御殘頁') + ' ×' + n); save(); } renderAll(); return; }
+  if (t.dataset.dye !== undefined) { const i = +t.dataset.dye; if (i < 0) setDye(st, st.weapon, null); else if (st.dyes.includes(i)) setDye(st, st.weapon, i); else if (buyDye(st, i)) { setDye(st, st.weapon, i); toast('買下' + GAME.shop.dyes[i][0] + '，已經換上'); } save(); renderAll(); return; }
+  if (t.dataset.skup !== undefined) { if (upgradeSkill(st, rt, t.dataset.skw, +t.dataset.skup)) { for (const e of rt.events) handle(e); rt.events.length = 0; save(); } renderAll(); return; }
+  if (t.dataset.refine !== undefined) { const r = refineNamed(st, rt, +t.dataset.refine); if (r) { addLog('<span class="k-lv">淬鍊「' + gearName(r.it) + '」：Lv.' + r.from + ' → Lv.' + r.to + '（' + GAME.gear.tiers.names[r.tier] + '）</span>'); toast('淬鍊完成'); save(); } renderAll(); return; }
   if (t.dataset.breroll !== undefined) { if (rerollBounty(st, +t.dataset.breroll)) { toast('換了一張新的懸賞'); save(); } renderAll(); return; }
   if (t.dataset.gt) { if (gearTab === 'bag' && t.dataset.gt !== 'bag') clearNewGear(); gearTab = t.dataset.gt; renderPanel(); animPanel(); return; }
   if (t.dataset.gf) { bagFilter = t.dataset.gf; renderPanel(); return; }
@@ -5900,6 +6055,7 @@ document.addEventListener('click', ev => {
       const o = JSON.parse(decodeURIComponent(escape(atob($('#saveBox').value.trim()))));
       if (!o || !o.weapon || !o.lv) throw 0;
       st = parseSave(o);
+      viewChap = curChap();
       st.lastSave = Date.now(); rt = newRuntime(st); resetArena(); save(); toast('匯入完成');
     } catch (e) { toast('存檔碼無法讀取'); } break;
     case 'doReset':
@@ -5949,6 +6105,7 @@ function tick() {
 function start() {
   const loaded = load();
   st = loaded || freshState();
+  viewChap = curChap(); cxChap = viewChap;
   rt = newRuntime(st);
   if (loaded) {
     const away = (Date.now() - st.lastSave) / 1000;
