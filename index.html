@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#121315">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>天星界・御劍者 v0.19</title>
+<title>天星界・御劍者 v0.19.1</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -533,7 +533,7 @@ button:active:not(:disabled){transform:scale(.95)}
 
 /* ---------- 遊戲資料：名稱、數值都集中在這裡，改這裡就好 ---------- */
 const GAME = {
-  meta: { title: '天星界・御劍者', subtitle: '暫定名稱', version: '0.19', era: '仙曆五百餘年' },
+  meta: { title: '天星界・御劍者', subtitle: '暫定名稱', version: '0.19.1', era: '仙曆五百餘年' },
 
   // 八項資源系統（順序固定，星數陣列照這個順序）
   statNames: ['力量', '抵擋', '體力', '敏捷', '智慧', '守護', '靈力', '控制'],
@@ -954,7 +954,9 @@ const GAME = {
     reviveCost(lv) { return Math.round(1.5 * (lv + 4) * (lv + 4)); }, // 線上重傷立即恢復要花的銀兩（照剩下的時間打折）
     skillCoef: 2.2, skillCd: 6, skillCost: 15, energyRegen: 2, baseInterval: 1.2,
     expBase: 40, expPow: 2.6,
-    mobHp: 2.5, mobAtk: 1.1, mobHpGrow: 0.025, mobAtkGrow: 0.01, mobGrowTo: 120,   // v0.19 魔物強度：直線 ×（1＋成長 ×（等級−1））；成長那段只算到 Lv.120，之後只跟著直線走
+    mobHp: 5.75, mobAtk: 1.1, mobHpGrow: 0.025, mobAtkGrow: 0.01, mobGrowTo: 120,   // v0.19 魔物強度：直線 ×（1＋成長 ×（等級−1））；成長那段只算到 Lv.120，之後只跟著直線走
+    // v0.19.1 mobHp 2.5 → 5.75（×2.3）：練好的角色（加點、紫武器、御心跟上）打同級區，要像「沒加點、白武器、御心+3」打低 5 級區那樣，一隻約 7 秒。
+    //   只動血量、攻擊不動；經驗、銀兩、掉落照舊（升級跟著變慢）。這是固定倍數，不改成長斜率，不會越後面越膨脹
     exploreBase: 60, explorePer: 14, exploreSq: 0.6, expMul: 0.64,   // 探索度：每區要擊倒的數量；expMul 調整升級速度
     placeBonus: 0.01,                                                 // 一個地方的小地區全部探索完：經驗、掉落各 +1%
     // v0.17 第三章以後（Lv.40 起）：經驗、精魄、探索度、魔物強度另外照這幾個數字走
