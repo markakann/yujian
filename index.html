@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#121315">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>天星界・御劍者 v0.19.3</title>
+<title>天星界・御劍者 v0.19.4</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -556,7 +556,7 @@ button:active:not(:disabled){transform:scale(.95)}
 
 /* ---------- 遊戲資料：名稱、數值都集中在這裡，改這裡就好 ---------- */
 const GAME = {
-  meta: { title: '天星界・御劍者', subtitle: '暫定名稱', version: '0.19.3', era: '仙曆五百餘年' },
+  meta: { title: '天星界・御劍者', subtitle: '暫定名稱', version: '0.19.4', era: '仙曆五百餘年' },
 
   // 八項資源系統（順序固定，星數陣列照這個順序）
   statNames: ['力量', '抵擋', '體力', '敏捷', '智慧', '守護', '靈力', '控制'],
@@ -5324,6 +5324,7 @@ function devAct(a) {
 const AUD_KEY = 'yujian-audio';
 const AUD = { ctx: null, sfx: null, mus: null, last: {}, n: 0, nAt: 0, p: null, tickAt: 0, bgm: { cur: null, want: null, since: 0, els: {} } };
 const AUD_NOISE = new WeakMap(), AUD_KS = new WeakMap();
+const AUD_BOOST = 1.6; // 限幅器不太會自己補增益，整體補回約 +4 dB
 
 function audPrefs() {
   if (!AUD.p) { let o = {}; try { o = JSON.parse(localStorage.getItem(AUD_KEY)) || {}; } catch (e) {} AUD.p = Object.assign({ music: true, sfx: true, mv: 0.5, sv: 0.7 }, o); }
@@ -5333,16 +5334,18 @@ function audSetPref(k, v) { audPrefs()[k] = v; try { localStorage.setItem(AUD_KE
 function audApply() {
   if (!AUD.ctx) return;
   const p = audPrefs(), t = AUD.ctx.currentTime;
-  AUD.sfx.gain.setTargetAtTime(p.sfx ? p.sv : 0, t, 0.05);
+  AUD.sfx.gain.setTargetAtTime(p.sfx ? p.sv * AUD_BOOST : 0, t, 0.05);
   AUD.mus.gain.setTargetAtTime(p.music ? p.mv * 0.8 : 0, t, 0.3);
   bgmUpdate(true);
 }
+// 只在太大聲時才壓（接近限幅器）：門檻 −6 dB；瀏覽器會自動補一點增益，門檻低的話小聲的會被放大、聲音的突波會冒出來
+function audLimiter(comp) { comp.threshold.value = -6; comp.knee.value = 0; comp.ratio.value = 12; comp.attack.value = 0.002; comp.release.value = 0.15; }
 function audInit() {
   if (AUD.ctx) return AUD.ctx;
   const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return null;
   try { AUD.ctx = new AC(); } catch (e) { return null; }
   const c = AUD.ctx, comp = c.createDynamicsCompressor();
-  comp.threshold.value = -18; comp.knee.value = 12; comp.ratio.value = 4; comp.attack.value = 0.003; comp.release.value = 0.2;
+  audLimiter(comp);
   AUD.sfx = c.createGain(); AUD.sfx.gain.value = 0; AUD.sfx.connect(comp); comp.connect(c.destination);
   AUD.mus = c.createGain(); AUD.mus.gain.value = 0; AUD.mus.connect(c.destination);
   audApply();
@@ -5392,6 +5395,8 @@ function sPluck(c, o, t, f, d = 0.5, v = 0.3) {
   }
   const s = c.createBufferSource(); s.buffer = b; const g = c.createGain(); g.gain.value = v; s.connect(g); g.connect(o); s.start(t);
 }
+// 實心木頭落地的「咚」：低頻短促的一下＋很短的中高頻敲擊聲
+const sKnock = (c, o, t, f, v) => { sTone(c, o, t, { f, f2: f * 0.7, a: 0.002, d: 0.07, v: 0.9 * v }); sNz(c, o, t, { ft: 'bandpass', f: f * 4.5, q: 3, a: 0.001, d: 0.025, v: 0.45 * v }); };
 const sArp = (c, o, t, notes, gap, fn) => notes.forEach((f, i) => fn(c, o, t + i * gap, f, i));
 
 /* ---- 普攻音色：依兵器分 12 種 ---- */
@@ -5402,17 +5407,20 @@ const FAM = {
   blade: (c, o, t, v) => { sNz(c, o, t, { ft: 'bandpass', f: 2500, f2: 6500, q: 1.2, d: 0.09, v: 0.7 * v }); sBell(c, o, t + 0.03, 2400, 0.14, 0.07 * v); },
   light: (c, o, t, v) => { sNz(c, o, t, { ft: 'bandpass', f: 3500, f2: 8000, q: 1.5, d: 0.05, v: 0.5 * v }); sNz(c, o, t + 0.06, { ft: 'bandpass', f: 4000, f2: 9000, q: 1.5, d: 0.05, v: 0.45 * v }); },
   thrust: (c, o, t, v) => { sNz(c, o, t, { ft: 'highpass', f: 1500, f2: 3500, d: 0.07, v: 0.5 * v }); sTone(c, o, t + 0.04, { f: 230, f2: 110, d: 0.08, v: 0.6 * v }); },
-  orb: (c, o, t, v) => { sTone(c, o, t, { f: 600, f2: 1300, d: 0.12, v: 0.35 * v }); sTone(c, o, t, { type: 'triangle', f: 1200, f2: 2600, d: 0.08, v: 0.12 * v }); },
-  jade: (c, o, t, v) => { sBell(c, o, t, PN.G6, 0.25, 0.22 * v); sBell(c, o, t + 0.05, PN.C7, 0.2, 0.14 * v); },
+  // 法球、法典、杖：比弓低的破空聲，尾巴長一點，底下帶悶悶的風壓（阿布選的法球 3）
+  orb: (c, o, t, v) => { sNz(c, o, t, { ft: 'bandpass', f: 2300, f2: 600, q: 4, a: 0.03, d: 0.22, v: 1.0 * v }); sNz(c, o, t, { ft: 'lowpass', f: 500, f2: 200, a: 0.03, d: 0.15, v: 0.3 * v }); },
+  // 玉珠：往上揚的「啾」，接一下實心木球落地的「咚」（阿布選的玉珠 1）
+  jade: (c, o, t, v) => { sTone(c, o, t, { f: 320, f2: 680, d: 0.12, v: 0.35 * v }); sTone(c, o, t, { type: 'triangle', f: 640, f2: 1360, d: 0.08, v: 0.1 * v }); sKnock(c, o, t + 0.1, 230, v); },
   wheel: (c, o, t, v) => { sNz(c, o, t, { ft: 'bandpass', f: 1200, f2: 2400, q: 8, d: 0.14, v: 0.7 * v }); sTone(c, o, t, { type: 'triangle', f: 660, f2: 990, d: 0.1, v: 0.12 * v }); },
   poison: (c, o, t, v) => { sTone(c, o, t, { type: 'sawtooth', f: 190, f2: 150, d: 0.12, v: 0.1 * v }); sNz(c, o, t, { ft: 'bandpass', f: 700, q: 4, d: 0.1, v: 0.35 * v }); },
   furnace: (c, o, t, v) => { sTone(c, o, t, { f: 120, f2: 70, d: 0.12, v: 0.5 * v }); sTone(c, o, t + 0.02, { f: 380, f2: 900, d: 0.05, v: 0.25 * v }); sTone(c, o, t + 0.09, { f: 450, f2: 1000, d: 0.05, v: 0.2 * v }); },
   fan: (c, o, t, v) => { sNz(c, o, t, { ft: 'lowpass', f: 600, f2: 2800, a: 0.03, d: 0.14, v: 0.6 * v }); },
   string: (c, o, t, v) => { sPluck(c, o, t, [PN.G4, PN.A4, PN.C5, PN.D5][Math.floor(Math.random() * 4)], 0.6, 0.32 * v); },
-  bow: (c, o, t, v) => { sPluck(c, o, t, PN.G2, 0.25, 0.4 * v); sNz(c, o, t + 0.02, { ft: 'bandpass', f: 1800, f2: 4000, q: 2, d: 0.1, v: 0.35 * v }); }
+  // 弓：箭破空的「咻」，由高往低滑（阿布從三種裡選的 A）；前面一下很輕的放弦聲
+  bow: (c, o, t, v) => { sNz(c, o, t, { ft: 'highpass', f: 3000, d: 0.012, v: 0.12 * v }); sNz(c, o, t + 0.01, { ft: 'bandpass', f: 5500, f2: 1600, q: 5, a: 0.025, d: 0.17, v: 1.0 * v }); }
 };
-// 各音色的音量校正（實測峰值拉到差不多，約 −14 dB）
-const FAM_GAIN = { blunt: 0.43, blade: 1, light: 1.15, thrust: 0.5, orb: 0.85, jade: 0.9, wheel: 2.2, poison: 3, furnace: 0.4, fan: 4.5, string: 0.75, bow: 1 };
+// 各音色的音量校正：實測 10 次取中位數，峰值拉到約 −14 dB（v0.19.4 換成限幅器後重量）
+const FAM_GAIN = { blunt: 0.37, blade: 1.01, light: 1.11, thrust: 0.49, orb: 1.03, jade: 0.27, wheel: 2.25, poison: 3.49, furnace: 0.69, fan: 1.56, string: 1.1, bow: 0.76 };
 const famPlay = (e, c, o, t, v) => { const f = audFam(e); FAM[f](c, o, t, v * FAM_GAIN[f]); };
 function audFam(e) { if (e && e.fam && FAM[e.fam]) return e.fam; const w = typeof st !== 'undefined' && st && GAME.weapons[st.weapon]; return (w && AUD_FAM[w.item]) || 'blade'; }
 
@@ -5420,18 +5428,18 @@ function audFam(e) { if (e && e.fam && FAM[e.fam]) return e.fam; const w = typeo
 const SFX = {
   hit: (c, o, t, e) => {
     famPlay(e, c, o, t, e.skill ? 0.35 : 0.45);
-    if (e.crit) { sNz(c, o, t, { ft: 'highpass', f: 4000, d: 0.035, v: 0.5 }); sTone(c, o, t, { type: 'square', f: 1300, f2: 500, d: 0.07, v: 0.07 }); sTone(c, o, t, { f: 110, f2: 45, d: 0.22, v: 0.6 }); }
+    if (e.crit) { sNz(c, o, t, { ft: 'highpass', f: 4000, d: 0.035, v: 0.18 }); sTone(c, o, t, { type: 'square', f: 1300, f2: 500, d: 0.07, v: 0.03 }); sTone(c, o, t, { f: 110, f2: 45, d: 0.22, v: 0.22 }); }
   },
   hurt: (c, o, t, e) => {
-    sTone(c, o, t, { f: 170, f2: 70, d: 0.12, v: 0.24 }); sNz(c, o, t, { ft: 'lowpass', f: 1400, f2: 300, d: 0.06, v: 0.14 });
-    if (e.crit) { sNz(c, o, t, { ft: 'highpass', f: 2200, d: 0.05, v: 0.45 }); sTone(c, o, t, { f: 95, f2: 38, d: 0.3, v: 0.8 }); }
+    sTone(c, o, t, { f: 170, f2: 70, d: 0.12, v: 0.15 }); sNz(c, o, t, { ft: 'lowpass', f: 1400, f2: 300, d: 0.06, v: 0.09 });
+    if (e.crit) { sNz(c, o, t, { ft: 'highpass', f: 2200, d: 0.05, v: 0.13 }); sTone(c, o, t, { f: 95, f2: 38, d: 0.3, v: 0.2 }); }
   },
   miss: (c, o, t) => sNz(c, o, t, { ft: 'bandpass', f: 1500, f2: 700, q: 2, d: 0.08, v: 0.18 }),
   dodge: (c, o, t) => { sNz(c, o, t, { ft: 'bandpass', f: 800, f2: 3200, q: 1.5, a: 0.02, d: 0.1, v: 0.35 }); sTone(c, o, t + 0.03, { f: PN.A5, f2: PN.E6, d: 0.06, v: 0.06 }); },
   cast: (c, o, t, e) => {
-    famPlay(e, c, o, t, 0.8);
-    sTone(c, o, t, { f: 95, f2: 45, d: 0.25, v: 0.5 }); sTone(c, o, t + 0.02, { f: 400, f2: 1500, d: 0.22, v: 0.08 });
-    if (e.aoe) sNz(c, o, t + 0.03, { ft: 'lowpass', f: 300, f2: 1800, a: 0.04, d: 0.3, v: 0.35 });
+    famPlay(e, c, o, t, 0.6);
+    sTone(c, o, t, { f: 95, f2: 45, d: 0.25, v: 0.32 }); sTone(c, o, t + 0.02, { f: 400, f2: 1500, d: 0.22, v: 0.05 });
+    if (e.aoe) sNz(c, o, t + 0.03, { ft: 'lowpass', f: 300, f2: 1800, a: 0.04, d: 0.3, v: 0.22 });
   },
   heal: (c, o, t) => { sArp(c, o, t, [PN.E6, PN.G6, PN.C7], 0.06, (c, o, t, f) => sBell(c, o, t, f, 0.5, 0.12)); sTone(c, o, t, { f: 300, f2: 600, a: 0.05, d: 0.3, v: 0.08 }); },
   ult: (c, o, t) => {
@@ -5522,8 +5530,8 @@ function audEvent(e) {
 // 把一串音效算成聲音（OfflineAudioContext），給試聽檔用：list＝[[時間, 鍵, 兵器音色]]
 function sfxRender(list, secs) {
   const c = new OfflineAudioContext(2, Math.ceil(44100 * secs), 44100), comp = c.createDynamicsCompressor(), g = c.createGain();
-  comp.threshold.value = -18; comp.knee.value = 12; comp.ratio.value = 4; comp.attack.value = 0.003; comp.release.value = 0.2;
-  g.gain.value = 0.8; g.connect(comp); comp.connect(c.destination);
+  audLimiter(comp);
+  g.gain.value = 0.8 * AUD_BOOST; g.connect(comp); comp.connect(c.destination);
   for (const [t, k, fam] of list) { const [n, e] = sfxDemo(k, fam); SFX[n](c, g, t, e); }
   return c.startRendering();
 }
