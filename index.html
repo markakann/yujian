@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#121315">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>天星界・御劍者 v0.19.2</title>
+<title>天星界・御劍者 v0.19.3</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -345,6 +345,9 @@ button:active:not(:disabled){transform:scale(.95)}
 @keyframes hurt{0%{opacity:1}100%{opacity:0}}
 .revive{margin-top:12px;padding:8px 16px;border-radius:9px;background:var(--ver);color:#fff6ea;font-family:var(--serif);font-size:14px;letter-spacing:.05em}
 .revive:disabled{background:var(--panel2);color:var(--faint)}
+/* v0.19.3 聲音 */
+.audrow{display:flex;align-items:center;gap:10px;margin:2px 0 8px;font-size:12px;color:var(--muted)}
+.audrow input{flex:1;accent-color:var(--gold)}
 /* v0.19.2 測試模式 */
 .devbar{display:flex;align-items:center;gap:8px;margin:0 0 8px;padding:6px 10px;border:1px dashed var(--gold-d);border-radius:10px;background:#2a2416;font-size:12px;color:var(--gold)}
 .devbar span{flex:1}
@@ -553,7 +556,7 @@ button:active:not(:disabled){transform:scale(.95)}
 
 /* ---------- 遊戲資料：名稱、數值都集中在這裡，改這裡就好 ---------- */
 const GAME = {
-  meta: { title: '天星界・御劍者', subtitle: '暫定名稱', version: '0.19.2', era: '仙曆五百餘年' },
+  meta: { title: '天星界・御劍者', subtitle: '暫定名稱', version: '0.19.3', era: '仙曆五百餘年' },
 
   // 八項資源系統（順序固定，星數陣列照這個順序）
   statNames: ['力量', '抵擋', '體力', '敏捷', '智慧', '守護', '靈力', '控制'],
@@ -5171,7 +5174,9 @@ function devPanel() {
 
   h += '<div class="sec devsec"><h3>起點</h3><div class="devgrid">' + btn('start:copy', DEV.on ? '複製正式存檔' : '從目前進度開始') + btn('start:fresh', '新角色') +
     DEV_SNAPS.map((s, i) => btn('start:' + i, s.label)).join('') + '</div><p class="note">測試角色是模擬跑出來的存檔（武器：銀），每一章結束時的樣子。</p></div>';
-  if (!DEV.on) return h + btn('hud', DEV.hud ? '關閉戰鬥數據' : '打開戰鬥數據') + '<div style="height:8px"></div><button class="btn" id="closeModal">關閉</button>';
+  // v0.19.3 音效試聽：每一種音效一個按鈕；普攻、爆擊、招式照目前武器的音色
+  const sfxSec = '<div class="sec devsec"><h3>音效試聽</h3><div class="devgrid" style="grid-template-columns:repeat(3,1fr)">' + Object.keys(SFX_NAMES).map(k => '<button class="btn ghost" data-aud="' + k + '">' + SFX_NAMES[k] + '</button>').join('') + '</div><p class="note">普攻、爆擊、招式是目前武器（' + wName(st.weapon) + '）的音色。</p></div>';
+  if (!DEV.on) return h + sfxSec + btn('hud', DEV.hud ? '關閉戰鬥數據' : '打開戰鬥數據') + '<div style="height:8px"></div><button class="btn" id="closeModal">關閉</button>';
 
   h += '<div class="sec devsec"><h3>角色</h3>' +
     row('等級', num('dvLv', st.lv, 1, 999) + btn('lv', '套用')) +
@@ -5208,7 +5213,7 @@ function devPanel() {
     '<div class="devgrid">' + btn('revive', '重傷立即恢復') + btn('hud', DEV.hud ? '關閉戰鬥數據' : '打開戰鬥數據') + '</div>' +
     '<p class="note">叫出的魔物是這一區的精英等級（區域上限 +1）。命格做好以後，這裡會多一塊命盤設定。</p></div>';
 
-  return h + btn('exit', '離開測試模式，回到正式存檔', 'warn') + '<div style="height:8px"></div><button class="btn" id="closeModal">回去測試</button>';
+  return h + sfxSec + btn('exit', '離開測試模式，回到正式存檔', 'warn') + '<div style="height:8px"></div><button class="btn" id="closeModal">回去測試</button>';
 }
 function devOpen(keepScroll) {
   const body = $('#modalBody'), y = keepScroll ? body.scrollTop : 0;
@@ -5312,6 +5317,271 @@ function devAct(a) {
 }
 
 
+/* ---------- v0.19.3 聲音：音效（Web Audio 即時合成，不用音檔）＋背景音樂（阿布的曲子，放在 music/） ----------
+   音量設定存在 localStorage 'yujian-audio'：每台裝置自己的，不跟存檔走、不上雲端。
+   瀏覽器規定要先點一下畫面才能出聲（audUnlock）；切到背景就整個暫停。
+   這個檔案由 build.py 塞進 template.html 的 AUDIO 標記處，跟 engine.js、scene.js、dev.js 共用同一段 script */
+const AUD_KEY = 'yujian-audio';
+const AUD = { ctx: null, sfx: null, mus: null, last: {}, n: 0, nAt: 0, p: null, tickAt: 0, bgm: { cur: null, want: null, since: 0, els: {} } };
+const AUD_NOISE = new WeakMap(), AUD_KS = new WeakMap();
+
+function audPrefs() {
+  if (!AUD.p) { let o = {}; try { o = JSON.parse(localStorage.getItem(AUD_KEY)) || {}; } catch (e) {} AUD.p = Object.assign({ music: true, sfx: true, mv: 0.5, sv: 0.7 }, o); }
+  return AUD.p;
+}
+function audSetPref(k, v) { audPrefs()[k] = v; try { localStorage.setItem(AUD_KEY, JSON.stringify(AUD.p)); } catch (e) {} audApply(); }
+function audApply() {
+  if (!AUD.ctx) return;
+  const p = audPrefs(), t = AUD.ctx.currentTime;
+  AUD.sfx.gain.setTargetAtTime(p.sfx ? p.sv : 0, t, 0.05);
+  AUD.mus.gain.setTargetAtTime(p.music ? p.mv * 0.8 : 0, t, 0.3);
+  bgmUpdate(true);
+}
+function audInit() {
+  if (AUD.ctx) return AUD.ctx;
+  const AC = window.AudioContext || window.webkitAudioContext; if (!AC) return null;
+  try { AUD.ctx = new AC(); } catch (e) { return null; }
+  const c = AUD.ctx, comp = c.createDynamicsCompressor();
+  comp.threshold.value = -18; comp.knee.value = 12; comp.ratio.value = 4; comp.attack.value = 0.003; comp.release.value = 0.2;
+  AUD.sfx = c.createGain(); AUD.sfx.gain.value = 0; AUD.sfx.connect(comp); comp.connect(c.destination);
+  AUD.mus = c.createGain(); AUD.mus.gain.value = 0; AUD.mus.connect(c.destination);
+  audApply();
+  return c;
+}
+function audUnlock() { const c = audInit(); if (c && c.state !== 'running' && !document.hidden) c.resume().then(() => bgmUpdate(true)).catch(() => {}); else bgmUpdate(true); }
+['pointerdown', 'touchend', 'keydown'].forEach(ev => document.addEventListener(ev, audUnlock, { passive: true }));
+document.addEventListener('visibilitychange', () => {
+  if (!AUD.ctx) return;
+  if (document.hidden) { AUD.ctx.suspend().catch(() => {}); bgmPauseAll(); }
+  else AUD.ctx.resume().then(() => bgmUpdate(true)).catch(() => {});
+});
+
+/* ---- 合成用的小工具：c＝AudioContext（或 OfflineAudioContext），o＝接到哪裡，t＝開始時間 ---- */
+const PN = { G2: 98, D3: 146.83, G3: 196, G4: 392, A4: 440, C5: 523.25, D5: 587.33, E5: 659.25, G5: 783.99, A5: 880, C6: 1046.5, D6: 1174.66, E6: 1318.51, G6: 1567.98, A6: 1760, C7: 2093, E7: 2637 };
+function sNoise(c) {
+  let b = AUD_NOISE.get(c);
+  if (!b) { b = c.createBuffer(1, c.sampleRate, c.sampleRate); const d = b.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; AUD_NOISE.set(c, b); }
+  return b;
+}
+// 音量：a 秒內升到 v，再用 d 秒淡掉
+function sEnv(c, t, a, d, v) { const g = c.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(Math.max(v, 0.0002), t + a); g.gain.exponentialRampToValueAtTime(0.0001, t + a + d); return g; }
+function sTone(c, o, t, { type = 'sine', f = 440, f2 = 0, a = 0.004, d = 0.2, v = 0.3, det = 0 }) {
+  const s = c.createOscillator(); s.type = type; s.frequency.setValueAtTime(f, t);
+  if (f2) s.frequency.exponentialRampToValueAtTime(f2, t + a + d);
+  if (det) s.detune.value = det;
+  const g = sEnv(c, t, a, d, v); s.connect(g); g.connect(o); s.start(t); s.stop(t + a + d + 0.05);
+}
+function sNz(c, o, t, { ft = 'bandpass', f = 1000, f2 = 0, q = 1, a = 0.003, d = 0.1, v = 0.3 }) {
+  const s = c.createBufferSource(); s.buffer = sNoise(c); s.loop = true;
+  const fl = c.createBiquadFilter(); fl.type = ft; fl.frequency.setValueAtTime(f, t); if (f2) fl.frequency.exponentialRampToValueAtTime(f2, t + a + d); fl.Q.value = q;
+  const g = sEnv(c, t, a, d, v); s.connect(fl); fl.connect(g); g.connect(o); s.start(t, Math.random() * 0.5); s.stop(t + a + d + 0.05);
+}
+// 鐘、磬：幾個不成整數倍的泛音
+function sBell(c, o, t, f, d = 0.8, v = 0.2) { [[1, 1], [2, 0.45], [2.76, 0.3], [5.4, 0.12]].forEach(([r, k], i) => sTone(c, o, t, { f: f * r, a: 0.002, d: d / (1 + i * 0.6), v: v * k })); }
+// 撥弦（琴、弓）：Karplus-Strong，算好的波形照頻率存起來重複用
+function sPluck(c, o, t, f, d = 0.5, v = 0.3) {
+  let cache = AUD_KS.get(c); if (!cache) { cache = {}; AUD_KS.set(c, cache); }
+  const key = Math.round(f) + ':' + d; let b = cache[key];
+  if (!b) {
+    const sr = c.sampleRate, n = Math.floor(sr * d), p = Math.max(2, Math.round(sr / f)), ring = new Float32Array(p);
+    b = c.createBuffer(1, n, sr); const x = b.getChannelData(0);
+    for (let i = 0; i < p; i++) ring[i] = Math.random() * 2 - 1;
+    for (let i = 0, k = 0; i < n; i++) { const nk = (k + 1) % p; x[i] = ring[k]; ring[k] = 0.996 * 0.5 * (ring[k] + ring[nk]); k = nk; }
+    for (let i = 0; i < 64 && i < n; i++) x[n - 1 - i] *= i / 64; // 尾巴淡掉，避免喀一聲
+    cache[key] = b;
+  }
+  const s = c.createBufferSource(); s.buffer = b; const g = c.createGain(); g.gain.value = v; s.connect(g); g.connect(o); s.start(t);
+}
+const sArp = (c, o, t, notes, gap, fn) => notes.forEach((f, i) => fn(c, o, t + i * gap, f, i));
+
+/* ---- 普攻音色：依兵器分 12 種 ---- */
+const AUD_FAM = { '槌': 'blunt', '棍': 'blunt', '拳套': 'blunt', '機關獸': 'blunt', '長劍': 'blade', '劍盾': 'blade', '雙劍': 'light', '匕首': 'light', '長槍': 'thrust', '戟': 'thrust',
+  '法球': 'orb', '法典': 'orb', '杖': 'orb', '玉珠': 'jade', '寶輪': 'wheel', '毒蠱': 'poison', '丹爐': 'furnace', '扇': 'fan', '琴': 'string', '弓': 'bow' };
+const FAM = {
+  blunt: (c, o, t, v) => { sTone(c, o, t, { f: 150, f2: 50, d: 0.18, v: 0.9 * v }); sNz(c, o, t, { ft: 'lowpass', f: 900, f2: 200, d: 0.08, v: 0.5 * v }); },
+  blade: (c, o, t, v) => { sNz(c, o, t, { ft: 'bandpass', f: 2500, f2: 6500, q: 1.2, d: 0.09, v: 0.7 * v }); sBell(c, o, t + 0.03, 2400, 0.14, 0.07 * v); },
+  light: (c, o, t, v) => { sNz(c, o, t, { ft: 'bandpass', f: 3500, f2: 8000, q: 1.5, d: 0.05, v: 0.5 * v }); sNz(c, o, t + 0.06, { ft: 'bandpass', f: 4000, f2: 9000, q: 1.5, d: 0.05, v: 0.45 * v }); },
+  thrust: (c, o, t, v) => { sNz(c, o, t, { ft: 'highpass', f: 1500, f2: 3500, d: 0.07, v: 0.5 * v }); sTone(c, o, t + 0.04, { f: 230, f2: 110, d: 0.08, v: 0.6 * v }); },
+  orb: (c, o, t, v) => { sTone(c, o, t, { f: 600, f2: 1300, d: 0.12, v: 0.35 * v }); sTone(c, o, t, { type: 'triangle', f: 1200, f2: 2600, d: 0.08, v: 0.12 * v }); },
+  jade: (c, o, t, v) => { sBell(c, o, t, PN.G6, 0.25, 0.22 * v); sBell(c, o, t + 0.05, PN.C7, 0.2, 0.14 * v); },
+  wheel: (c, o, t, v) => { sNz(c, o, t, { ft: 'bandpass', f: 1200, f2: 2400, q: 8, d: 0.14, v: 0.7 * v }); sTone(c, o, t, { type: 'triangle', f: 660, f2: 990, d: 0.1, v: 0.12 * v }); },
+  poison: (c, o, t, v) => { sTone(c, o, t, { type: 'sawtooth', f: 190, f2: 150, d: 0.12, v: 0.1 * v }); sNz(c, o, t, { ft: 'bandpass', f: 700, q: 4, d: 0.1, v: 0.35 * v }); },
+  furnace: (c, o, t, v) => { sTone(c, o, t, { f: 120, f2: 70, d: 0.12, v: 0.5 * v }); sTone(c, o, t + 0.02, { f: 380, f2: 900, d: 0.05, v: 0.25 * v }); sTone(c, o, t + 0.09, { f: 450, f2: 1000, d: 0.05, v: 0.2 * v }); },
+  fan: (c, o, t, v) => { sNz(c, o, t, { ft: 'lowpass', f: 600, f2: 2800, a: 0.03, d: 0.14, v: 0.6 * v }); },
+  string: (c, o, t, v) => { sPluck(c, o, t, [PN.G4, PN.A4, PN.C5, PN.D5][Math.floor(Math.random() * 4)], 0.6, 0.32 * v); },
+  bow: (c, o, t, v) => { sPluck(c, o, t, PN.G2, 0.25, 0.4 * v); sNz(c, o, t + 0.02, { ft: 'bandpass', f: 1800, f2: 4000, q: 2, d: 0.1, v: 0.35 * v }); }
+};
+// 各音色的音量校正（實測峰值拉到差不多，約 −14 dB）
+const FAM_GAIN = { blunt: 0.43, blade: 1, light: 1.15, thrust: 0.5, orb: 0.85, jade: 0.9, wheel: 2.2, poison: 3, furnace: 0.4, fan: 4.5, string: 0.75, bow: 1 };
+const famPlay = (e, c, o, t, v) => { const f = audFam(e); FAM[f](c, o, t, v * FAM_GAIN[f]); };
+function audFam(e) { if (e && e.fam && FAM[e.fam]) return e.fam; const w = typeof st !== 'undefined' && st && GAME.weapons[st.weapon]; return (w && AUD_FAM[w.item]) || 'blade'; }
+
+/* ---- 每一種音效（名字＝audPlay 用的鍵） ---- */
+const SFX = {
+  hit: (c, o, t, e) => {
+    famPlay(e, c, o, t, e.skill ? 0.35 : 0.45);
+    if (e.crit) { sNz(c, o, t, { ft: 'highpass', f: 4000, d: 0.035, v: 0.5 }); sTone(c, o, t, { type: 'square', f: 1300, f2: 500, d: 0.07, v: 0.07 }); sTone(c, o, t, { f: 110, f2: 45, d: 0.22, v: 0.6 }); }
+  },
+  hurt: (c, o, t, e) => {
+    sTone(c, o, t, { f: 170, f2: 70, d: 0.12, v: 0.24 }); sNz(c, o, t, { ft: 'lowpass', f: 1400, f2: 300, d: 0.06, v: 0.14 });
+    if (e.crit) { sNz(c, o, t, { ft: 'highpass', f: 2200, d: 0.05, v: 0.45 }); sTone(c, o, t, { f: 95, f2: 38, d: 0.3, v: 0.8 }); }
+  },
+  miss: (c, o, t) => sNz(c, o, t, { ft: 'bandpass', f: 1500, f2: 700, q: 2, d: 0.08, v: 0.18 }),
+  dodge: (c, o, t) => { sNz(c, o, t, { ft: 'bandpass', f: 800, f2: 3200, q: 1.5, a: 0.02, d: 0.1, v: 0.35 }); sTone(c, o, t + 0.03, { f: PN.A5, f2: PN.E6, d: 0.06, v: 0.06 }); },
+  cast: (c, o, t, e) => {
+    famPlay(e, c, o, t, 0.8);
+    sTone(c, o, t, { f: 95, f2: 45, d: 0.25, v: 0.5 }); sTone(c, o, t + 0.02, { f: 400, f2: 1500, d: 0.22, v: 0.08 });
+    if (e.aoe) sNz(c, o, t + 0.03, { ft: 'lowpass', f: 300, f2: 1800, a: 0.04, d: 0.3, v: 0.35 });
+  },
+  heal: (c, o, t) => { sArp(c, o, t, [PN.E6, PN.G6, PN.C7], 0.06, (c, o, t, f) => sBell(c, o, t, f, 0.5, 0.12)); sTone(c, o, t, { f: 300, f2: 600, a: 0.05, d: 0.3, v: 0.08 }); },
+  ult: (c, o, t) => {
+    sTone(c, o, t, { f: 80, f2: 32, d: 0.9, v: 1 }); sNz(c, o, t, { ft: 'lowpass', f: 400, f2: 90, d: 0.6, v: 0.6 });
+    sBell(c, o, t + 0.05, PN.G3, 2.4, 0.35);
+    sArp(c, o, t + 0.12, [PN.C5, PN.D5, PN.E5, PN.G5, PN.A5, PN.C6], 0.07, (c, o, t, f) => sPluck(c, o, t, f, 0.8, 0.28));
+    sArp(c, o, t + 0.6, [PN.C7, PN.E7, PN.G6], 0.09, (c, o, t, f) => sBell(c, o, t, f, 1.2, 0.08));
+  },
+  mobUlt: (c, o, t) => {
+    sTone(c, o, t, { type: 'sawtooth', f: 110, f2: 70, a: 0.15, d: 0.9, v: 0.12 }); sTone(c, o, t, { type: 'sawtooth', f: 116, f2: 73, a: 0.15, d: 0.9, v: 0.12 });
+    sNz(c, o, t, { ft: 'lowpass', f: 500, f2: 120, a: 0.1, d: 0.8, v: 0.3 }); sTone(c, o, t + 0.05, { f: 60, f2: 35, d: 0.5, v: 0.7 });
+  },
+  kill: (c, o, t, e) => {
+    sNz(c, o, t, { ft: 'lowpass', f: 1200, f2: 200, d: 0.18, v: 0.25 }); sTone(c, o, t, { f: 330, f2: 200, d: 0.1, v: 0.08 });
+    if (e.rank === 'elite') { sBell(c, o, t + 0.05, PN.C5, 0.7, 0.15); sBell(c, o, t + 0.05, PN.G5, 0.7, 0.1); }
+    if (e.rank === 'boss') { sBell(c, o, t + 0.05, PN.G3, 2, 0.3); sArp(c, o, t + 0.15, [PN.C5, PN.E5, PN.G5, PN.C6], 0.1, (c, o, t, f) => sPluck(c, o, t, f, 0.9, 0.25)); }
+  },
+  eliteIn: (c, o, t) => { sTone(c, o, t, { f: 70, f2: 40, d: 0.4, v: 0.8 }); sBell(c, o, t + 0.02, PN.D3, 1.2, 0.2); },
+  bossIn: (c, o, t) => { sTone(c, o, t, { f: 70, f2: 40, d: 0.4, v: 0.8 }); sTone(c, o, t + 0.3, { f: 70, f2: 38, d: 0.5, v: 0.9 }); sBell(c, o, t + 0.32, PN.G2, 2.2, 0.35); },
+  levelup: (c, o, t) => { sArp(c, o, t, [PN.C5, PN.E5, PN.G5, PN.C6], 0.07, (c, o, t, f) => sPluck(c, o, t, f, 0.7, 0.3)); sBell(c, o, t + 0.3, PN.C6, 0.9, 0.15); },
+  rank: (c, o, t) => { sBell(c, o, t, PN.G3, 2.2, 0.3); sArp(c, o, t + 0.05, [PN.C5, PN.D5, PN.E5, PN.G5, PN.A5, PN.C6, PN.E6], 0.07, (c, o, t, f) => sPluck(c, o, t, f, 0.8, 0.26)); sBell(c, o, t + 0.55, PN.C6, 1.2, 0.12); sBell(c, o, t + 0.55, PN.G6, 1.2, 0.08); },
+  loot: (c, o, t, e) => {
+    const q = e.q || 1, notes = q >= 4 ? [PN.C6, PN.E6, PN.G6, PN.C7, PN.E7] : q === 3 ? [PN.E6, PN.G6, PN.C7] : q === 2 ? [PN.G6, PN.C7] : [PN.E6];
+    sArp(c, o, t, notes, 0.06, (c, o, t, f) => sBell(c, o, t, f, q >= 4 ? 0.9 : 0.4, 0.1 + q * 0.02));
+    if (q >= 4) sBell(c, o, t + 0.32, PN.C6, 1.6, 0.12);
+  },
+  down: (c, o, t) => { sTone(c, o, t, { type: 'triangle', f: 440, f2: 110, d: 0.6, v: 0.25 }); sTone(c, o, t + 0.45, { f: 90, f2: 40, d: 0.3, v: 0.7 }); },
+  revive: (c, o, t) => sArp(c, o, t, [PN.G5, PN.C6], 0.1, (c, o, t, f) => sBell(c, o, t, f, 0.6, 0.13)),
+  potion: (c, o, t) => { sTone(c, o, t, { f: 300, f2: 520, d: 0.05, v: 0.25 }); sTone(c, o, t + 0.09, { f: 340, f2: 620, d: 0.05, v: 0.2 }); },
+  buff: (c, o, t) => sArp(c, o, t, [PN.G5, PN.C6, PN.E6], 0.05, (c, o, t, f) => sBell(c, o, t, f, 0.5, 0.1)),
+  tower: (c, o, t) => { sTone(c, o, t, { f: 80, f2: 45, d: 0.35, v: 0.7 }); sBell(c, o, t + 0.02, PN.G3, 1.6, 0.25); },
+  place: (c, o, t) => sArp(c, o, t, [PN.G5, PN.C6], 0.12, (c, o, t, f) => sPluck(c, o, t, f, 0.6, 0.22)),
+  learn: (c, o, t) => sArp(c, o, t, [PN.D6, PN.A6], 0.08, (c, o, t, f) => sBell(c, o, t, f, 0.6, 0.12)),
+  mastery: (c, o, t) => sArp(c, o, t, [PN.A5, PN.D6], 0.07, (c, o, t, f) => sPluck(c, o, t, f, 0.5, 0.22)),
+  codex: (c, o, t) => sBell(c, o, t, PN.A6, 0.4, 0.08),
+  quest: (c, o, t) => { sArp(c, o, t, [PN.D5, PN.G5, PN.A5, PN.D6], 0.09, (c, o, t, f) => sPluck(c, o, t, f, 0.8, 0.24)); sBell(c, o, t + 0.36, PN.D6, 1, 0.1); },
+  ui: (c, o, t) => sTone(c, o, t, { f: 1800, f2: 1400, d: 0.025, v: 0.05 })
+};
+// 試聽用的名字（測試面板、試聽檔）
+const SFX_NAMES = { hit: '普攻', crit: '爆擊', cast: '招式', castAoe: '群體招式', heal: '治療招式', ult: '天御', mobUlt: '魔物天御', hurt: '被打', hurtCrit: '被爆擊', dodge: '閃過', miss: '落空',
+  kill: '擊倒', killElite: '擊倒精英', killBoss: '擊倒首領', eliteIn: '精英出現', bossIn: '首領出現', levelup: '升級', rank: '位階提升', loot1: '掉落良品', loot2: '掉落精品', loot3: '掉落珍品', loot4: '掉落名品',
+  down: '重傷', revive: '恢復', potion: '喝藥', buff: '增益藥', tower: '進塔', place: '探索完成', learn: '學會', mastery: '招式升級', codex: '圖鑑', quest: '主線完成', ui: '按鈕' };
+// 試聽的鍵 → 實際要播的音效和參數
+function sfxDemo(k, fam) {
+  const m = { crit: ['hit', { crit: true }], castAoe: ['cast', { aoe: true }], hurtCrit: ['hurt', { crit: true }], killElite: ['kill', { rank: 'elite' }], killBoss: ['kill', { rank: 'boss' }],
+    loot1: ['loot', { q: 1 }], loot2: ['loot', { q: 2 }], loot3: ['loot', { q: 3 }], loot4: ['loot', { q: 4 }] }[k] || [k, {}];
+  return [m[0], Object.assign({ fam }, m[1])];
+}
+
+const AUD_GAP = { hit: 0.07, hurt: 0.09, kill: 0.06, loot: 0.12, ui: 0.05, miss: 0.12, dodge: 0.1, cast: 0.12, potion: 0.3, codex: 0.3, place: 0.5, levelup: 0.5, ult: 1, mobUlt: 1, rank: 1 };
+function audPlay(name, e, gap) {
+  const p = audPrefs(), c = AUD.ctx;
+  if (!p.sfx || !c || c.state !== 'running' || !SFX[name]) return;
+  const now = c.currentTime, g = gap != null ? gap : (AUD_GAP[name] || 0);
+  if (g && now - (AUD.last[name] || -9) < g) return;
+  if (now - AUD.nAt > 1) { AUD.nAt = now; AUD.n = 0; }
+  if (++AUD.n > 18) return; // 一秒最多 18 個，掛久了才不會吵
+  AUD.last[name] = now;
+  try { SFX[name](c, AUD.sfx, now + 0.01, e || {}); } catch (err) {}
+}
+function audDemo(k) { audUnlock(); const [n, e] = sfxDemo(k); setTimeout(() => audPlay(n, e, 0), 30); }
+// 遊戲事件 → 音效（在 handle() 一開頭呼叫）
+function audEvent(e) {
+  if (!AUD.ctx) return;
+  switch (e.t) {
+    case 'hit': if (e.who === 'p') { if (!e.quiet && !e.proc) audPlay('hit', e, e.crit ? 0.03 : null); } else audPlay('hurt', e, e.crit ? 0.02 : null); break;
+    case 'miss': if (e.who === 'p' && !e.quiet) audPlay('miss'); break;
+    case 'dodge': audPlay('dodge'); break;
+    case 'cast': audPlay(e.dmg ? 'cast' : 'heal', e); break;
+    case 'ult': audPlay('ult'); break;
+    case 'mobUlt': audPlay('mobUlt'); break;
+    case 'kill': audPlay('kill', e, e.rank ? 0 : null); break;
+    case 'spawn': if (e.mobs.some(x => x.rank === 'boss')) audPlay('bossIn'); else if (e.mobs.some(x => x.rank === 'elite')) audPlay('eliteIn'); break;
+    case 'levelup': audPlay('levelup'); break;
+    case 'rank': audPlay('rank'); break;
+    case 'loot': if (e.q >= 1) audPlay('loot', e); break;
+    case 'down': audPlay('down'); break;
+    case 'revive': case 'revivePaid': audPlay('revive'); break;
+    case 'potion': audPlay('potion'); break;
+    case 'buff': audPlay('buff'); break;
+    case 'towerStart': case 'towerNext': audPlay('tower'); break;
+    case 'placeDone': case 'explored': audPlay('place'); break;
+    case 'learn': case 'book': audPlay('learn'); break;
+    case 'mastery': audPlay('mastery'); break;
+    case 'codexNew': audPlay('codex'); break;
+  }
+}
+// 把一串音效算成聲音（OfflineAudioContext），給試聽檔用：list＝[[時間, 鍵, 兵器音色]]
+function sfxRender(list, secs) {
+  const c = new OfflineAudioContext(2, Math.ceil(44100 * secs), 44100), comp = c.createDynamicsCompressor(), g = c.createGain();
+  comp.threshold.value = -18; comp.knee.value = 12; comp.ratio.value = 4; comp.attack.value = 0.003; comp.release.value = 0.2;
+  g.gain.value = 0.8; g.connect(comp); comp.connect(c.destination);
+  for (const [t, k, fam] of list) { const [n, e] = sfxDemo(k, fam); SFX[n](c, g, t, e); }
+  return c.startRendering();
+}
+
+/* ---- 背景音樂：阿布的曲子。files 填「情境 → 檔名」，檔案放在 music/ ----
+   情境：'ch:首區'～'ch:息區'（依目前所在的章節區域）、'boss'（首領在場）、'tower'（塔裡）、'town'（城鎮分頁）、'default'（沒指定時） */
+const BGM = { dir: 'music/', files: {} };
+function bgmPick() {
+  if (typeof st === 'undefined' || !st || !rt) return null;
+  if (rt.tower) return 'tower';
+  if (rt.mobs && rt.mobs.some(m => m.rank === 'boss' && m.hp > 0)) return 'boss';
+  if (typeof tab !== 'undefined' && tab === 'quest') return 'town';
+  const z = zoneById(st.zone); return z ? 'ch:' + z.chapter.split('　')[0] : null;
+}
+function bgmKey() { const k = bgmPick(); return k && BGM.files[k] ? k : (BGM.files.default ? 'default' : null); }
+function bgmEl(key) {
+  let a = AUD.bgm.els[key];
+  if (!a) {
+    a = new Audio(); a.src = BGM.dir + BGM.files[key]; a.loop = true; a.preload = 'auto';
+    const g = AUD.ctx.createGain(); g.gain.value = 0;
+    try { AUD.ctx.createMediaElementSource(a).connect(g); g.connect(AUD.mus); } catch (e) { a._raw = true; }
+    a._g = g; a._key = key; AUD.bgm.els[key] = a;
+  }
+  return a;
+}
+function bgmSwitch(key) {
+  const B = AUD.bgm, c = AUD.ctx, t = c.currentTime, old = B.cur && B.els[B.cur];
+  if (old) { old._g.gain.cancelScheduledValues(t); old._g.gain.setTargetAtTime(0, t, 0.6); setTimeout(() => { if (AUD.bgm.cur !== old._key) old.pause(); }, 3500); }
+  B.cur = key; if (!key) return;
+  const a = bgmEl(key);
+  if (key === 'boss') a.currentTime = 0; // 首領曲每次從頭；其他曲子從上次停的地方接著放
+  a.play().catch(() => {});
+  a._g.gain.cancelScheduledValues(t); a._g.gain.setValueAtTime(a._g.gain.value, t); a._g.gain.setTargetAtTime(1, t, 0.8);
+}
+function bgmPauseAll() { for (const k in AUD.bgm.els) AUD.bgm.els[k].pause(); AUD.bgm.cur = null; }
+function bgmUpdate(force) {
+  const c = AUD.ctx; if (!c || c.state !== 'running') return;
+  const p = audPrefs(), B = AUD.bgm, want = p.music && !document.hidden ? bgmKey() : null, now = Date.now();
+  if (want !== B.want) { B.want = want; B.since = now; }
+  if (want === B.cur) return;
+  if (!force && want !== 'boss' && now - B.since < 2500) return; // 同一個情境穩定 2.5 秒才換曲，避免來回跳
+  bgmSwitch(want);
+}
+function audTick() { if (Date.now() - AUD.tickAt > 1000) { AUD.tickAt = Date.now(); bgmUpdate(); } }
+
+// 設定頁的「聲音」區塊
+function audPanel() {
+  const p = audPrefs(), n = Object.keys(BGM.files).length;
+  return '<div class="sec"><h3>聲音</h3>' +
+    '<label class="toggle"><span>背景音樂</span><input type="checkbox" id="audMusic"' + (p.music ? ' checked' : '') + '></label>' +
+    '<div class="audrow"><span>音量</span><input type="range" id="audMv" min="0" max="100" value="' + Math.round(p.mv * 100) + '"></div>' +
+    '<label class="toggle"><span>音效</span><input type="checkbox" id="audSfx"' + (p.sfx ? ' checked' : '') + '></label>' +
+    '<div class="audrow"><span>音量</span><input type="range" id="audSv" min="0" max="100" value="' + Math.round(p.sv * 100) + '"></div>' +
+    '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:8px 0"><button class="btn ghost" data-aud="hit">普攻</button><button class="btn ghost" data-aud="crit">爆擊</button><button class="btn ghost" data-aud="levelup">升級</button><button class="btn ghost" data-aud="ult">天御</button></div>' +
+    '<p class="note">' + (n ? '' : '背景音樂還沒放進來。') + '手機要先點一下畫面才會出聲；切到別的 App 或關掉螢幕會自動停。音量設定只存在這台裝置。</p></div>';
+}
+
+
 /* ---------- 動畫、震動 ---------- */
 let arenaSeen = true, lastShake = 0;
 try { new IntersectionObserver(es => { arenaSeen = es[0].isIntersecting; if (arenaSeen) sceneWake(); }).observe(document.querySelector('.arena')); } catch (e) {}
@@ -5331,7 +5601,7 @@ document.addEventListener('animationend', e => { if (e.target.classList && e.tar
 /* ---------- 戰鬥紀錄 ---------- */
 function addLog(html) { logs.unshift(html); if (logs.length > 9) logs.length = 9; }
 function handle(e) {
-  devTrack(e);
+  devTrack(e); audEvent(e);
   const m = rt.mob;
   if (SC.on) sceneEvent(e);
   switch (e.t) {
@@ -5797,7 +6067,7 @@ function renderPanel() {
       '<label class="toggle"><span>爆擊時畫面震動<br><span class="note">造成爆擊輕震、被爆擊重震；戰鬥畫面不在螢幕上時不會震</span></span><input type="checkbox" id="fxShake"' + (st.fx.shake ? ' checked' : '') + '></label>' +
       '<label class="toggle"><span>被爆擊時手機跟著震動</span><input type="checkbox" id="fxBuzz"' + (st.fx.buzz ? ' checked' : '') + '></label>' +
       '<label class="toggle"><span>重傷時自動花銀兩恢復<br><span class="note">只在線上有效；銀兩不夠時就照常休養</span></span><input type="checkbox" id="autoRevive"' + (st.autoRevive ? ' checked' : '') + '></label></div>' +
-      cloudPanel() +
+      audPanel() + cloudPanel() +
       '<div class="sec"><h3>存檔碼</h3><p class="note" style="margin-bottom:8px">進度存在這個瀏覽器裡。沒有登入雲端的話，換手機或換瀏覽器前，先把存檔碼複製起來。</p>' +
       '<textarea id="saveBox" placeholder="按「匯出」產生存檔碼，或貼上存檔碼後按「匯入」"></textarea>' +
       '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:8px"><button class="btn ghost" id="doExport">匯出</button><button class="btn ghost" id="doImport">匯入</button></div>' +
@@ -6204,6 +6474,7 @@ function stepBody(s) {
     '<small>獎勵：' + rewardText({ silver: s.reward.silver, items: s.reward.items, mats: s.reward.mats, gear: s.reward.gear ? GAME.gear.quality[s.reward.gear.q].name + s.reward.gear.slot + '一件' : '', book: s.reward.book ? '目前武器第二招的技能書' : '', pages: s.reward.pages }) + (s.reward.expPct ? '、經驗（目前等級的 ' + Math.round(s.reward.expPct * 100) + '%）' : '') + '</small></div>';
 }
 function showStep(prefix) {
+  audPlay('quest');
   const s = mainStep(st);
   let h = prefix || '';
   if (s) {
@@ -6244,7 +6515,13 @@ function showReport(sum, awaySec) {
 }
 
 /* ---------- 操作 ---------- */
+document.addEventListener('input', ev => {
+  if (ev.target.id === 'audMv') { audUnlock(); audSetPref('mv', ev.target.value / 100); }
+  else if (ev.target.id === 'audSv') { audUnlock(); audSetPref('sv', ev.target.value / 100); audPlay('hit', {}, 0.15); }
+});
 document.addEventListener('change', ev => {
+  if (ev.target.id === 'audMusic') { audUnlock(); audSetPref('music', ev.target.checked); return; } // v0.19.3 聲音
+  if (ev.target.id === 'audSfx') { audUnlock(); audSetPref('sfx', ev.target.checked); if (ev.target.checked) audDemo('hit'); return; }
   if (ev.target.dataset.auto) { st.potion.auto[ev.target.dataset.auto] = ev.target.checked; save(); return; }
   if (ev.target.dataset.bauto) { st.buffAuto[ev.target.dataset.bauto] = ev.target.checked; save(); return; }
   if (ev.target.id === 'potThr') { st.potion.thr = +ev.target.value; save(); toast('血量低於 ' + Math.round(st.potion.thr * 100) + '% 時自動服藥'); return; }
@@ -6263,6 +6540,8 @@ document.addEventListener('change', ev => {
 });
 document.addEventListener('click', ev => {
   const t = ev.target.closest('button'); if (!t) return;
+  audPlay('ui');
+  if (t.dataset.aud) { audDemo(t.dataset.aud); return; } // v0.19.3 試聽音效
   if (t.dataset.dev) { devAct(t.dataset.dev); return; } // v0.19.2 測試模式
   if (t.dataset.tower) {
     if (towerStart(st, rt, t.dataset.tower)) { for (const e of rt.events) handle(e); rt.events.length = 0; save(); window.scrollTo({ top: 0, behavior: 'smooth' }); }
@@ -6433,12 +6712,13 @@ function tick() {
     if (dt > 60) showReport(sum, dt);
     resetArena(); acc = 0; devTick(0, true);
   } else {
-    acc += dt; st.stats.playSec += dt; devTick(dt);
+    acc += dt; st.stats.playSec += dt; devTick(dt); audTick();
     while (acc >= 0.1) { step(st, rt, 0.1); acc -= 0.1; }
   }
   if (rt.events.length) { for (const e of rt.events) handle(e); rt.events.length = 0; renderLog(); }
   renderHero(); renderArena(); renderMain(); renderUlt(); renderBars(); sceneWake();
-  if (panelDirty && Date.now() - lastPanelAt > 400 && !(document.activeElement && ['SELECT', 'TEXTAREA'].includes(document.activeElement.tagName))) { renderTabs(); renderPanel(); }
+  const ae = document.activeElement, typing = ae && (['SELECT', 'TEXTAREA'].includes(ae.tagName) || (ae.tagName === 'INPUT' && ['range', 'number', 'text'].includes(ae.type)));
+  if (panelDirty && Date.now() - lastPanelAt > 400 && !typing) { renderTabs(); renderPanel(); }
   if (now - lastSaveAt > 5000) save();
   if (cloud.user && !cloud.busy && !cloud.hold && now - cloud.last > CLOUD_EVERY) cloudSync('auto');
 }
