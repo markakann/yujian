@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#121315">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>天星界・御劍者 v0.19.4</title>
+<title>天星界・御劍者 v0.19.5</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -345,6 +345,11 @@ button:active:not(:disabled){transform:scale(.95)}
 @keyframes hurt{0%{opacity:1}100%{opacity:0}}
 .revive{margin-top:12px;padding:8px 16px;border-radius:9px;background:var(--ver);color:#fff6ea;font-family:var(--serif);font-size:14px;letter-spacing:.05em}
 .revive:disabled{background:var(--panel2);color:var(--faint)}
+/* v0.19.5 版本更新內容（點標題） */
+.titlebtn{cursor:pointer;-webkit-tap-highlight-color:transparent}
+.vernew{display:inline-block;margin-left:6px;padding:0 6px;border-radius:8px;background:var(--gold);color:#1a1408;font-family:var(--sans);font-size:10px;font-weight:700;letter-spacing:0;vertical-align:middle;line-height:16px}
+.chlog h3 span{margin-left:8px;font-family:var(--sans);font-size:11px;font-weight:400;color:var(--faint);letter-spacing:0}
+.chlog ul{margin:4px 0 0;padding-left:18px;font-size:13px;line-height:1.7;color:var(--text)}
 /* v0.19.3 聲音 */
 .audrow{display:flex;align-items:center;gap:10px;margin:2px 0 8px;font-size:12px;color:var(--muted)}
 .audrow input{flex:1;accent-color:var(--gold)}
@@ -556,7 +561,7 @@ button:active:not(:disabled){transform:scale(.95)}
 
 /* ---------- 遊戲資料：名稱、數值都集中在這裡，改這裡就好 ---------- */
 const GAME = {
-  meta: { title: '天星界・御劍者', subtitle: '暫定名稱', version: '0.19.4', era: '仙曆五百餘年' },
+  meta: { title: '天星界・御劍者', subtitle: '暫定名稱', version: '0.19.5', era: '仙曆五百餘年' },
 
   // 八項資源系統（順序固定，星數陣列照這個順序）
   statNames: ['力量', '抵擋', '體力', '敏捷', '智慧', '守護', '靈力', '控制'],
@@ -5074,6 +5079,7 @@ function devChrome() {
   if (bar) bar.classList.toggle('hidden', !DEV.on);
   if (fab) fab.classList.toggle('hidden', !DEV.on);
   if (v) v.textContent = 'v' + GAME.meta.version + (DEV.on ? '・測試中' : ' ' + GAME.meta.subtitle);
+  if (typeof changelogBadge === 'function') changelogBadge();
   const hud = $('#devHud'); if (hud) hud.classList.toggle('hidden', !DEV.hud);
 }
 function devHudReset() { DEV.t0 = DEV.clock; DEV.kills = []; DEV.hits = []; DEV.dealt = []; DEV.d0 = st ? st.stats.deaths : 0; DEV.hudTxt = ''; }
@@ -5588,6 +5594,43 @@ function audPanel() {
     '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:8px 0"><button class="btn ghost" data-aud="hit">普攻</button><button class="btn ghost" data-aud="crit">爆擊</button><button class="btn ghost" data-aud="levelup">升級</button><button class="btn ghost" data-aud="ult">天御</button></div>' +
     '<p class="note">' + (n ? '' : '背景音樂還沒放進來。') + '手機要先點一下畫面才會出聲；切到別的 App 或關掉螢幕會自動停。音量設定只存在這台裝置。</p></div>';
 }
+
+
+/* ---------- 版本更新內容：點左上的標題會顯示 ----------
+   每次出版在最上面加一筆。寫給玩家看的話，不寫程式細節；開發細節寫在 README。
+   有新版本時標題旁會出現「新」，打開看過就消失（看過的版本記在 localStorage 'yujian-seen-ver'）。
+   這個檔案由 build.py 塞進 template.html 的 CHANGELOG 標記處 */
+const CHANGELOG = [
+  { v: '0.19.5', d: '2026-11-20', items: ['點左上的標題可以看版本更新內容'] },
+  { v: '0.19.4', d: '2026-11-19', items: ['弓的普攻改成箭破空的「咻」', '法球、法典、杖改成低沉的破空聲；玉珠改成「啾」接一聲木球落地的「咚」', '所有音效的音量重新對齊：普攻、被打一樣大，爆擊、招式明顯大聲，不會再忽然爆音'] },
+  { v: '0.19.3', d: '2026-11-19', items: ['加入音效：12 種兵器各有自己的普攻聲，還有爆擊、招式、天御、擊倒、升級、掉落等', '設定頁新增「聲音」：音樂、音效各自的開關和音量，可以試聽', '背景音樂的播放器已經準備好，曲子之後放進來'] },
+  { v: '0.19.2', d: '2026-11-19', items: ['設定頁連點版本號 5 下，可以打開測試模式（另開一份存檔，不影響正式進度）', '標題旁的版本號改成正確顯示'] },
+  { v: '0.19.1', d: '2026-11-18', items: ['魔物血量提高到 2.3 倍：練好的角色打同級區，大約 7 秒打倒一隻', '升級、賺銀兩跟著變慢，各章大約多花一倍時間'] },
+  { v: '0.19', items: ['屬性、攻擊、血量的算法全部重整，數字不會再暴漲', '裝備、突破、位階、圖鑑、增益藥的百分比加總後只算一次', '第一章的經驗、銀兩、掉落有加成，探索要求降低'] }
+];
+const SEEN_KEY = 'yujian-seen-ver';
+function changelogSeen() { try { return localStorage.getItem(SEEN_KEY); } catch (e) { return null; } }
+// 標題旁的「新」：這一版還沒打開看過
+function changelogBadge() {
+  const v = $('#verSmall'); if (!v) return;
+  let b = $('#verNew');
+  const show = changelogSeen() !== GAME.meta.version;
+  if (show && !b) { b = document.createElement('span'); b.id = 'verNew'; b.className = 'vernew'; b.textContent = '新'; v.after(b); }
+  if (!show && b) b.remove();
+}
+function changelogOpen() {
+  try { localStorage.setItem(SEEN_KEY, GAME.meta.version); } catch (e) {}
+  changelogBadge();
+  $('#modalBody').innerHTML = '<h2>版本更新內容</h2><div class="sub">目前是 v' + esc(GAME.meta.version) + '</div>' +
+    CHANGELOG.map(c => '<div class="sec chlog"><h3>v' + esc(c.v) + (c.d ? '<span>' + esc(c.d) + '</span>' : '') + '</h3><ul>' + c.items.map(x => '<li>' + esc(x) + '</li>').join('') + '</ul></div>').join('') +
+    '<p class="note">更早的版本沒有紀錄。</p><button class="btn" id="closeModal">關閉</button>';
+  $('#modal').classList.remove('hidden'); $('#modalBody').scrollTop = 0;
+}
+(() => {
+  const h = document.querySelector('header h1'); if (!h) return;
+  h.classList.add('titlebtn'); h.setAttribute('role', 'button'); h.setAttribute('aria-label', '看版本更新內容');
+  h.addEventListener('click', () => { if (typeof audPlay === 'function') audPlay('ui'); changelogOpen(); });
+})();
 
 
 /* ---------- 動畫、震動 ---------- */
@@ -6747,7 +6790,7 @@ function start() {
   } else {
     addLog(GAME.npcs.quest.name + '：首區最近不太平，城外到處都有魔物越界，麻煩你了。');
   }
-  devHudReset(); devChrome();
+  devHudReset(); devChrome(); changelogBadge();
   if (DEV.on) addLog('<span class="k-lv">測試模式中：這份存檔不會同步雲端</span>');
   save(); sceneApply(); renderAll();
   if (!loaded) showStep('<div class="sub" style="margin-bottom:6px">仙曆五百餘年，天霖國・首區</div>');
