@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#121315">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>天星界・御劍者 v0.19.6</title>
+<title>天星界・御劍者 v0.19.7</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -561,7 +561,7 @@ button:active:not(:disabled){transform:scale(.95)}
 
 /* ---------- 遊戲資料：名稱、數值都集中在這裡，改這裡就好 ---------- */
 const GAME = {
-  meta: { title: '天星界・御劍者', subtitle: '暫定名稱', version: '0.19.6', era: '仙曆五百餘年' },
+  meta: { title: '天星界・御劍者', subtitle: '暫定名稱', version: '0.19.7', era: '仙曆五百餘年' },
 
   // 八項資源系統（順序固定，星數陣列照這個順序）
   statNames: ['力量', '抵擋', '體力', '敏捷', '智慧', '守護', '靈力', '控制'],
@@ -614,8 +614,9 @@ const GAME = {
   // 四氏輪迴傷害倍率（基礎傷害的百分比範圍）
   multipliers: {
     neutral: [0.85, 1.05], neutralCrit: [1.35, 2.00],
-    counter: [1.65, 1.85], counterCrit: [2.15, 2.80],
-    countered: [0.45, 0.65], counteredCrit: [0.95, 1.60]
+    // v0.19.7 剋制減弱（原本 1.65～1.85／0.45～0.65）：一來一回從 3.2 倍降到 2.1 倍，第一章單一屬性的區域不會卡死某把兵器
+    counter: [1.35, 1.55], counterCrit: [1.90, 2.45],
+    countered: [0.60, 0.80], counteredCrit: [1.10, 1.75]
   },
 
   materials: {
@@ -1176,7 +1177,8 @@ GAME.codexText = {
    原本的三區保留（排在第一、中間、最後，主線、精英、首領的位置不變），新的插在中間；
    新區的魔物從這個地方原有的魔物組合；等級照順序重新分配 */
 GAME.layout = {
-  '天霖市': [['tl1'], ['tl4', '東郊菜圃'], ['tl2'], ['tl5', '北渠水門'], ['tl6', '廢磚窯'], ['tl3'], ['tl7', '城隍廟後巷'], ['tl8', '驛道盡頭']],
+  // 第三格可指定等級（v0.19.7 天霖市整體上調一級：8 區探索打完已到 Lv5～6，原本 1～4 的跨度太窄）
+  '天霖市': [['tl1', '', [1, 2]], ['tl4', '東郊菜圃', [2, 3]], ['tl2', '', [2, 3]], ['tl5', '北渠水門', [3, 4]], ['tl6', '廢磚窯', [3, 4]], ['tl3', '', [4, 5]], ['tl7', '城隍廟後巷', [4, 5]], ['tl8', '驛道盡頭', [4, 5]]],
   '五頓村': [['wd1'], ['wd4', '打穀場'], ['wd2'], ['wd5', '水車坊'], ['wd6', '村口老槐'], ['wd3']],
   '仙緣鎮': [['xy1'], ['xy4', '鎮口牌坊'], ['xy2'], ['xy5', '香客小徑'], ['xy6', '祠後竹林'], ['xy3']],
   '明臺': [['mt1'], ['mt4', '半山涼亭'], ['mt2'], ['mt5', '霧中石橋'], ['mt6', '崖邊古松'], ['mt3']],
@@ -1202,18 +1204,18 @@ GAME.layout = {
     const a = Math.min(...pl.zones.map(z => z.lv[0])), b = Math.max(...pl.zones.map(z => z.lv[1])), n = L.length;
     const baseGroup = pl.zones[pl.zones.length - 1].group || [1, 2];
     let j = 0;
-    pl.zones = L.map(([id, name], i) => {
-      const lo = a + Math.floor(i * (b - a) / n), lv = [lo, Math.min(b, lo + 1)];
-      if (old[id]) { old[id].lv = lv; return old[id]; }
+    pl.zones = L.map(([id, name, fix], i) => {
+      const lo = a + Math.floor(i * (b - a) / n), lv = fix ? fix.slice() : [lo, Math.min(b, lo + 1)];
+      if (old[id]) { old[id].lv = lv; if (fix) old[id].needLv = lo; return old[id]; }
       const [x, y] = PAIRS[j++ % PAIRS.length].map(v => pool[v % pool.length]);
-      return { id, name, lv, group: i === 1 && a === 1 ? [1, 1] : baseGroup.slice(), spawns: x === y ? [[x, 100]] : [[x, 55], [y, 45]] };
+      return { id, name, lv, needLv: fix ? lo : undefined, group: i === 1 && a === 1 ? [1, 1] : baseGroup.slice(), spawns: x === y ? [[x, 100]] : [[x, 55], [y, 45]] };
     });
   }
 })();
 
 // 把章節攤平成狩獵區清單；每一區要探索（擊倒一定數量的魔物）才會開放下一區
 GAME.explore = { need(z) {
-  const R = GAME.rules, L = z.lv[0];
+  const R = GAME.rules, L = z.needLv || z.lv[0]; // 指定等級的區域，探索量照原本的等級算（天霖市上調一級但不多打）
   if (L >= R.lateFrom) return Math.round(R.exploreLateBase + R.exploreLatePer * (L - R.lateFrom)); // 第三章起
   return Math.round((R.exploreBase + R.explorePer * L + R.exploreSq * L * L) / earlyMul(L));
 } };
@@ -5601,6 +5603,7 @@ function audPanel() {
    有新版本時標題旁會出現「新」，打開看過就消失（看過的版本記在 localStorage 'yujian-seen-ver'）。
    這個檔案由 build.py 塞進 template.html 的 CHANGELOG 標記處 */
 const CHANGELOG = [
+  { v: '0.19.7', d: '2026-11-21', items: ['四氏輪迴的剋制倍率減弱：剋制時約造成 145%（原本 175%），被剋時約造成 70%（原本 55%）', '天霖市各區的等級上調，跟實際打到的等級對得上（城郊田野維持 1～2）；每區要擊倒的數量不變'] },
   { v: '0.19.6', d: '2026-11-20', items: ['版本更新內容補上 v0.1 到 v0.18.1 的紀錄'] },
   { v: '0.19.5', d: '2026-11-20', items: ['點左上的標題可以看版本更新內容'] },
   { v: '0.19.4', d: '2026-11-19', items: ['弓的普攻改成箭破空的「咻」', '法球、法典、杖改成低沉的破空聲；玉珠改成「啾」接一聲木球落地的「咚」', '所有音效的音量重新對齊：普攻、被打一樣大，爆擊、招式明顯大聲，不會再忽然爆音'] },
@@ -5861,8 +5864,8 @@ function renderArena() {
       if (m) {
         const cur = m.attrs[m.stance], kind = matchup(st.weapon, cur);
         const chips = m.attrs.map((a, i) => { const k = matchup(st.weapon, a); return '<span class="chip solo' + (i === m.stance ? ' on' : '') + (k === 'counter' ? ' good' : k === 'countered' ? ' bad' : '') + '"><span class="seal sm">' + a + '</span></span>'; }).join('');
-        const mt = kind === 'counter' ? ['good', '目前架勢「' + cur + '」被你的「' + st.weapon + '」剋制：你造成約 175% 傷害，牠只造成約 55%'] :
-          kind === 'countered' ? ['bad', '目前架勢「' + cur + '」剋制你的「' + st.weapon + '」：你只造成約 55% 傷害，牠造成約 175%'] :
+        const mt = kind === 'counter' ? ['good', '目前架勢「' + cur + '」被你的「' + st.weapon + '」剋制：你造成約 145% 傷害，牠只造成約 70%'] :
+          kind === 'countered' ? ['bad', '目前架勢「' + cur + '」剋制你的「' + st.weapon + '」：你只造成約 70% 傷害，牠造成約 145%'] :
           ['', '目前架勢「' + cur + '」與你互不剋制'];
         const n = alive(rt).length;
         info.innerHTML = '<div class="mobhead"><b>' + m.label + '</b><span>' + (m.rank === 'boss' ? '<span class="tag boss">首領</span> ' : m.rank === 'elite' ? '<span class="tag elite">精英</span> ' : '') + '<span class="tag">Lv.' + m.lv + '</span></span></div>' +
