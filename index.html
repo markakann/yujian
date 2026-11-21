@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#121315">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>天星界・御劍者 v0.19.7</title>
+<title>天星界・御劍者 v0.19.8</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -561,7 +561,7 @@ button:active:not(:disabled){transform:scale(.95)}
 
 /* ---------- 遊戲資料：名稱、數值都集中在這裡，改這裡就好 ---------- */
 const GAME = {
-  meta: { title: '天星界・御劍者', subtitle: '暫定名稱', version: '0.19.7', era: '仙曆五百餘年' },
+  meta: { title: '天星界・御劍者', subtitle: '暫定名稱', version: '0.19.8', era: '仙曆五百餘年' },
 
   // 八項資源系統（順序固定，星數陣列照這個順序）
   statNames: ['力量', '抵擋', '體力', '敏捷', '智慧', '守護', '靈力', '控制'],
@@ -2201,7 +2201,7 @@ function newState() {
     stats: { kills: {}, deaths: 0, playSec: 0, offlineSec: 0, totalExp: 0, bossKills: 0, counterKills: 0, crafted: 0, salvaged: 0, zk: {}, towerFloors: 0, bounties: 0 },
     bounty: { list: [], streak: 0 }, codexClaimed: 0,
     equip: { weapons: {} }, gear: [], gearSeq: 0, gearGift: {}, gearSet: { salv: 1, other: false, autoEquip: true },
-    autoRevive: false, fx: { shake: true, buzz: false, scene: true },
+    autoRevive: false, fx: { shake: true, buzz: false, scene: true, light: true },
     learned: {}, books: {}, pages: 0, ultKnown: {}, ultCharge: 0, skillCfg: {}, skillOrder: {},
     towers: {}, lotus: 0, merit: 0, explore: {},
     lastSave: Date.now()
@@ -2239,6 +2239,7 @@ function migrate(st) {
   if (st.stats && st.stats.salvaged === undefined) st.stats.salvaged = 0;
   if (!st.fx) st.fx = { shake: true, buzz: false };
   if (st.fx.scene === undefined) st.fx.scene = true;
+  if (st.fx.light === undefined) st.fx.light = true;
   if (st.autoRevive === undefined) st.autoRevive = false;
   if ((st.v || 0) < 10 || !st.learned) {
     // v0.10 以前的存檔：照等級已經學會的招式全部保留（每把武器都是）
@@ -4194,7 +4195,8 @@ const SC = {
   on: false, cv: null, cx: null, lo: null, lx: null, W: 0, H: 0, lw: 0, lh: 0, PX: 2, dpr: 1,
   WW: 440, WH: 320, cam: { x: 0, y: 0 }, ground: null, props: [], water: [], key: '', B: null,
   pl: null, ents: new Map(), wand: [], fx: [], txt: [], amb: [], t: 0, last: 0, running: false,
-  mob: {}, pf: null, pw: '', flash: 0, flashC: '#ffffff', lastKill: null, font: 'sans-serif', ro: null, banner: null, fade: 0
+  mob: {}, pf: null, pw: '', flash: 0, flashC: '#ffffff', lastKill: null, font: 'sans-serif', ro: null, banner: null, fade: 0,
+  mood: null, lights: [], lc: null, lcx: null, vig: null, vigK: '', fog: null, fogK: '', title: null, titleZ: '', serif: 'serif'
 };
 const OL = '#1d1a17';
 
@@ -4672,8 +4674,9 @@ function sceneBuild(key) {
   SC.pl = { x: W / 2, y: H / 2 + 20, face: 1, st: 'idle', walkT: 0, atk: 0, hurt: 0, pt: null, pause: 1 };
   SC.cam.x = SC.pl.x - SC.lw / 2; SC.cam.y = SC.pl.y - SC.lh / 2; clampCam();
   initAmb();
+  SC.mood = moodOf(); SC.lights = [];
   if (rt.tower) { const T = towerById(rt.tower.id), F = rt.tower.floor; SC.fade = .5; SC.banner = { s: '第 ' + F + ' 層', sub: T.name + (F % GAME.towerRules.bossEvery === 0 ? '・守塔者在這一層' : ''), c: '#e8e4dc', t: 0, life: 1.7 }; }
-  else SC.banner = null;
+  else { SC.banner = null; zoneTitle(); }
 }
 function clampCam() { SC.cam.x = Math.max(0, Math.min(SC.WW - SC.lw, SC.cam.x)); SC.cam.y = Math.max(0, Math.min(SC.WH - SC.lh, SC.cam.y)); }
 
@@ -4808,6 +4811,9 @@ function sceneUpdate(dt) {
   SC.txt = SC.txt.filter(t => t.t < t.life);
   SC.flash = Math.max(0, SC.flash - dt); SC.fade = Math.max(0, SC.fade - dt);
   if (SC.banner && (SC.banner.t += dt) > SC.banner.life) SC.banner = null;
+  if (SC.title && (SC.title.t += dt) > SC.title.life) SC.title = null;
+  for (const l of SC.lights) l.t += dt;
+  SC.lights = SC.lights.filter(l => l.t < l.life);
 }
 
 /* ----- 畫 ----- */
@@ -4844,7 +4850,11 @@ function sceneDraw(dt) {
     else drawPlayer(x, o, cam, t);
   }
   drawFx(x, cam, t);
-  drawAmb(x, dt);
+  const lit = lightOn() && SC.mood, glowAmb = lit && GLOW_AMB.has(SC.B.amb);
+  if (lit) drawFog(x, cam, t);
+  if (!glowAmb) drawAmb(x, dt);
+  if (lit) drawLight(x, cam, t);
+  if (glowAmb) drawAmb(x, dt);
   if (SC.flash > 0) { x.globalAlpha = Math.min(.55, SC.flash * 1.4); R(x, 0, 0, W, H, SC.flashC); x.globalAlpha = 1; }
   const fo = rt.mode === 'clear' && rt.wait < .4 ? 1 - rt.wait / .4 : 0, fi = SC.fade > 0 ? SC.fade / .5 : 0, dk = Math.max(fo, fi);
   if (dk > 0) { x.globalAlpha = Math.min(1, dk); R(x, 0, 0, W, H, '#0c0b10'); x.globalAlpha = 1; }
@@ -4907,6 +4917,7 @@ function drawFx(x, cam, t) {
       const kk = f.boom ? (k < .5 ? k * 2 : (1 - k) * 2) : k; // 寶輪：飛出去再飛回來
       if (f.boom) { const P0 = ringPos(SC.pl, t); if (k >= .5) { f.x = P0[0]; f.y = P0[1]; } }
       const tx = f.to ? f.to.x : f.tx, ty = (f.to ? f.to.y - f.to.size * .45 : f.ty), px = f.x + (tx - f.x) * kk, py = f.y + (ty - f.y) * kk - Math.sin(k * Math.PI) * (f.arc || 0), X = Math.round(px - cam.x), Y = Math.round(py - cam.y), c = f.c;
+      f.lx = px; f.ly = py;
       x.globalAlpha = 1;
       if (f.s === 'arrow') { const ang = Math.atan2(ty - f.y, tx - f.x); for (let i = 0; i < 5; i++) R(x, Math.round(X - Math.cos(ang) * i), Math.round(Y - Math.sin(ang) * i), 1, 1, i === 0 ? '#e3e8ec' : '#8a6a42'); }
       else if (f.s === 'knife') { R(x, X - 1, Y, 3, 1, '#e3e8ec'); }
@@ -4920,6 +4931,172 @@ function drawFx(x, cam, t) {
     else if (f.k === 'beam') { x.globalAlpha = (1 - k) * .8; const X = Math.round(f.x - cam.x), Y = Math.round(f.y - cam.y); R(x, X - 1, Y - 34, 3, 34, f.c); R(x, X, Y - 40, 1, 40, '#ffffff'); }
     x.globalAlpha = 1;
   }
+}
+
+/* ----- 光影（v0.19.8）：依地點壓暗畫面，主角、燈籠、招式、會發光的魔物照亮周圍 -----
+   全部畫在低解析度畫布上再放大，光暈的邊緣會跟像素一樣一格一格的。設定頁可以關掉（st.fx.light） */
+// dark 壓暗程度、c 暗部的顏色、fog 霧的濃度與顏色
+const MOOD = {
+  day:     { dark: 0,   c: '#1c160c' },
+  autumn:  { dark: .08, c: '#3a1a08' },
+  mist:    { dark: .08, c: '#141c26', fog: [.16, '#dfe6ee'] },
+  dust:    { dark: .05, c: '#24180c', fog: [.10, '#e8d8b8'] },
+  snow:    { dark: 0,   c: '#141c2c', fog: [.10, '#ffffff'] },
+  dusk:    { dark: .30, c: '#08101c' },
+  lantern: { dark: .22, c: '#1a0c06' },
+  ember:   { dark: .28, c: '#1c0604' },
+  miasma:  { dark: .22, c: '#0e160a', fog: [.18, '#a8c890'] },
+  deep:    { dark: .45, c: '#060c06', fog: [.10, '#90a890'] },
+  night:   { dark: .55, c: '#0a0818' }
+};
+const MOOD_OF = {
+  autumn: '仙緣鎮 蓮凝楓臺 葉城 秋逢鎮', mist: '明臺 月靈峰 水清臺 履風譚 冷繁城 崙閭譚 汐萬臺',
+  dust: '梁山城 凝鋒頂城 古道 鷲鋒區 獨古城 風臺', snow: '冷遠道 寒霜村 寒迭村',
+  dusk: '夜蘭山城 華月村 神參道 蟬風御村 夢華江區', lantern: '鳳城 古丹城', ember: '烈血譚 殤陽區 燎原山',
+  miasma: '明羽村 姑息大地 初始大地', deep: '陰籐道', night: '冥月鎮 降靈臺 燮影鎮 影界臺 星夜大地 宿月區'
+};
+const MOOD_PLACE = {}; for (const [k, v] of Object.entries(MOOD_OF)) for (const p of v.split(' ')) MOOD_PLACE[p] = k;
+const MOOD_TOWER = { star: 'night', moon: 'dusk', shadow: 'night', origin: 'ember', sword: 'dust' };
+const GLOW_AMB = new Set(['fireflies', 'embers', 'sparks', 'wisps']);
+const GLOW_SHOT = new Set(['orb', 'bolt', 'bead', 'fire', 'rune', 'note', 'wind', 'ring']);
+function lightOn() { return !(st.fx && st.fx.light === false); }
+function moodOf() {
+  const k = rt.tower ? MOOD_TOWER[rt.tower.id] || 'night' : MOOD_PLACE[zoneById(st.zone).place] || 'day';
+  return Object.assign({ key: k }, MOOD[k]);
+}
+function lightAdd(x, y, r, c, life) { SC.lights.push({ x, y, r, c, life, t: 0 }); if (SC.lights.length > 24) SC.lights.shift(); }
+// 會發光的魔物：鬼火類用身上的亮色
+function mobGlow(key) {
+  const m = GAME.monsters[key]; if (m.art !== 'wisp') return null;
+  const p = (typeof PAL !== 'undefined' && PAL[m.pal]) || {};
+  return p.light || p.body || '#ffd08a';
+}
+function lightList(cam, t) {
+  const L = [], P = SC.pl, W = SC.lw, H = SC.lh;
+  // [畫面 x, y, 半徑, 亮度 0～1, 顏色, 顏色光暈強度]
+  const add = (x, y, r, a, c, g) => { const X = x - cam.x, Y = y - cam.y; if (X < -r || X > W + r || Y < -r || Y > H + r || a <= 0) return; L.push([X, Y, r, Math.min(1, a), c, g]); };
+  if (P) add(P.x, P.y - 12, 50 + Math.sin(t * 1.3) * 1.5, P.st === 'down' ? .45 : .95, '#fff0d0', .05);
+  for (const p of SC.props) if (p.glow) add(p.x, p.y - p.ay * .6, 26 + Math.sin(t * 3 + p.ph) * 2, .85, p.glow, .22);
+  for (const e of [...SC.ents.values(), ...SC.wand]) {
+    if (e.die && e.die > .5) continue;
+    const g = mobGlow(e.key), a = e.alpha * (e.die ? 1 - e.die * 2 : 1);
+    if (g) add(e.x, e.y - e.size * .45, 22 + Math.sin(t * 4 + e.ph) * 2, .8 * a, g, .3);
+    else if (e.rank && !e.die) add(e.x, e.y - e.size * .4, e.rank === 'boss' ? 34 : 28, .55 * a, e.rank === 'boss' ? '#f2d58a' : '#ff8a7a', .14);
+  }
+  for (const f of SC.fx) {
+    const k = f.t / f.life;
+    if (f.k === 'shot' && f.lx != null && GLOW_SHOT.has(f.s)) add(f.lx, f.ly, 16, .8, f.c || '#ffffff', .35);
+    else if (f.k === 'pillar') add(f.x, f.y - 24, 60, 1 - k, f.c, .3);
+    else if (f.k === 'beam') add(f.x, f.y - 16, 30, (1 - k) * .8, f.c, .3);
+    else if (f.k === 'ring' && f.r1 >= 40) add(f.x, f.y, f.r0 + (f.r1 - f.r0) * k + 10, (1 - k) * .7, f.c, .12);
+  }
+  for (const l of SC.lights) { const k = l.t / l.life; add(l.x, l.y, l.r * (.8 + .2 * Math.min(1, k * 4)), 1 - k, l.c, .3); }
+  return L;
+}
+// 暗部：先鋪一層顏色，再把光照到的地方挖掉；有顏色的光另外疊上去
+function drawLight(x, cam, t) {
+  const M = SC.mood, W = SC.lw, H = SC.lh;
+  if (!SC.lc || SC.lc.width !== W || SC.lc.height !== H) [SC.lc, SC.lcx] = mkCv(W, H);
+  const L = lightList(cam, t), lx = SC.lcx;
+  // 白天的地方不壓暗，只留有顏色的光和很淡的四周壓暗
+  if (M.dark > 0) {
+  lx.globalCompositeOperation = 'source-over'; lx.globalAlpha = 1; lx.clearRect(0, 0, W, H);
+  lx.globalAlpha = M.dark; lx.fillStyle = M.c; lx.fillRect(0, 0, W, H); lx.globalAlpha = 1;
+  lx.globalCompositeOperation = 'destination-out';
+  for (const [X, Y, r, a] of L) {
+    const g = lx.createRadialGradient(X, Y, 0, X, Y, r);
+    g.addColorStop(0, 'rgba(0,0,0,' + a + ')'); g.addColorStop(.3, 'rgba(0,0,0,' + (a * .9).toFixed(3) + ')'); g.addColorStop(.7, 'rgba(0,0,0,' + (a * .35).toFixed(3) + ')'); g.addColorStop(1, 'rgba(0,0,0,0)');
+    lx.fillStyle = g; lx.fillRect(X - r, Y - r, r * 2, r * 2);
+  }
+  lx.globalCompositeOperation = 'source-over';
+  x.drawImage(SC.lc, 0, 0);
+  }
+  x.globalCompositeOperation = 'lighter';
+  for (const [X, Y, r, a, c, gl] of L) {
+    if (!c || !gl) continue;
+    const rr = r * .6, [cr, cg, cb] = rgbOf(c), g = x.createRadialGradient(X, Y, 0, X, Y, rr);
+    g.addColorStop(0, 'rgba(' + cr + ',' + cg + ',' + cb + ',' + (gl * a).toFixed(3) + ')'); g.addColorStop(1, 'rgba(' + cr + ',' + cg + ',' + cb + ',0)');
+    x.fillStyle = g; x.fillRect(X - rr, Y - rr, rr * 2, rr * 2);
+  }
+  x.globalCompositeOperation = 'source-over';
+  x.drawImage(vignette(W, H, M), 0, 0);
+}
+// 四周壓暗：尺寸或地點變了才重畫
+function vignette(W, H, M) {
+  const k = W + 'x' + H + ':' + M.key;
+  if (SC.vigK !== k) {
+    const [c, x] = mkCv(W, H), [r, g, b] = rgbOf(M.c), g2 = x.createRadialGradient(W / 2, H * .55, Math.min(W, H) * .35, W / 2, H * .55, Math.hypot(W, H) * .62);
+    g2.addColorStop(0, 'rgba(' + r + ',' + g + ',' + b + ',0)'); g2.addColorStop(1, 'rgba(' + r + ',' + g + ',' + b + ',' + (.16 + M.dark * .6).toFixed(2) + ')');
+    x.fillStyle = g2; x.fillRect(0, 0, W, H); SC.vig = c; SC.vigK = k;
+  }
+  return SC.vig;
+}
+// 霧：一張比畫面寬的霧，慢慢往右飄，跟鏡頭有一點視差
+function drawFog(x, cam, t) {
+  const M = SC.mood; if (!M.fog) return;
+  const W = SC.lw, H = SC.lh, k = W + 'x' + H + ':' + M.key;
+  if (SC.fogK !== k) {
+    const FW = W * 2, [c, fx] = mkCv(FW, H), r = srand(strHash(k)), [cr, cg, cb] = rgbOf(M.fog[1]);
+    for (let i = 0; i < 26; i++) {
+      const px = r() * FW, py = r() * H, rx = 18 + r() * 34, a = .25 + r() * .45;
+      for (const dx of [0, -FW, FW]) { const g = fx.createRadialGradient(px + dx, py, 0, px + dx, py, rx); g.addColorStop(0, 'rgba(' + cr + ',' + cg + ',' + cb + ',' + a.toFixed(2) + ')'); g.addColorStop(1, 'rgba(' + cr + ',' + cg + ',' + cb + ',0)'); fx.fillStyle = g; fx.fillRect(px + dx - rx, py - rx * .5, rx * 2, rx); }
+    }
+    SC.fog = c; SC.fogK = k;
+  }
+  const FW = SC.fog.width, off = (((t * 4 - cam.x * .3) % FW) + FW) % FW;
+  x.globalAlpha = M.fog[0] * (.8 + .2 * Math.sin(t * .25));
+  x.drawImage(SC.fog, off - FW, -Math.round(cam.y * .15) % 4); x.drawImage(SC.fog, off, -Math.round(cam.y * .15) % 4);
+  x.globalAlpha = 1;
+}
+
+/* ----- 進區標題：換到新的狩獵區時，畫面中間浮出區名與等級 ----- */
+function zoneTitle() {
+  const z = zoneById(st.zone); if (!z || SC.titleZ === z.id) return;
+  const first = !SC.titleZ; SC.titleZ = z.id;
+  const ranks = z.spawns.map(([k]) => GAME.monsters[k].rank).filter(Boolean);
+  const tag = ranks.includes('boss') ? '首領棲地' : ranks.includes('elite') ? '精英出沒' : '';
+  SC.title = { s: z.name, sub: '［Lv.' + z.lv[0] + '～' + z.lv[1] + '］　' + z.place + (tag ? '・' + tag : ''), t: first ? -.6 : -.2, life: 3.6 };
+}
+function drawTitle(c) {
+  const T = SC.title; if (!T || T.t < 0) return;
+  const tt = T.t, out = T.life - tt < .8 ? Math.max(0, (T.life - tt) / .8) : 1;
+  const X = SC.W / 2, Y = SC.H * .24, size = Math.round(Math.min(34, SC.W * .085)), sp = size * .32;
+  const chars = [...T.s];
+  c.save();
+  // 襯底：一條淡淡的暗帶
+  const band = c.createLinearGradient(X - SC.W * .5, 0, X + SC.W * .5, 0);
+  band.addColorStop(0, 'rgba(10,8,14,0)'); band.addColorStop(.5, 'rgba(10,8,14,.42)'); band.addColorStop(1, 'rgba(10,8,14,0)');
+  c.globalAlpha = Math.min(1, tt / .4) * out; c.fillStyle = band; c.fillRect(0, Y - size * 1.25, SC.W, size * 2.4);
+  // 區名：一個字一個字浮出
+  c.font = '700 ' + size + 'px ' + SC.serif; c.textAlign = 'center'; c.textBaseline = 'alphabetic'; c.lineJoin = 'round';
+  const ws = chars.map(ch => c.measureText(ch).width), total = ws.reduce((a, b) => a + b, 0) + sp * (chars.length - 1);
+  let cx = X - total / 2;
+  chars.forEach((ch, i) => {
+    const a = Math.max(0, Math.min(1, (tt - i * .08) / .35)) * out, mid = cx + ws[i] / 2;
+    if (a > 0) {
+      c.globalAlpha = a; const dy = (1 - a) * 6;
+      c.shadowColor = 'rgba(242,213,138,.45)'; c.shadowBlur = 14;
+      c.lineWidth = Math.max(3, size / 7); c.strokeStyle = 'rgba(16,14,20,.9)'; c.strokeText(ch, mid, Y + dy);
+      c.shadowBlur = 0; c.fillStyle = '#efe4cc'; c.fillText(ch, mid, Y + dy);
+    }
+    cx += ws[i] + sp;
+  });
+  // 副標：等級、地點，兩側的細線從中間往外長
+  const sy = Y + size * .78, sa = Math.max(0, Math.min(1, (tt - .35) / .4)) * out, ss = Math.max(11, Math.round(size * .4));
+  if (sa > 0) {
+    c.globalAlpha = sa; c.font = '600 ' + ss + 'px ' + SC.serif;
+    const sw = c.measureText(T.sub).width, len = Math.min(SC.W * .16, 70) * Math.min(1, (tt - .35) / .6), gap = sw / 2 + 10;
+    c.lineWidth = 3; c.strokeStyle = 'rgba(16,14,20,.85)'; c.strokeText(T.sub, X, sy); c.fillStyle = '#d8c89a'; c.fillText(T.sub, X, sy);
+    const ly = sy - ss * .36;
+    c.fillStyle = 'rgba(216,200,154,.75)';
+    for (const d of [-1, 1]) {
+      if (len <= 0) continue;
+      const x0 = X + d * gap, x1 = X + d * (gap + len);
+      c.fillRect(Math.min(x0, x1), ly - .5, Math.abs(x1 - x0), 1);
+      c.save(); c.translate(x1, ly); c.rotate(Math.PI / 4); c.fillRect(-2.5, -2.5, 5, 5); c.restore();
+    }
+  }
+  c.restore();
 }
 
 /* ----- 字（用高解析度畫，才清楚） ----- */
@@ -4946,6 +5123,7 @@ function drawLabels(c, cam, PX, t) {
   }
   if (P.st !== 'down' && !(rt.mode === 'fight' && SC.ents.size)) plate(c, '御劍者', toX(P.x), toY(P.y) + 3, '#e6f3ee', st.weapon, '');
   drawBanner(c);
+  drawTitle(c);
   for (const s of SC.txt) {
     const k = s.t / s.life, X = toX(s.x) + (s.dx || 0), Y = toY(s.y) - (s.rise || 26) * Math.min(1, k * 1.6) - (s.dy || 0);
     c.globalAlpha = k > .7 ? (1 - k) / .3 : 1;
@@ -4986,6 +5164,7 @@ function sceneEvent(e) {
         ent.flash = .1;
         const col = e.crit ? '#ffcf4a' : e.kind === 'counter' ? '#7fe0b0' : e.kind === 'countered' ? '#a8a8b0' : e.skill ? '#fff0c8' : '#ffffff';
         say(ent.x, ent.y - ent.size, fmt(e.dmg) + (e.crit ? '!' : ''), col, e.crit ? 19 : e.skill ? 15 : 13, { pop: e.crit, life: e.crit ? 1.05 : .85 });
+        if (e.crit) lightAdd(ent.x, ent.y - ent.size * .45, 26, '#ffcf4a', .3);
       } else {
         if (ent) { ent.lunge = .22; ent.face = P.x > ent.x ? 1 : -1; }
         P.hurt = .16; burst(P.x, P.y - 12, '#ff6a5a', 5, 24, .3);
@@ -4996,7 +5175,7 @@ function sceneEvent(e) {
     case 'dodge': say(P.x, P.y - 24, '閃避', '#9fd8ff', 12); if (ent) ent.lunge = .22; break;
     case 'cast': {
       say(P.x, P.y - 30, e.name, '#f2d58a', 13, { life: 1.1, dx: 0, rise: 16, w: 700 });
-      P.atk = .25;
+      P.atk = .25; lightAdd(P.x, P.y - 12, e.aoe ? 62 : 40, acc, .45);
       if (e.aoe) { fxAdd({ k: 'ring', x: P.x, y: P.y - 4, r0: 4, r1: 48, c: acc, life: .45 }); fxAdd({ k: 'ring', x: P.x, y: P.y - 4, r0: 2, r1: 34, c: '#ffffff', life: .35 }); }
       for (const s of e.fx || []) { const m = /回復 (\d+)/.exec(s); if (m) { say(P.x, P.y - 32, '+' + fmt(+m[1]), '#8af0a8', 14, { dx: 0, life: 1 }); burst(P.x, P.y - 10, '#8af0a8', 8, 18, .7, 16); } else if (/護盾/.test(s)) fxAdd({ k: 'ring', x: P.x, y: P.y - 10, r0: 10, r1: 13, c: '#9fd8ff', life: .7 }); }
       break;
@@ -5005,13 +5184,13 @@ function sceneEvent(e) {
     case 'potion': say(P.x, P.y - 32, e.v ? '+' + fmt(e.v) : e.name, e.v ? '#8af0a8' : '#9fd8ff', 13, { dx: 0 }); burst(P.x, P.y - 10, e.v ? '#8af0a8' : '#9fd8ff', 8, 16, .7, 16); break;
     case 'kill': if (ent) { SC.lastKill = { x: ent.x, y: ent.y }; burst(ent.x, ent.y - ent.size * .4, '#d8d2c8', 10, 22, .6); if (e.got && Object.keys(e.got).length) { fxAdd({ k: 'beam', x: ent.x, y: ent.y, c: '#e6c77a', life: .6 }); } } break;
     case 'loot': { const L = SC.lastKill || P, Q = GAME.gear.quality[e.q]; if (e.q >= 2) fxAdd({ k: 'beam', x: L.x, y: L.y, c: Q.color, life: 1.4 }); say(L.x, L.y - 20, e.name, Q.color, e.q >= 3 ? 13 : 11, { dx: 0, life: 1.6, rise: 20 }); break; }
-    case 'levelup': fxAdd({ k: 'pillar', x: P.x, y: P.y, c: '#f2d58a', life: 1.3 }); burst(P.x, P.y - 10, '#f2d58a', 18, 30, 1.2, 24); say(P.x, P.y - 40, '升級！Lv.' + e.lv, '#ffe08a', 16, { dx: 0, life: 1.8, rise: 18, pop: true }); break;
+    case 'levelup': lightAdd(P.x, P.y - 20, 90, '#f2d58a', 1.3); fxAdd({ k: 'pillar', x: P.x, y: P.y, c: '#f2d58a', life: 1.3 }); burst(P.x, P.y - 10, '#f2d58a', 18, 30, 1.2, 24); say(P.x, P.y - 40, '升級！Lv.' + e.lv, '#ffe08a', 16, { dx: 0, life: 1.8, rise: 18, pop: true }); break;
     case 'explored': burst(P.x, P.y - 12, '#8fdcc0', 14, 26, 1, 20); say(P.x, P.y - 42, '探索完成', '#8fdcc0', 14, { dx: 0, life: 1.6, rise: 14 }); break;
     case 'placeDone': fxAdd({ k: 'pillar', x: P.x, y: P.y, c: '#8fdcc0', life: 1.4 }); break;
     case 'down': SC.flash = .4; SC.flashC = '#8a1a14'; break;
     case 'revive': case 'revivePaid': burst(P.x, P.y - 10, '#8af0a8', 14, 22, .9, 18); break;
-    case 'mobUlt': if (ent) { fxAdd({ k: 'ring', x: ent.x, y: ent.y, r0: 6, r1: 60, c: '#ff5a4a', life: .6 }); say(ent.x, ent.y - ent.size - 6, e.ult, '#ff8a7a', 14, { dx: 0, life: 1.4 }); } SC.flash = .25; SC.flashC = '#c8302a'; break;
-    case 'ult': SC.flash = .5; SC.flashC = '#fff2c0'; fxAdd({ k: 'ring', x: P.x, y: P.y, r0: 4, r1: 90, c: '#f2d58a', life: .8 }); fxAdd({ k: 'ring', x: P.x, y: P.y, r0: 2, r1: 60, c: '#ffffff', life: .6 }); for (const o of SC.ents.values()) burst(o.x, o.y - o.size * .4, '#f2d58a', 14, 40, .8); break;
+    case 'mobUlt': if (ent) { lightAdd(ent.x, ent.y - 8, 64, '#ff5a4a', .6); fxAdd({ k: 'ring', x: ent.x, y: ent.y, r0: 6, r1: 60, c: '#ff5a4a', life: .6 }); say(ent.x, ent.y - ent.size - 6, e.ult, '#ff8a7a', 14, { dx: 0, life: 1.4 }); } SC.flash = .25; SC.flashC = '#c8302a'; break;
+    case 'ult': SC.flash = .5; SC.flashC = '#fff2c0'; lightAdd(P.x, P.y - 12, 130, '#fff2c0', 1); fxAdd({ k: 'ring', x: P.x, y: P.y, r0: 4, r1: 90, c: '#f2d58a', life: .8 }); fxAdd({ k: 'ring', x: P.x, y: P.y, r0: 2, r1: 60, c: '#ffffff', life: .6 }); for (const o of SC.ents.values()) burst(o.x, o.y - o.size * .4, '#f2d58a', 14, 40, .8); break;
     case 'towerFloor': {
       P.win = 1.8; P.atk = 0;
       SC.flash = .3; SC.flashC = '#fff2c0';
@@ -5041,7 +5220,7 @@ function sceneSize() {
 }
 function sceneInit() {
   SC.cv = $('#scv'); if (!SC.cv) return;
-  try { SC.font = getComputedStyle(document.body).fontFamily || 'sans-serif'; } catch (e) {}
+  try { SC.font = getComputedStyle(document.body).fontFamily || 'sans-serif'; SC.serif = getComputedStyle(document.documentElement).getPropertyValue('--serif').trim() || 'serif'; } catch (e) {}
   sceneSize();
   try { SC.ro = new ResizeObserver(() => { sceneSize(); }); SC.ro.observe($('#scene')); } catch (e) { window.addEventListener('resize', sceneSize); }
 }
@@ -5603,6 +5782,7 @@ function audPanel() {
    有新版本時標題旁會出現「新」，打開看過就消失（看過的版本記在 localStorage 'yujian-seen-ver'）。
    這個檔案由 build.py 塞進 template.html 的 CHANGELOG 標記處 */
 const CHANGELOG = [
+  { v: '0.19.8', d: '2026-11-21', items: ['地圖加上光影：白天的地方維持明亮，只有墓地、夜晚的山城、陰暗的林道這類地方會暗下來，主角身邊亮一圈；有些地方帶霧氣', '燈籠、鬼火、招式、爆擊、升級會照亮周圍；精英和首領身上帶著微光', '進入新的狩獵區時，畫面中間浮出區名、等級和所在地點', '設定頁新增「地圖光影」開關，舊手機覺得卡可以關掉'] },
   { v: '0.19.7', d: '2026-11-21', items: ['四氏輪迴的剋制倍率減弱：剋制時約造成 145%（原本 175%），被剋時約造成 70%（原本 55%）', '天霖市各區的等級上調，跟實際打到的等級對得上（城郊田野維持 1～2）；每區要擊倒的數量不變'] },
   { v: '0.19.6', d: '2026-11-20', items: ['版本更新內容補上 v0.1 到 v0.18.1 的紀錄'] },
   { v: '0.19.5', d: '2026-11-20', items: ['點左上的標題可以看版本更新內容'] },
@@ -6145,6 +6325,7 @@ function renderPanel() {
       '<span>主線</span><span>' + (st.main.done ? mainCh(st).chapter + ' 完成' : mainCh(st).chapter.split('　')[0] + stepNo(st.main.step) + '／共 ' + mainCh(st).steps.length + ' 步') + '</span><span>總擊倒</span><span>' + fmt(total) + '</span><span>擊倒首領</span><span>' + fmt(s.bossKills || 0) + '</span>' + rows + '<span>完成懸賞</span><span>' + fmt(s.bounties || 0) + ' 張</span><span>圖鑑</span><span>' + codexStars(st) + ' 顆星</span><span>位階</span><span>' + rankName(rankOf(st)) + '（功績 ' + fmt(st.merit || 0) + '）</span><span>天陰五大塔</span><span>' + GAME.towers.map(T => T.name.slice(0, 2) + ' ' + towerBest(st, T.id)).join('・') + '</span><span>蓮子</span><span>' + (st.lotus || 0) + ' 顆</span><span>施放天御</span><span>' + fmt(s.ults || 0) + ' 次</span><span>天御殘頁</span><span>' + (st.pages || 0) + ' 張</span><span>分解裝備</span><span>' + fmt(s.salvaged || 0) + ' 件</span><span>重傷次數</span><span>' + fmt(s.deaths) + '</span></div></div>' +
       '<div class="sec"><h3>設定</h3>' +
       '<label class="toggle"><span>像素地圖畫面<br><span class="note">關掉會換回簡單的戰鬥畫面，比較省電</span></span><input type="checkbox" id="fxScene"' + (st.fx.scene ? ' checked' : '') + '></label>' +
+      '<label class="toggle"><span>地圖光影<br><span class="note">依地點調整明暗與霧氣，主角、燈籠、招式和鬼火會照亮周圍；舊手機覺得卡可以關掉</span></span><input type="checkbox" id="fxLight"' + (st.fx.light !== false ? ' checked' : '') + '></label>' +
       '<label class="toggle"><span>爆擊時畫面震動<br><span class="note">造成爆擊輕震、被爆擊重震；戰鬥畫面不在螢幕上時不會震</span></span><input type="checkbox" id="fxShake"' + (st.fx.shake ? ' checked' : '') + '></label>' +
       '<label class="toggle"><span>被爆擊時手機跟著震動</span><input type="checkbox" id="fxBuzz"' + (st.fx.buzz ? ' checked' : '') + '></label>' +
       '<label class="toggle"><span>重傷時自動花銀兩恢復<br><span class="note">只在線上有效；銀兩不夠時就照常休養</span></span><input type="checkbox" id="autoRevive"' + (st.autoRevive ? ' checked' : '') + '></label></div>' +
@@ -6613,6 +6794,7 @@ document.addEventListener('change', ev => {
   if (ev.target.dataset.scond !== undefined) { setSkillCfg(st, st.weapon, +ev.target.dataset.scond, { cond: ev.target.value }); save(); toast('施放條件：' + GAME.conds.find(c => c[0] === ev.target.value)[1]); return; }
   if (ev.target.id === 'bookW') { bookW = ev.target.value; renderPanel(); return; }
   if (ev.target.id === 'fxScene') { st.fx.scene = ev.target.checked; save(); sceneApply(); renderAll(); return; }
+  if (ev.target.id === 'fxLight') { st.fx.light = ev.target.checked; save(); return; } // v0.19.8 光影
   if (ev.target.id === 'fxShake') { st.fx.shake = ev.target.checked; save(); if (st.fx.shake) { const was = arenaSeen; arenaSeen = true; shakeScreen(false); arenaSeen = was; } }
   if (ev.target.id === 'fxBuzz') { st.fx.buzz = ev.target.checked; save(); if (st.fx.buzz && navigator.vibrate) try { navigator.vibrate(45); } catch (e) {} }
   if (ev.target.id === 'autoRevive') { st.autoRevive = ev.target.checked; save(); toast(st.autoRevive ? '重傷時會自動花銀兩恢復' : '重傷時照常休養'); shownMob = null; panelDirty = true; }
