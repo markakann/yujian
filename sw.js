@@ -1,5 +1,5 @@
 /* 天星界・御劍者：離線快取。每次發新版本，把 CACHE 的版本號改掉即可 */
-const CACHE = 'yujian-v0.19.9';
+const CACHE = 'yujian-v0.20';
 const FILES = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {
