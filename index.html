@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#121315">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>天星界・御劍者 v0.19.8</title>
+<title>天星界・御劍者 v0.19.9</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -561,7 +561,7 @@ button:active:not(:disabled){transform:scale(.95)}
 
 /* ---------- 遊戲資料：名稱、數值都集中在這裡，改這裡就好 ---------- */
 const GAME = {
-  meta: { title: '天星界・御劍者', subtitle: '暫定名稱', version: '0.19.8', era: '仙曆五百餘年' },
+  meta: { title: '天星界・御劍者', subtitle: '暫定名稱', version: '0.19.9', era: '仙曆五百餘年' },
 
   // 八項資源系統（順序固定，星數陣列照這個順序）
   statNames: ['力量', '抵擋', '體力', '敏捷', '智慧', '守護', '靈力', '控制'],
@@ -963,12 +963,12 @@ const GAME = {
       text: '尋命者能重組一個人的星盤、調整命格，但改動不會立即見效。（之後的版本開放）' }
   },
 
-  // 加點：每級拿到點數，每把武器各自一套；每點效果照該項星數加權
+  // 加點：每級拿到點數，每把武器各自一套
+  // v0.19.9 改成天堂M的做法：每點固定 +1，星數只決定升級時自動長多少；畫面上的屬性一律是整數
   points: {
-    perLevel: 3,
-    baseK: 0.5,   // v0.19：升級自動長的屬性＝星數 ×（等級＋4）× 0.5；另一半的份量交給加點，不加點會明顯打不動
-    exact(stars) { return (stars + 1) / 3; },  // 計算用：1★ 2/3、2★ 1、3★ 4/3、4★ 5/3、5★ 2
-    value(stars) { return Math.round((stars + 1) / 3 * 1000) / 1000; }, // 顯示用，小數三位
+    perLevel: 5,  // 原本 3 點 × 星數加權（4★ 每點 5/3），改成 5 點 × 1，4★ 的主屬性長得跟原本一樣快
+    baseK: 0.5,   // 升級自動長的屬性＝星數 ×（等級＋4）÷ 2，四捨五入；另一半的份量交給加點，不加點會明顯打不動
+    base(stars, lv) { return Math.round(stars * (lv + 4) * this.baseK); },
     resetCost(lv) { return 20 * lv * lv; } // 每把武器第一次重置免費
   },
 
@@ -1366,18 +1366,48 @@ GAME.formula = {
   rate(k, S, lv) { const [c, h] = this.R[k], e = this.eff(S, lv); return c * e / (e + h); },
   critCap: 0.5, critCapBuff: 0.55
 };
-/* ---------- 加點細項：f 是直線（攻擊、血量、防禦），r 是評等（百分比類），v 是每點固定值 ---------- */
+/* ---------- v0.19.9 每把武器寫明攻擊吃哪一項、物理或魔法 ----------
+   原本是「智慧比力量高就算魔法」，現在直接寫在表上（結果跟原本一樣：物理武器吃力量、魔法武器吃智慧）。
+   普攻、爆擊率、爆擊傷害吃這一項；物理或魔法決定打的是魔物的物理防禦還是魔法防禦、吃哪一邊的門檻獎勵、續航吃體力還是靈力。
+   閃（毒蠱）力量、智慧同為 4★，定為混合型：普攻物理吃力量、招式魔法吃智慧，兩個 4★ 都用得到。
+   招式各自吃自己那一項（stat）：吃智慧的是魔法傷害、吃力量的是物理傷害，其他的跟著武器。 */
+GAME.weaponAtk = {
+  '萬': ['力量', '物'], '天': ['智慧', '魔'], '皇': ['力量', '物'], '必': ['力量', '物'], '暗': ['智慧', '魔'],
+  '武': ['力量', '物'], '術': ['智慧', '魔'], '神': ['力量', '物'], '聖': ['力量', '物'], '霸': ['力量', '物'],
+  '銀': ['力量', '物'], '弓': ['力量', '物'], '玉': ['智慧', '魔'], '慧': ['智慧', '魔'], '降': ['力量', '物'],
+  '閃': ['力量', '物'], '星': ['力量', '物'], '誅': ['力量', '物'], '闇': ['智慧', '魔'], '仙': ['智慧', '魔']
+};
+for (const w in GAME.weaponAtk) { GAME.weapons[w].atkStat = GAME.weaponAtk[w][0]; GAME.weapons[w].magic = GAME.weaponAtk[w][1] === '魔'; }
+GAME.weapons['閃'].mix = '普攻物理（吃力量）・招式魔法（吃智慧）';
+// 招式用這一項屬性做什麼（屬性頁顯示用）
+function skillUse(w, s) {
+  const out = [], W = GAME.weapons[w];
+  if (['dmg', 'strike', 'counter', 'dot', 'carryPoison', 'coef'].some(k => s[k])) out.push((s.stat === '智慧' ? true : s.stat === '力量' ? false : W.magic) ? '魔法傷害' : '物理傷害');
+  if (s.heal) out.push('回復量（看治療提升）');
+  // 一般招式的非傷害效果、觸發機率會隨這項屬性變強（resolveSkill 的 sf）；天御（沒有 type）的效果是固定的
+  if (s.type && SCALE_KEYS.some(k => s[k])) out.push('效果強度');
+  if (s.type && s.chance) out.push('觸發機率');
+  return out.join('、') || '效果強度';
+}
+// 攻擊那一項多出來的細項（放在武器的攻擊屬性最前面）
+function atkSub(w) {
+  const W = GAME.weapons[w], K = GAME.formula.atkK, t = W.magic ? '魔法' : '物理';
+  return [{ k: 'atk', name: t + '攻擊', f: S => Math.round(Math.max(0, S) * K), formula: W.atkStat + ' × ' + K },
+    { k: 'crit', name: t + '爆擊率', r: 'crit', pct: 1, note: '基礎 5%，最高 50%' }, { k: 'cd', name: t + '爆擊傷害', r: 'cd', pct: 1 }];
+}
+/* ---------- 加點細項：f 是直線（攻擊、血量、防禦），r 是評等（百分比類），v 是每點固定值 ----------
+   攻擊、爆擊率、爆擊傷害不在這裡，看武器的攻擊屬性（atkSub） */
 GAME.sub = {
-  '力量': [{ k: 'patk', name: '物理攻擊', f: S => GAME.formula.atk(S) - GAME.formula.atkBase, formula: '力量 × 2.2' }, { k: 'pcrit', name: '物理爆擊率', r: 'crit', pct: 1 }, { k: 'pcd', name: '物理爆擊傷害', r: 'cd', pct: 1 }],
+  '力量': [],
   '抵擋': [{ k: 'pdef', name: '物理防禦', f: S => GAME.formula.def(S), formula: '抵擋 × 4.5' }, { k: 'ptough', name: '物理韌性', r: 'tough', pct: 1, note: '被物理爆擊的機率降低' }, { k: 'block', name: '格擋率', r: 'block', pct: 1, note: '物理攻擊只受一半傷害' }],
   '體力': [{ k: 'hp', name: '血量', f: S => GAME.formula.hpStat(S), formula: '體力 × 6', note: '另有基礎血量 100＋等級×12' }, { k: 'pen', name: '氣力', r: 'en', note: '物理武器，另有基礎 20' }, { k: 'regen', name: '戰鬥中每秒回血', v: 0.05 }],
   '敏捷': [{ k: 'hit', name: '命中', r: 'hit', pct: 1, note: '基礎 90%' }, { k: 'cdr', name: '技能冷卻縮減', r: 'cdr', pct: 1 }, { k: 'aspd', name: '攻擊速度', r: 'aspd', pct: 1, note: '吟唱速度' }, { k: 'dodge', name: '閃避', r: 'dodge', pct: 1 }],
-  '智慧': [{ k: 'matk', name: '魔法攻擊', f: S => GAME.formula.atk(S) - GAME.formula.atkBase, formula: '智慧 × 2.2' }, { k: 'mcrit', name: '魔法爆擊率', r: 'crit', pct: 1 }, { k: 'mcd', name: '魔法爆擊傷害', r: 'cd', pct: 1 }],
+  '智慧': [],
   '守護': [{ k: 'mdef', name: '魔法防禦', f: S => GAME.formula.def(S), formula: '守護 × 4.5' }, { k: 'mtough', name: '魔法韌性', r: 'tough', pct: 1, note: '被魔法爆擊的機率降低' }, { k: 'shieldUp', name: '護盾強度', r: 'shield', pct: 1 }],
   '靈力': [{ k: 'men', name: '靈氣', r: 'en', note: '魔法武器，另有基礎 20' }, { k: 'heal', name: '治療提升', r: 'heal', pct: 1 }, { k: 'potion', name: '藥效', r: 'potion', pct: 1 }],
   '控制': [{ k: 'stun', name: '控場機率', r: 'stun', pct: 1 }, { k: 'resist', name: '閃避控制', r: 'resist', pct: 1, note: '躲開暈眩、定身' }, { k: 'stunDur', name: '控場時間', r: 'stunDur', pct: 1 }]
 };
-// 門檻獎勵：看「加點換算後的數值」，到了就解鎖（高星的屬性比較快到）
+// 門檻獎勵：看這一項加了幾點，到了就解鎖（v0.19.9 起每項一樣快；原本看星數加權後的數值）
 GAME.tiers = {
   at: [10, 25, 45, 70, 100, 135],
   fx: {
@@ -2121,14 +2151,14 @@ function derive(st) {
   const w = GAME.weapons[st.weapon];
   const al = allocOf(st, st.weapon);
   const g = gearTotals(st);
-  const base = w.stars.map(x => round3(x * (st.lv + 4) * GAME.points.baseK));
-  const bonus = w.stars.map((x, i) => round3(al[i] * GAME.points.exact(x))); // 先用精確值相乘，結果再取小數三位
-  const s = base.map((b, i) => round3(b + bonus[i] + g.stats[i]));
+  const base = w.stars.map(x => GAME.points.base(x, st.lv));
+  const bonus = al.slice(); // v0.19.9：每點 +1
+  const s = base.map((b, i) => b + bonus[i] + g.stats[i]);
   const [STR, BLK, VIT, AGI, INT, GRD, SPI, CTL] = s, F = GAME.formula;
   const tf = tierFx(bonus), T = tf.fx, t = k => T[k] || 0;
   const sw = st.swordLv[st.weapon] || 0, L = st.lv, R = (k, S) => F.rate(k, S, L);
-  const magic = INT > STR; // 同分算物理
-  const main = magic ? INT : STR;
+  const magic = !!w.magic; // v0.19.9：每把武器寫明物理或魔法，不再比力量、智慧大小
+  const main = s[statIdx(w.atkStat)];
   const B = st.buffs || {}, bv = k => (B[k] ? GAME.items[B[k].item].v : 0);
   // 加成池：裝備、突破、位階、圖鑑、增益藥的百分比都「加在一起」再乘一次，不再互相乘
   const swb = swordBonus(sw), rk = rankOf(st), cx = codexLevel(st);
@@ -2141,6 +2171,8 @@ function derive(st) {
     crit: Math.min(F.critCap, 0.05 + R('crit', main) + (magic ? t('mcrit') : t('pcrit')) + g.crit),
     critDmg: R('cd', main) + (magic ? t('mcd') : t('pcd')),
     critIgnore: magic ? t('mIgnore') : t('pIgnore'),
+    // 另一種傷害的爆擊（混合型的閃：招式是魔法，爆擊吃智慧和魔法的門檻）
+    critAlt: { crit: Math.min(F.critCap, 0.05 + R('crit', magic ? STR : INT) + (magic ? t('pcrit') : t('mcrit')) + g.crit), critDmg: R('cd', magic ? STR : INT) + (magic ? t('pcd') : t('mcd')), critIgnore: magic ? t('pIgnore') : t('mIgnore') },
     pdef: Math.round((F.def(BLK) + g.pdef) * (1 + t('pdefPct') + GAME.ranks.bonus * rk)), mdef: Math.round((F.def(GRD) + g.mdef) * (1 + t('mdefPct') + GAME.ranks.bonus * rk)),
     ptough: Math.min(0.3, R('tough', BLK)), mtough: Math.min(0.3, R('tough', GRD)),
     block: Math.min(0.3, R('block', BLK) + t('block')),
@@ -2160,7 +2192,7 @@ function derive(st) {
     resist: Math.min(0.8, R('resist', CTL) + t('resist')),
     stunDur: R('stunDur', CTL) + t('stunDur'),
     downCut: Math.min(0.5, t('downCut')),
-    range: GAME.ranges[w.range || '近'],
+    range: GAME.ranges[w.range || '近'], w: st.weapon,
     skillName: st.weapon + '・初式'
   };
   const nPl = placesDone(st), ex = nPl * GAME.rules.placeBonus;
@@ -2169,7 +2201,7 @@ function derive(st) {
   applySkills(st, d, sw);
   d.stunnedBonus += t('stunnedDmg');
   d.crit = Math.min(GAME.formula.critCap, d.crit);
-  if (bv('crit')) d.crit = Math.min(GAME.formula.critCapBuff, d.crit + bv('crit'));
+  if (bv('crit')) { d.crit = Math.min(GAME.formula.critCapBuff, d.crit + bv('crit')); d.critAlt.crit = Math.min(GAME.formula.critCapBuff, d.critAlt.crit + bv('crit')); }
   if (bv('dr')) d.drs.push({ v: bv('dr'), when: 'always' });
   if (g.dr) d.drs.push({ v: g.dr, when: 'always', gear: true });
   if (t('drPhys')) d.drs.push({ v: t('drPhys'), when: 'phys' });
@@ -2193,7 +2225,7 @@ function powerOf(d, lv) {
 
 function newState() {
   return {
-    v: 16, lv: 1, exp: 0, weapon: '銀', swordLv: {}, alloc: {}, resetUsed: {}, mastery: {},
+    v: 17, lv: 1, exp: 0, weapon: '銀', swordLv: {}, alloc: {}, resetUsed: {}, mastery: {},
     main: { step: 0, base: 0, surv: 0, gated: true, done: false },
     items: { '小還丹': 10, '止血草': 15 }, herbGiven: true, potion: { auto: { '止血草': true, '小還丹': true, '中還丹': true, '大還丹': true, '凝神丹': false }, thr: 0.4 }, buffs: {}, buffAuto: {}, board: [], boardDone: 0, silver: 0, mats: {}, zone: GAME.zones[0].id, auto: true,
     hp: null, en: null,
@@ -2269,7 +2301,13 @@ function migrate(st) {
   if (!st.herbGiven) { st.herbGiven = true; if (st.lv <= 5) st.items['止血草'] = (st.items['止血草'] || 0) + 15; }
   if (st.potion && st.potion.auto['止血草'] === undefined) st.potion.auto['止血草'] = true;
   ensureWeaponGear(st, st.weapon);
-  st.v = 16;
+  if ((st.v || 0) < 17) { // v0.19.9 加點改成每點 +1：加過點的武器先照星數比例重新分配（離線結算才不會變弱），每把武器重新分配一次免費
+    const had = Object.keys(st.alloc || {}).filter(w => GAME.weapons[w] && st.alloc[w].some(x => x > 0));
+    st.alloc = {}; st.resetUsed = {};
+    for (const w of had) autoPoints(st, w);
+    if (had.length) st.ptsReset = true;
+  }
+  st.v = 17;
   return st;
 }
 
@@ -2438,13 +2476,14 @@ function hitMob(st, rt, atk, magic, coef, o, target) {
   if (!m) return 0;
   if (!o.sure && rng() > d.hit) { emit(rt, { t: 'miss', who: 'p', skill: o.skill || '', name: m.label, uid: m.uid, quiet: o.quiet }); return 0; }
   const kind = matchup(st.weapon, m.attrs[m.stance]);
-  const crit = !!(o.forceCrit || (o.critIfCounter && kind === 'counter') || (o.critBelow && m.hp < m.maxHp * o.critBelow) || rng() < d.crit + (o.critBonus || 0));
+  const C = !!magic !== !!d.magic && d.critAlt ? d.critAlt : d; // 跟武器不同類的傷害（閃的魔法招式），爆擊照那一類算
+  const crit = !!(o.forceCrit || (o.critIfCounter && kind === 'counter') || (o.critBelow && m.hp < m.maxHp * o.critBelow) || rng() < C.crit + (o.critBonus || 0));
   let def = magic ? m.mdef : m.pdef;
   if (!magic && m.defDown && m.defDown.t > 0) def *= 1 - m.defDown.v;
   if (o.ignoreDef) def *= 1 - o.ignoreDef;
-  if (crit && d.critIgnore) def *= 1 - d.critIgnore;
+  if (crit && C.critIgnore) def *= 1 - C.critIgnore;
   let mult = rollMult(kind, crit) * coef;
-  if (crit && d.critDmg) mult *= 1 + d.critDmg;
+  if (crit && C.critDmg) mult *= 1 + C.critDmg;
   if (m.vuln && m.vuln.t > 0) mult *= 1 + m.vuln.v;
   if (rt.nextBonus && !o.keepBonus) { mult *= 1 + rt.nextBonus; rt.nextBonus = 0; }
   if (d.stunnedBonus && m.stunned > 0) mult *= 1 + d.stunnedBonus;
@@ -3756,7 +3795,7 @@ if (typeof module !== 'undefined') module.exports = {
   spawn, newRuntime, step, simulate, swordCost, canAfford, upgradeSword,
   codexStar, codexStars, codexLevel, codexNeed, codexClaim, codexWhere, fillBounties, bountyStale,
   itemPrice, skillUpCost, upgradeSkill, namedTier, shopInit, buyShop, buyDye, setDye, postBounty, refineCost, refineNamed, genBounty, bountyProgress, claimBounty, rerollBounty, bountyText, bountyReady,
-  allocOf, pointsTotal, pointsFree, addPoints, autoPoints, resetCostFor, resetPoints, round3, resolveSkill, masteryOf, statIdx,
+  allocOf, pointsTotal, pointsFree, addPoints, autoPoints, resetCostFor, resetPoints, round3, resolveSkill, masteryOf, statIdx, skillUse, atkSub,
   useBuff, buyItem, canCraft, craftItem, genRequest, fillBoard, turnIn, rerollRequest, MAT_LV,
   mainStep, mainProgress, mainClaim, mainCanSkip, featureOpen, mainBegin,
   freshState, genGear, gearName, gearBase, affixVal, affixText, gearTotals, equippedList, powerWith, powerNow, gearDelta, equipGear, salvageGear,
@@ -5782,6 +5821,7 @@ function audPanel() {
    有新版本時標題旁會出現「新」，打開看過就消失（看過的版本記在 localStorage 'yujian-seen-ver'）。
    這個檔案由 build.py 塞進 template.html 的 CHANGELOG 標記處 */
 const CHANGELOG = [
+  { v: '0.19.9', d: '2026-11-23', items: ['屬性加點改成每點 +1：每升一級拿 5 點，畫面上的屬性都是整數；星數決定升級時自動長多少', '加點門檻改看這一項加了幾點，每一項解鎖得一樣快', '原本加過點的武器，已照星數比例重新分配好；每把武器都可以免費重新分配一次', '屬性頁的每一項會列出它影響哪些數值、哪些招式；普攻和招式吃的屬性用金色標出來', '戰鬥數值分開列出普攻和招式的攻擊（例如萬的招式吃抵擋）', '閃（毒蠱）定為混合型：普攻是物理、吃力量，招式是魔法、吃智慧；招式的爆擊改看智慧和魔法的加點門檻'] },
   { v: '0.19.8', d: '2026-11-21', items: ['地圖加上光影：白天的地方維持明亮，只有墓地、夜晚的山城、陰暗的林道這類地方會暗下來，主角身邊亮一圈；有些地方帶霧氣', '燈籠、鬼火、招式、爆擊、升級會照亮周圍；精英和首領身上帶著微光', '進入新的狩獵區時，畫面中間浮出區名、等級和所在地點', '設定頁新增「地圖光影」開關，舊手機覺得卡可以關掉'] },
   { v: '0.19.7', d: '2026-11-21', items: ['四氏輪迴的剋制倍率減弱：剋制時約造成 145%（原本 175%），被剋時約造成 70%（原本 55%）', '天霖市各區的等級上調，跟實際打到的等級對得上（城郊田野維持 1～2）；每區要擊倒的數量不變'] },
   { v: '0.19.6', d: '2026-11-20', items: ['版本更新內容補上 v0.1 到 v0.18.1 的紀錄'] },
@@ -6519,11 +6559,15 @@ let openStat = -1;
 const fsub = (v, pct) => pct ? f3(v * 100) + '%' : f3(v);
 function roleHtml(w) { return '<span class="pill ' + (w.role === '防' ? 'def' : 'out') + '">' + (w.role === '防' ? '防禦' : '輸出') + '</span>' + (w.heal ? '<span class="pill heal">治療</span>' : ''); }
 function statDetail(pv, i, w) {
-  const n = GAME.statNames[i], star = w.stars[i], per = GAME.points.exact(star), lvf = st.lv + 4;
-  let h = '<div class="sdet"><div class="sdl">' + n + ' ' + f3(pv.stats[i]) + '＝基礎 ' + f3(pv.base[i]) + '（' + star + '★ × ' + lvf + ' × ' + GAME.points.baseK + '）' +
-    (pv.bonus[i] ? '＋加點 ' + f3(pv.bonus[i]) : '') + (pv.gearStats[i] ? '＋裝備 ' + pv.gearStats[i] : '') + '<br>每加一點：' + n + ' +' + f3(round3(per)) + '</div>';
+  const n = GAME.statNames[i], star = w.stars[i], per = 1;
+  let h = '<div class="sdet"><div class="sdl">' + n + ' ' + pv.stats[i] + '＝升級自動長的 ' + pv.base[i] + '（' + star + '★ ×（等級＋4）÷ 2）' +
+    (pv.bonus[i] ? '＋加點 ' + pv.bonus[i] : '') + (pv.gearStats[i] ? '＋裝備 ' + pv.gearStats[i] : '') + '</div>';
   h += '<h4>細項</h4><div class="sub">';
-  for (const x of GAME.sub[n]) {
+  const subs = (w.atkStat === n ? atkSub(st.weapon) : []).concat(GAME.sub[n]);
+  const usedBySkill = (GAME.skills[st.weapon] || []).some(s => s.stat === n) || (GAME.ults[st.weapon] && GAME.ults[st.weapon].stat === n);
+  if (!subs.length) h += usedBySkill ? '<span>普攻用不到' + n + '</span><span><small>只影響下面的招式</small></span>'
+    : '<span style="color:var(--faint)">這把武器用不到' + n + '</span><span style="color:var(--faint)"><small>' + (w.magic ? '魔法' : '物理') + '攻擊吃的是' + w.atkStat + '</small></span>';
+  for (const x of subs) {
     const off = (x.k === 'pen' && pv.magic) || (x.k === 'men' && !pv.magic) || (['patk', 'pcrit', 'pcd'].includes(x.k) && pv.magic) || (['matk', 'mcrit', 'mcd'].includes(x.k) && !pv.magic);
     h += '<span' + (off ? ' style="color:var(--faint)"' : '') + '>' + x.name + (x.note ? '<small>（' + x.note + '）</small>' : '') + (off ? '<small>（這把武器用不到）</small>' : '') + '</span>' +
       (x.f ? '<span>' + fmt(x.f(pv.stats[i])) + '<small>　' + x.formula + '・下一點 +' + fmt(Math.max(0, x.f(pv.stats[i] + per) - x.f(pv.stats[i]))) + '</small></span>'
@@ -6531,9 +6575,18 @@ function statDetail(pv, i, w) {
             return '<span>+' + fsub(a, x.pct) + '<small>　下一點 +' + (x.pct ? f3((b - a) * 100) + '%' : f3(b - a)) + '・最多趨近 ' + fsub(cap, x.pct) + '</small></span>'; })()
         : '<span>+' + fsub(pv.stats[i] * x.v, x.pct) + '<small>　每點 +' + fsub(per * x.v, x.pct) + '</small></span>');
   }
-  h += '</div><h4>加點門檻<span class="note" style="font-weight:400">　目前加點數值 ' + f3(pv.bonus[i]) + '</span></h4>';
+  h += '</div>';
+  const sk = [];
+  (GAME.skills[st.weapon] || []).forEach((s, j) => { if (s.stat === n) sk.push([s.name, skillUse(st.weapon, s), skillKnown(st, st.weapon, j)]); });
+  const U = GAME.ults[st.weapon]; if (U && U.stat === n) sk.push([GAME.ult.name + '・' + U.name, skillUse(st.weapon, U), ultKnown(st)]);
+  if (sk.length) {
+    h += '<h4>招式<span class="note" style="font-weight:400">　這幾招吃' + n + '</span></h4><div class="sub">';
+    for (const [nm, use, known] of sk) h += '<span' + (known ? '' : ' style="color:var(--faint)"') + '>' + nm + (known ? '' : '<small>（還沒學）</small>') + '</span><span>' + use + '</span>';
+    h += '</div>';
+  }
+  h += '<h4>加點門檻<span class="note" style="font-weight:400">　目前加了 ' + pv.bonus[i] + ' 點</span></h4>';
   GAME.tiers.at.forEach((at, j) => {
-    const on = pv.bonus[i] >= at - 1e-9, need = Math.ceil((at - pv.bonus[i]) / per - 1e-9);
+    const on = pv.bonus[i] >= at, need = at - pv.bonus[i];
     h += '<div class="tier' + (on ? ' on' : '') + '"><b>' + at + '</b><span>' + tierLine(GAME.tiers.fx[n][j]) + '</span><em>' + (on ? '已解鎖' : '還差 ' + need + ' 點') + '</em></div>';
   });
   return h + '</div>';
@@ -6544,15 +6597,17 @@ function statsPanel(d) {
   const pv = pn ? derive(Object.assign({}, st, { alloc: Object.assign({}, st.alloc, { [st.weapon]: al.map((x, i) => x + pend[i]) }) })) : d;
   const up = (a, b) => (pn && b > a + 1e-9 ? ' class="up"' : '');
   let h = '<div class="sec wcard"><span class="seal big">' + st.weapon + '</span><div class="meta"><b>' + wName(st.weapon) + '</b><br>' +
-    roleHtml(w) + groupOf(st.weapon) + '・' + (pv.magic ? '魔法攻擊' : '物理攻擊') +
+    roleHtml(w) + groupOf(st.weapon) + '・' + (w.mix || (pv.magic ? '魔法攻擊' : '物理攻擊') + '（普攻吃' + w.atkStat + '）') +
     '<br>' + pv.range.name + '・剋制 ' + wName(ct.beats) + '・天敵 ' + wName(ct.beatenBy) + '</div></div>';
   h += '<div class="sec"><div class="pthead"><h3>八項資源</h3><span>可分配 <b>' + (free - pn) + '</b> 點</span></div>';
   h += '<p class="note" style="margin:-4px 0 8px">攻擊、血量、防禦跟屬性成正比，每一點換到的一樣多。爆擊、攻速、冷卻這類百分比是「評等」：加得越多越接近上限，但永遠碰不到；等級升上去，同樣的屬性換到的百分比會慢慢變少，要繼續加點才維持得住。爆擊率最高 50%。</p>';
   GAME.statNames.forEach((n, i) => {
-    const v = GAME.points.value(w.stars[i]), tot = al[i] + pend[i], open = openStat === i, tg = pv.tiers[i];
+    const tot = al[i] + pend[i], open = openStat === i, tg = pv.tiers[i];
+    const nSk = (GAME.skills[st.weapon] || []).filter(s => s.stat === n).length + (GAME.ults[st.weapon] && GAME.ults[st.weapon].stat === n ? 1 : 0);
+    const tags = [w.atkStat === n ? '普攻' : '', nSk ? '招式 ' + nSk : ''].filter(x => x).join('・');
     const dots = '<span class="tdot">' + GAME.tiers.at.map((x, j) => '<i' + (j < tg ? ' class="on"' : '') + '></i>').join('') + '</span>';
-    h += '<div class="srow' + (open ? ' open' : '') + '"><button class="sx" data-sx="' + i + '"><b>' + n + '</b><span class="stars">' + starHtml(w.stars[i]) + '</span><div class="sv"><em' + (pend[i] ? ' class="up"' : '') + '>' + f3(pv.stats[i]) + '</em><small>' +
-      (tot ? '加點 ' + tot + ' × ' + v.toFixed(3) + ' = +' + f3(pv.bonus[i]) : '每點 +' + v.toFixed(3)) + (pv.gearStats[i] ? '・裝備 +' + pv.gearStats[i] : '') + dots + '</small></div></button>' +
+    h += '<div class="srow' + (open ? ' open' : '') + '"><button class="sx" data-sx="' + i + '"><b>' + n + '</b><span class="stars">' + starHtml(w.stars[i]) + '</span><div class="sv"><em' + (pend[i] ? ' class="up"' : '') + '>' + pv.stats[i] + '</em><small>' +
+      [tags ? '<span style="color:var(--gold)">' + tags + '</span>' : '', tot ? '加點 +' + tot : '', pv.gearStats[i] ? '裝備 +' + pv.gearStats[i] : ''].filter(x => x).join('・') + dots + '</small></div></button>' +
       '<div class="pm"><button data-pm="' + i + '" data-d="-1"' + (pend[i] ? '' : ' disabled') + ' aria-label="減少' + n + '">−</button><span>' + (pend[i] ? '+' + pend[i] : '') + '</span><button data-pm="' + i + '" data-d="1"' + (free - pn > 0 ? '' : ' disabled') + ' aria-label="增加' + n + '">+</button></div></div>';
     if (open) h += statDetail(pv, i, w);
   });
@@ -6563,13 +6618,22 @@ function statsPanel(d) {
       '<button class="btn warn" id="resetAlloc"' + (al.some(x => x) && st.silver >= rc ? '' : ' disabled') + '>' + (armed ? '再按一次確定' : '重新分配（' + (rc ? '銀兩 ' + fmt(rc) : '免費') + '）') + '</button></div>';
   }
   if (st.lotus) h += '<p class="note" style="color:var(--gold)">蓮子帶來的屬性點：+' + st.lotus + '（每把武器都有）</p>';
-  h += '<p class="note">點一項資源，可以看它的細項和加點門檻。每點效果照星數加權：1★ 0.667、2★ 1、3★ 1.333、4★ 1.667、5★ 2。加點數值到 ' + GAME.tiers.at.join('、') +
-    ' 會各解鎖一個門檻獎勵，高星的屬性比較快解鎖。點數每把武器各自一套，每把武器第一次重新分配免費。</p></div>';
+  h += '<p class="note">點一項資源，可以看它影響哪些數值、哪些招式，以及加點門檻。金色字是這把武器的普攻、招式吃的屬性。每升一級拿 ' + GAME.points.perLevel + ' 點，每點 +1；星數決定升級時自動長多少（星數越高長越多）。同一項加到 ' + GAME.tiers.at.join('、') +
+    ' 點會各解鎖一個門檻獎勵。點數每把武器各自一套，每把武器第一次重新分配免費。</p></div>';
   const row = (name, a, b, txt) => '<span>' + name + '</span><span' + up(a, b) + '>' + txt + '</span>';
+  // 招式吃的屬性跟普攻不同時，另外列出招式的攻擊（例如萬的招式吃抵擋）
+  const skAtk = [], seen = {};
+  for (const r of pv.skills) {
+    if (r.s.stat === w.atkStat || seen[r.s.stat] || !['dmg', 'strike', 'counter', 'dot', 'carryPoison'].some(k => r.s[k])) continue;
+    seen[r.s.stat] = 1; const r0 = d.skills.find(x => x.s.stat === r.s.stat);
+    skAtk.push([(r.magic ? '魔法' : '物理') + '攻擊<small class="note">（招式・吃' + r.s.stat + '）</small>', r0 ? r0.atk : r.atk, r.atk]);
+  }
   h += '<div class="sec"><h3>戰鬥數值' + (pn ? '<span class="note">（預覽）</span>' : '') + '</h3><div class="kv">' +
     row('戰力', d.power, pv.power, fmt(pv.power)) +
-    '<span>' + (pv.magic ? '魔法' : '物理') + '攻擊</span><span' + up(d.atk, pv.atk) + '>' + fmt(pv.atk) + (pv.wAtk ? '<small class="note">（兵器 +' + pv.wAtk + '）</small>' : '') + '</span>' +
+    '<span>' + (pv.magic ? '魔法' : '物理') + '攻擊' + (skAtk.length ? '<small class="note">（普攻・吃' + w.atkStat + '）</small>' : '') + '</span><span' + up(d.atk, pv.atk) + '>' + fmt(pv.atk) + (pv.wAtk ? '<small class="note">（兵器 +' + pv.wAtk + '）</small>' : '') + '</span>' +
+    skAtk.map(([k, a, b]) => '<span>' + k + '</span><span' + up(a, b) + '>' + fmt(b) + '</span>').join('') +
     row('爆擊率', d.crit, pv.crit, pct(pv.crit)) + row('爆擊傷害', d.critDmg, pv.critDmg, '+' + pct(pv.critDmg)) +
+    (w.mix ? row('魔法爆擊率（招式）', d.critAlt.crit, pv.critAlt.crit, pct(pv.critAlt.crit)) + row('魔法爆擊傷害（招式）', d.critAlt.critDmg, pv.critAlt.critDmg, '+' + pct(pv.critAlt.critDmg)) : '') +
     (pv.critIgnore ? row('爆擊時無視防禦', d.critIgnore, pv.critIgnore, pct(pv.critIgnore)) : '') +
     row('物理防禦／韌性', d.pdef, pv.pdef, fmt(pv.pdef) + '／' + pct(pv.ptough)) + row('魔法防禦／韌性', d.mdef, pv.mdef, fmt(pv.mdef) + '／' + pct(pv.mtough)) +
     row('格擋率', d.block, pv.block, pct(pv.block)) + row('閃避', d.dodge, pv.dodge, pct(pv.dodge)) +
@@ -7002,6 +7066,7 @@ function start() {
   } else {
     addLog(GAME.npcs.quest.name + '：首區最近不太平，城外到處都有魔物越界，麻煩你了。');
   }
+  if (st.ptsReset) { delete st.ptsReset; addLog('<span class="k-gold">加點改成每點 +1：原本加過點的武器已照星數比例重新分配，每把武器都可以免費重新分配一次。</span>'); }
   devHudReset(); devChrome(); changelogBadge();
   if (DEV.on) addLog('<span class="k-lv">測試模式中：這份存檔不會同步雲端</span>');
   save(); sceneApply(); renderAll();
