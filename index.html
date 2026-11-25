@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#121315">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>天星界・御劍者 v0.24</title>
+<title>天星界・御劍者 v0.24.1</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -543,7 +543,7 @@ button:active:not(:disabled){transform:scale(.95)}
 /* ===== v0.24 直式介面：戰鬥畫面當主畫面，人物資訊左下、招式最下面，功能鍵放在戰鬥畫面裡，功能頁從下面拉上來 ===== */
 html,body{height:100%;overflow:hidden}
 body{min-height:0;padding:0}
-.wrap.app{max-width:480px;height:100vh;height:100dvh;margin:0 auto;padding:0;position:relative;overflow:hidden;display:flex;flex-direction:column;background:var(--bg)}
+.wrap.app{max-width:480px;height:100vh;height:100dvh;height:var(--appH,100dvh);margin:0 auto;padding:0;position:relative;overflow:hidden;display:flex;flex-direction:column;background:var(--bg)}
 .app .devbar{margin:calc(env(safe-area-inset-top) + 4px) 8px 0;flex-shrink:0}
 .field{position:relative;flex:1;min-height:0;overflow:hidden;background:#15141a;padding:0;border:0;border-radius:0}
 .field .scene{position:absolute;inset:0;height:auto;margin:0;border-radius:0}
@@ -673,6 +673,45 @@ body{min-height:0;padding:0}
   .hud .skbar .ic{width:50px;height:50px;font-size:22px}
 }
 @media (max-height:640px){ .fn .fnl{display:none} .side{gap:6px} }
+#vprobe{position:fixed;left:0;top:0;width:1px;height:100%;opacity:0;pointer-events:none;z-index:-1}
+/* ===== v0.24.1 寬螢幕（平板橫放、電腦）：功能頁固定在右邊；再寬一點，左邊放位階、懸賞、完整的戰鬥紀錄 ===== */
+.lside{display:none}
+@media (min-width:760px) and (min-height:500px){
+  .wrap.app{max-width:none;display:grid;grid-template-columns:minmax(360px,520px) minmax(340px,460px);grid-template-rows:auto minmax(0,1fr) auto;justify-content:center}
+  .app .devbar{grid-column:1/-1;grid-row:1}
+  .field{grid-column:1;grid-row:2}
+  .hud{grid-column:1;grid-row:3}
+  .sheet{position:relative;inset:auto;z-index:auto;grid-column:2;grid-row:2/4;min-height:0;border-left:1px solid var(--line)}
+  .sheetbg,.sheethd .grip{display:none}
+  .sheetbox{flex:1;height:100%;min-height:0;padding-top:env(safe-area-inset-top);border-top:0;border-radius:0;animation:none}
+  .sheet:not(.closable) .sheetx{display:none}
+  .sheethd{padding:12px 12px 8px 16px;min-height:56px}
+}
+@media (min-width:1180px) and (min-height:500px){
+  .wrap.app{grid-template-columns:300px minmax(400px,540px) minmax(360px,460px)}
+  .lside{display:flex;flex-direction:column;gap:10px;grid-column:1;grid-row:2/4;min-height:0;padding:calc(env(safe-area-inset-top) + 12px) 12px calc(env(safe-area-inset-bottom) + 12px);border-right:1px solid var(--line);background:var(--bg)}
+  .field{grid-column:2}.hud{grid-column:2}.sheet{grid-column:3}
+  .field .logtk{display:none}
+}
+.lsec{flex-shrink:0;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
+.lsec h4{display:flex;justify-content:space-between;align-items:baseline;margin:0 0 6px;font-family:var(--serif);font-size:14px;font-weight:600}
+.lsec h4 small{font-family:inherit;font-size:11px;font-weight:400;color:var(--muted)}
+.lsec .barrow{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--muted)}
+.lsec .barrow .bar{flex:1;margin:0;height:4px}
+.lsec .barrow em{font-style:normal;white-space:nowrap;font-variant-numeric:tabular-nums}
+.lsec .note{margin:4px 0 0;font-size:11px}
+.lrank{width:100%;display:block;text-align:left}
+.lrank b{font-family:var(--serif);font-size:18px;color:var(--gold);font-weight:600}
+.lbn{padding:7px 0;border-top:1px solid #2a2d31}
+.lbn:first-of-type{border-top:0;padding-top:2px}
+.lbn .lg{display:flex;align-items:center;gap:6px;font-size:12px;line-height:1.45;margin-bottom:4px}
+.lbn .lg span{flex:1;min-width:0}
+.lbn .lg i{font-style:normal;font-size:10px;color:var(--gold);white-space:nowrap}
+.lbn .btn{width:100%;margin-top:6px;padding:6px 0;font-size:12.5px}
+.lbn.done .lg span{color:#f2d58a}
+.lslog{flex:1;min-height:0;display:flex;flex-direction:column}
+.lslog .loglist{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}
+.lslog .loglist div{font-size:12px;line-height:1.6}
 </style>
 </head>
 <body>
@@ -714,6 +753,7 @@ body{min-height:0;padding:0}
     </div>
     <div class="skbar" id="skBar"></div>
   </section>
+  <aside class="lside" id="lside" aria-label="位階、懸賞、戰鬥紀錄"><div class="lsec" id="lsRank"></div><div class="lsec" id="lsBounty"></div><div class="lsec lslog"><h4>戰鬥紀錄<small>最近 40 則</small></h4><div class="loglist" id="lsLog"></div></div></aside>
   <section class="sheet hidden" id="sheet" aria-label="功能">
     <div class="sheetbg" id="sheetBg"></div>
     <div class="sheetbox">
@@ -726,6 +766,7 @@ body{min-height:0;padding:0}
   </section>
 </div>
 
+<div id="vprobe" aria-hidden="true"></div>
 <div class="modal hidden" id="modal"><div class="card" id="modalBody"></div></div>
 <div class="toast hidden" id="toast"></div>
 <button class="devfab hidden" id="devFab" data-dev="open">測</button>
@@ -737,7 +778,7 @@ body{min-height:0;padding:0}
 
 /* ---------- 遊戲資料：名稱、數值都集中在這裡，改這裡就好 ---------- */
 const GAME = {
-  meta: { title: '天星界・御劍者', subtitle: '暫定名稱', version: '0.24', era: '仙曆五百餘年' },
+  meta: { title: '天星界・御劍者', subtitle: '暫定名稱', version: '0.24.1', era: '仙曆五百餘年' },
 
   // 八項資源系統（順序固定，星數陣列照這個順序）
   statNames: ['力量', '抵擋', '體力', '敏捷', '智慧', '守護', '靈力', '控制'],
@@ -6084,7 +6125,8 @@ function sceneEvent(e) {
       } else {
         if (ent) { ent.lunge = .22; ent.face = P.x > ent.x ? 1 : -1; }
         P.hurt = .16; burst(P.x, P.y - 12, '#ff6a5a', 5, 24, .3);
-        say(P.x, P.y - 24, '-' + fmt(e.dmg), e.crit ? '#ff6a4a' : '#ff9a8a', e.crit ? 17 : 12, { pop: e.crit, life: .8 });
+        if (e.dmg > 0) say(P.x, P.y - 24, '-' + fmt(e.dmg), e.crit ? '#ff6a4a' : '#ff9a8a', e.crit ? 17 : 12, { pop: e.crit, life: .8 });
+        else if (e.absorbed > 0) say(P.x, P.y - 24, '盾', '#9fd0ff', 11, { life: .6 }); // v0.24.1 全被護盾吃掉：不顯示 -0
       }
       break;
     case 'miss': if (e.who === 'p') { if (ent) say(ent.x, ent.y - ent.size, '落空', '#a8a8b0', 11); } else say(P.x, P.y - 24, '落空', '#a8a8b0', 11); break;
@@ -6128,7 +6170,7 @@ function sceneSize() {
   const box = $('#scene'); if (!box) return;
   const r = box.getBoundingClientRect(); if (!r.width) return;
   SC.dpr = Math.min(3, window.devicePixelRatio || 1); SC.W = r.width; SC.H = r.height;
-  SC.PX = r.width >= 440 ? 3 : 2.5;
+  SC.PX = Math.max(r.width >= 440 ? 3 : 2.5, r.height / (SC.WH - 2), r.width / (SC.WW - 2)); // v0.24.1 戰鬥畫面很高（平板直放）時放大，地圖才蓋得滿
   SC.lw = Math.ceil(SC.W / SC.PX); SC.lh = Math.ceil(SC.H / SC.PX);
   SC.cv.width = Math.round(SC.W * SC.dpr); SC.cv.height = Math.round(SC.H * SC.dpr);
   const [lo, lx] = mkCv(SC.lw, SC.lh); SC.lo = lo; SC.lx = lx; SC.cx = SC.cv.getContext('2d');
@@ -6715,6 +6757,13 @@ function audPanel() {
    有新版本時齒輪上會有紅點、設定頁裡的按鈕有「新」，打開看過就消失（看過的版本記在 localStorage 'yujian-seen-ver'）。
    這個檔案由 build.py 塞進 template.html 的 CHANGELOG 標記處 */
 const CHANGELOG = [
+  { v: '0.24.1', d: '2026-11-25', items: [
+    '平板、電腦這類寬螢幕：功能頁固定在右邊，戰鬥畫面一直看得到；點戰鬥畫面上的功能鍵就換頁，設定、戰鬥紀錄關掉後回到上一頁',
+    '再寬一點（平板橫放、電腦）：左邊多一欄，放位階和功績、三張懸賞的進度（完成了可以直接回報）、完整的戰鬥紀錄',
+    '平板直放時戰鬥畫面比較高，地圖會跟著放大蓋滿，不會留黑邊',
+    '修正：有時第一次打開，最下面的招式欄被切掉（畫面高度改用實際看得到的範圍）',
+    '修正：護盾吸收的傷害在戰鬥紀錄裡顯示一長串小數；整下被護盾吃掉時不再跳「-0」，改成「盾」'
+  ] },
   { v: '0.24', d: '2026-11-25', items: [
     '直式介面：戰鬥畫面就是主畫面，不用再往下捲',
     '上排是地區、探索度、銀兩和經驗、掉落加成；右上角的齒輪是「設定」（畫面、聲音、雲端、存檔碼、版本更新、巡守紀錄）',
@@ -6859,6 +6908,7 @@ function handle(e) {
     case 'spawn': addLog(e.mobs.map(x => (x.rank === 'boss' ? '<span class="k-lv">【首領】</span>' : x.rank === 'elite' ? '<span class="k-bad">【精英】</span>' : '') + x.name + ' Lv.' + Math.round(x.lv)).join('、') + ' 出現了'); resetArena(); break;
     case 'move': { const z = zoneById(e.zone); addLog('<span class="k-good">前往' + z.place + '・' + z.name + '</span>'); renderLoc(); panelDirty = true; break; }
     case 'hit':
+      if (e.who === 'm') { e.dmg = Math.round(e.dmg); e.absorbed = Math.round(e.absorbed || 0); } // 護盾是小數，畫面上取整數
       if (e.who === 'p') {
         const k = KIND_TXT[e.kind];
         if (e.crit) shakeScreen(false);
@@ -7147,7 +7197,34 @@ function ultShow(name, label, calm) {
   setTimeout(() => { const was = arenaSeen; arenaSeen = true; lastShake = 0; shakeScreen(true); arenaSeen = was; }, 420);
 }
 // v0.24：戰鬥畫面左下只留最新三行（最新的在最下面），點了打開完整的戰鬥紀錄
-function renderLog() { $('#log').innerHTML = logs.slice(0, 3).reverse().map(l => '<div>' + l + '</div>').join(''); if (tab === 'log') panelDirty = true; }
+function renderLog() { $('#log').innerHTML = logs.slice(0, 3).reverse().map(l => '<div>' + l + '</div>').join(''); if (tab === 'log') panelDirty = true; sideLog = true; }
+// v0.24.1 寬螢幕左欄：位階、懸賞進度、完整的戰鬥紀錄
+let sideLog = true, sideAt = 0, sideRank = '', sideBnty = '';
+function renderSide(force) {
+  if (!isWide3()) return;
+  const now = Date.now();
+  if (sideLog || force) { $('#lsLog').innerHTML = logs.map(l => '<div>' + l + '</div>').join(''); sideLog = false; }
+  if (!force && now - sideAt < 500) return;
+  sideAt = now;
+  const R = GAME.ranks, g = rankOf(st), m = st.merit || 0, E = R.exam, ex = st.exam || {}, capped = g >= R.cap, cur = R.need(g), nxt = R.need(g + 1);
+  let h = '<button class="lrank" data-goquest="1"><h4>御劍者位階<small>攻擊、血量、防禦 +' + f3(g * R.bonus * 100) + '%</small></h4><b>' + rankName(g) + '</b>';
+  if (capped) h += '<p class="note">已經到天霖國的上限</p>';
+  else if (rankByMerit(st) >= E.g && g === E.g - 1) h += ex.on ? '<div class="barrow"><span>考核</span><span class="bar exp"><i style="width:' + (ex.n / E.n * 100) + '%"></i></span><em>' + ex.n + ' / ' + E.n + '</em></div>' : '<p class="note" style="color:#f2d58a">功績夠了，到城鎮的委託接下白銀考核</p>';
+  else h += '<div class="barrow"><span>功績</span><span class="bar exp"><i style="width:' + Math.min(100, (m - cur) / Math.max(1, nxt - cur) * 100) + '%"></i></span><em>' + fmt(m) + ' / ' + fmt(nxt) + '</em></div>';
+  h += '</button>';
+  if (h !== sideRank) { $('#lsRank').innerHTML = h; sideRank = h; }
+  const L = (st.bounty && st.bounty.list) || [];
+  let b2 = '<h4>巡守司懸賞令<small>' + L.length + ' 張</small></h4>';
+  if (!L.length) b2 += '<p class="note">還沒有懸賞令。</p>';
+  L.forEach((b, i) => {
+    const T = bountyText(b), pr = bountyProgress(st, b);
+    if (b.type === 'wait') { b2 += '<div class="lbn"><div class="lg"><span class="note" style="margin:0">' + T.goal + '</span><i>' + mmss(pr.wait) + '</i></div></div>'; return; }
+    b2 += '<div class="lbn' + (pr.done ? ' done' : '') + '"><div class="lg"><span>' + T.goal + '</span><i>' + (b.star >= 4 ? '白銀令' : '★'.repeat(b.star)) + '</i></div>' +
+      '<div class="barrow"><span class="bar exp"><i style="width:' + (pr.cur / pr.need * 100) + '%"></i></span><em>' + (b.type === 'patrol' ? mmss(pr.cur) + ' / ' + mmss(pr.need) : pr.cur + ' / ' + pr.need) + '</em></div>' +
+      (pr.done ? '<button class="btn" data-bclaim="' + i + '">回報' + b.giver.split('・').pop() + '</button>' : '') + '</div>';
+  });
+  if (b2 !== sideBnty) { $('#lsBounty').innerHTML = b2; sideBnty = b2; }
+}
 // 藥品格：一頁兩排三格，上下滑換頁；右邊的小條顯示在第幾頁
 function potDots(n) { const pages = Math.max(1, Math.ceil(n / 6)), el = $('#potDots'); el.innerHTML = pages > 1 ? '<i class="on"></i>'.concat('<i></i>'.repeat(pages - 1)) : ''; el.classList.toggle('hidden', pages < 2); $('#potBar').scrollTop = 0; }
 function potPage() { const pb = $('#potBar'), i = Math.round(pb.scrollTop / Math.max(1, pb.clientHeight)); $('#potDots').querySelectorAll('i').forEach((x, k) => x.classList.toggle('on', k === i)); }
@@ -7211,10 +7288,18 @@ function itemsPanel() {
 // v0.24：功能都放在從下面拉上來的頁面裡；tab 是 null 就是關著，只看戰鬥畫面
 const SHEET_T = { map: '地圖', quest: '城鎮', codex: '魔物圖鑑', stats: '屬性', skill: '技能', gear: '裝備・行囊', weapon: '武器', fate: '命格', settings: '設定', log: '戰鬥紀錄', sword: '部位強化' };
 const CHAR_TABS = ['stats', 'skill', 'gear', 'weapon', 'fate'];
-function openSheet(t) { if (tab === 'gear' && t !== 'gear') clearNewGear(); if (tab !== t) setTimeout(animPanel, 0); tab = t; if (t === 'map') viewChap = curChap(); if (t === 'codex') { cxChap = curChap(); cxSel = null; } panelDirty = true; renderTabs(); renderPanel(); $('#panel').scrollTop = 0; }
-function closeSheet() { if (tab === 'gear') clearNewGear(); tab = null; renderTabs(); renderPanel(); }
+// v0.24.1 寬螢幕：功能頁固定在右邊，不會關起來（設定、戰鬥紀錄關掉後回到上一頁）
+const mq = q => { try { return window.matchMedia(q); } catch (e) { return null; } };
+const WIDE = mq('(min-width:760px) and (min-height:500px)'), WIDE3 = mq('(min-width:1180px) and (min-height:500px)');
+function isWide() { return !!(WIDE && WIDE.matches); }
+function isWide3() { return !!(WIDE3 && WIDE3.matches); }
+let dockTab = 'stats';
+function openSheet(t) { if (tab === 'gear' && t !== 'gear') clearNewGear(); if (tab !== t) setTimeout(animPanel, 0); if (t !== 'settings' && t !== 'log') dockTab = t; tab = t; if (t === 'map') viewChap = curChap(); if (t === 'codex') { cxChap = curChap(); cxSel = null; } panelDirty = true; renderTabs(); renderPanel(); $('#panel').scrollTop = 0; }
+function closeSheet() { if (tab === 'gear') clearNewGear(); tab = isWide() && tab !== dockTab ? dockTab : null; renderTabs(); renderPanel(); }
 function renderPanel() {
   const d = rt.d, p = $('#panel'), sh = $('#sheet');
+  if (!tab && isWide()) { tab = dockTab; renderTabs(); }
+  sh.classList.toggle('closable', !isWide() || tab === 'settings' || tab === 'log');
   if (!tab) { if (!sh.classList.contains('hidden')) { sh.classList.add('hidden'); p.innerHTML = ''; } panelDirty = false; return; }
   sh.classList.remove('hidden');
   const ttl = SHEET_T[tab] || ''; if ($('#sheetTitle').textContent !== ttl) $('#sheetTitle').textContent = ttl;
@@ -7908,7 +7993,7 @@ function showStep(prefix) {
   }
   $('#modalBody').innerHTML = h; $('#modal').classList.remove('hidden');
 }
-function renderAll() { if (SC.on !== !!(st.fx && st.fx.scene)) sceneApply(); lastSk = lastPot = lastBoost = ''; renderBars(); renderUlt(); renderHero(); renderLoc(); lastMain = ''; renderMain(); renderArena(); renderLog(); renderTabs(); renderPanel(); }
+function renderAll() { if (SC.on !== !!(st.fx && st.fx.scene)) sceneApply(); lastSk = lastPot = lastBoost = ''; renderBars(); renderUlt(); renderHero(); renderLoc(); lastMain = ''; renderMain(); renderArena(); renderLog(); renderTabs(); renderPanel(); renderSide(true); }
 
 /* ---------- 離線戰報 ---------- */
 function showReport(sum, awaySec) {
@@ -7965,6 +8050,28 @@ document.addEventListener('change', ev => {
 });
 $('#potBar').addEventListener('scroll', potPage, { passive: true });
 $('#sheetBg').addEventListener('click', () => closeSheet());
+// v0.24.1 平板轉橫、轉直：寬螢幕功能頁固定在右邊；變回窄的就關起來，回到戰鬥畫面
+function onWideChange() { if (!isWide()) tab = null; panelDirty = true; if (st) { renderTabs(); renderPanel(); renderSide(true); } }
+[WIDE, WIDE3].forEach(m => { if (!m) return; try { m.addEventListener('change', onWideChange); } catch (e) { try { m.addListener(onWideChange); } catch (e2) {} } });
+// v0.24.1 畫面高度：用實際看得到的高度（有些 App 第一次打開時畫面比看得到的範圍高，最下面一排會被切掉）
+let visH = 0, fitT = 0;
+function fitApp() {
+  const h = Math.round(visH || window.innerHeight || 0);
+  if (h > 240) document.documentElement.style.setProperty('--appH', h + 'px');
+}
+function fitSoon() { clearTimeout(fitT); fitT = setTimeout(fitApp, 120); }
+['resize', 'orientationchange', 'pageshow'].forEach(n => window.addEventListener(n, fitSoon));
+try { if (window.visualViewport) visualViewport.addEventListener('resize', fitSoon); } catch (e) {}
+try {
+  new IntersectionObserver(es => {
+    const e = es[es.length - 1], r = e.intersectionRect, b = e.boundingClientRect, H = window.innerHeight;
+    if (document.hidden || !H) return;
+    // 只處理「上面看得到、下面被切掉」：看得到的部分要有畫面的六成以上
+    const v = e.isIntersecting && Math.abs(r.top - b.top) < 2 && r.height >= H * 0.6 && r.height < H - 6 ? r.height : 0;
+    if (Math.abs(v - visH) > 2) { visH = v; fitSoon(); }
+  }, { threshold: Array.from({ length: 41 }, (_, i) => i / 40) }).observe($('#vprobe'));
+} catch (e) {}
+fitApp(); [300, 1000, 2500].forEach(ms => setTimeout(fitApp, ms));
 document.addEventListener('click', ev => {
   const t = ev.target.closest('button'); if (!t) return;
   audPlay('ui');
@@ -7983,6 +8090,7 @@ document.addEventListener('click', ev => {
   if (t.dataset.sordreset !== undefined) { delete st.skillOrder[t.dataset.sordreset]; rt.d = derive(st); save(); renderPanel(); return; }
   if (t.dataset.ultup !== undefined) { if (upgradeUlt(st, t.dataset.ultup)) { toast(GAME.ult.name + '升到 Lv.' + ultLv(st, t.dataset.ultup)); save(); } renderAll(); return; }
   if (t.dataset.sord !== undefined) { if (moveSkill(st, rt.d, +t.dataset.sord, +t.dataset.dir)) { rt.d = derive(st); save(); } renderPanel(); return; }
+  if (t.dataset.goquest) { townTab = 'quest'; openSheet('quest'); return; }
   if (t.dataset.gobook) { bookW = t.dataset.gobook; townTab = 'book'; openSheet('quest'); return; }
   if (t.dataset.buybook) { if (buyBook(st, rt, t.dataset.buybook, +t.dataset.i)) { for (const e of rt.events) handle(e); rt.events.length = 0; save(); } renderAll(); return; }
   if (t.dataset.pages) { if (exchangePages(st, rt, t.dataset.pages)) { for (const e of rt.events) handle(e); rt.events.length = 0; toast('換到' + bookName(t.dataset.pages, 'u')); save(); } renderAll(); return; }
@@ -8166,7 +8274,7 @@ function tick() {
     while (acc >= 0.1) { step(st, rt, 0.1); acc -= 0.1; }
   }
   if (rt.events.length) { for (const e of rt.events) handle(e); rt.events.length = 0; renderLog(); }
-  renderHero(); renderArena(); renderMain(); renderUlt(); renderBars(); sceneWake();
+  renderHero(); renderArena(); renderMain(); renderUlt(); renderBars(); renderSide(); sceneWake();
   const ae = document.activeElement, typing = ae && (['SELECT', 'TEXTAREA'].includes(ae.tagName) || (ae.tagName === 'INPUT' && ['range', 'number', 'text'].includes(ae.type)));
   if (panelDirty && Date.now() - lastPanelAt > 400 && !typing) { renderTabs(); renderPanel(); }
   if (now - lastSaveAt > 5000) save();
