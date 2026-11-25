@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#121315">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>天星界・御劍者 v0.24.1</title>
+<title>天星界・御劍者 v0.24.3</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -555,6 +555,7 @@ body{min-height:0;padding:0}
 .topbar{position:absolute;left:0;right:0;top:0;z-index:6;display:flex;align-items:flex-start;justify-content:space-between;gap:8px;padding:calc(env(safe-area-inset-top) + 10px) 10px 0}
 .topbar .loc{flex:1;min-width:0;margin:0;padding:0;background:none;border:0;border-radius:0;display:block}
 .topbar .loc .where{display:block;text-align:left;max-width:100%;min-width:0;padding:0;border:0;border-radius:0;background:none;font-family:var(--sans)}
+.topbar .loc .where .mapic{width:15px;height:15px;margin-left:6px;vertical-align:-1px;fill:none;stroke:#e6c77a;stroke-width:2;stroke-linejoin:round;opacity:.85;filter:drop-shadow(0 1px 1px #000)}
 .topbar .loc .where small{font-size:11px;color:#a8a296;text-shadow:0 1px 2px #000}
 .topbar .loc .where b{font-size:17px;text-shadow:0 1px 3px #000}
 .topbar .loc .where em{font-size:11.5px;color:#a8a296;margin-left:5px}
@@ -652,7 +653,7 @@ body{min-height:0;padding:0}
 .sheethd .grip{position:absolute;left:50%;top:6px;width:40px;height:4px;margin-left:-20px;border-radius:2px;background:#4a4d52}
 .sheethd b{font-family:var(--serif);font-size:19px;font-weight:600;letter-spacing:.08em}
 .sheetx{width:40px;height:40px;border-radius:20px;background:var(--panel2);display:flex;align-items:center;justify-content:center}
-.sheet .tabs{position:static;flex-shrink:0;grid-template-columns:repeat(5,1fr);gap:4px;margin:0;padding:0 10px 10px;border-bottom:1px solid var(--line);background:none;z-index:auto}
+.sheet .tabs{position:static;flex-shrink:0;grid-template-columns:repeat(4,1fr);gap:4px;margin:0;padding:0 10px 10px;border-bottom:1px solid var(--line);background:none;z-index:auto}
 .sheet .tabs.hidden{display:none}
 .sheet .tabs button{padding:8px 0;font-size:13px;border:1px solid var(--line)}
 .sheet .tabs button.on{border-color:var(--gold);background:var(--panel2)}
@@ -693,6 +694,7 @@ body{min-height:0;padding:0}
   .field{grid-column:2}.hud{grid-column:2}.sheet{grid-column:3}
   .field .logtk{display:none}
 }
+.bar.hp b{position:absolute;top:0;height:100%;display:none;background:#a9d6ff;border-radius:4px;box-shadow:inset 0 0 0 1px #e6f4ff80;transition:width .15s linear,left .15s linear}
 .lsec{flex-shrink:0;padding:10px 12px;border:1px solid var(--line);border-radius:12px;background:var(--panel)}
 .lsec h4{display:flex;justify-content:space-between;align-items:baseline;margin:0 0 6px;font-family:var(--serif);font-size:14px;font-weight:600}
 .lsec h4 small{font-family:inherit;font-size:11px;font-weight:400;color:var(--muted)}
@@ -731,8 +733,8 @@ body{min-height:0;padding:0}
     </header>
     <section class="maincard" id="mainCard"></section>
     <div class="mobinfo" id="mobinfo"></div>
-    <nav class="side left"><button class="fn" data-t="map" aria-label="地圖"><span class="fi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2zM9 4v14M15 6v14"/></svg></span><span class="fnl">地圖</span></button><button class="fn" data-t="quest" aria-label="城鎮"><span class="fi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21h18M5 21V10l7-5 7 5v11M10 21v-6h4v6"/></svg></span><span class="fnl">城鎮</span></button><button class="fn" data-t="codex" aria-label="圖鑑"><span class="fi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4.5A1.5 1.5 0 0 1 6.5 3H19v15H6.5A1.5 1.5 0 0 0 5 19.5v-15zM5 19.5A1.5 1.5 0 0 0 6.5 21H19M9 7h6"/></svg></span><span class="fnl">圖鑑</span></button></nav>
-    <nav class="side right"><button class="fn" data-t="stats" aria-label="屬性"><span class="fi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20v-8M12 20V4M19 20v-11"/></svg></span><span class="fnl">屬性</span></button><button class="fn" data-t="skill" aria-label="技能"><span class="fi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 4.5 13.5H11L10 22l8.5-11.5H12L13 2z"/></svg></span><span class="fnl">技能</span></button><button class="fn" data-t="gear" aria-label="裝備・行囊"><span class="fi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 5 6v6c0 4.4 3 7.5 7 9 4-1.5 7-4.6 7-9V6l-7-3z"/></svg></span><span class="fnl">裝備・行囊</span></button><button class="fn" data-t="weapon" aria-label="武器"><span class="fi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 4 10 14M20 4h-4M20 4v4M7 13l4 4M5 19l3.5-3.5"/></svg></span><span class="fnl">武器</span></button><button class="fn" data-t="fate" aria-label="命格"><span class="fi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l2.5 5.3 5.8.7-4.3 4 1.1 5.7L12 16.4l-5.1 2.8 1.1-5.7-4.3-4 5.8-.7L12 3.5z"/></svg></span><span class="fnl">命格</span></button></nav>
+    <nav class="side left"><button class="fn" data-t="weapon" aria-label="武器"><span class="fi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 4 10 14M20 4h-4M20 4v4M7 13l4 4M5 19l3.5-3.5"/></svg></span><span class="fnl">武器</span></button><button class="fn" data-t="quest" aria-label="城鎮"><span class="fi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 21h18M5 21V10l7-5 7 5v11M10 21v-6h4v6"/></svg></span><span class="fnl">城鎮</span></button><button class="fn" data-t="codex" aria-label="圖鑑"><span class="fi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4.5A1.5 1.5 0 0 1 6.5 3H19v15H6.5A1.5 1.5 0 0 0 5 19.5v-15zM5 19.5A1.5 1.5 0 0 0 6.5 21H19M9 7h6"/></svg></span><span class="fnl">圖鑑</span></button></nav>
+    <nav class="side right"><button class="fn" data-t="gear" aria-label="背包・裝備"><span class="fi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 8V6.5a4 4 0 0 1 8 0V8"/><path d="M4.5 8h15l-1 12.5h-13L4.5 8z"/><path d="M9.5 12.5h5"/></svg></span><span class="fnl">背包・裝備</span></button><button class="fn" data-t="stats" aria-label="屬性"><span class="fi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 20v-8M12 20V4M19 20v-11"/></svg></span><span class="fnl">屬性</span></button><button class="fn" data-t="skill" aria-label="技能"><span class="fi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 4.5 13.5H11L10 22l8.5-11.5H12L13 2z"/></svg></span><span class="fnl">技能</span></button><button class="fn" data-t="sword" aria-label="強化"><span class="fi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h10M6 20l1.5-4h5L14 20"/><path d="M13.5 3.5l6 6-2.5 2.5-6-6z"/><path d="M12.2 8.8 7 14"/></svg></span><span class="fnl">強化</span></button><button class="fn" data-t="fate" aria-label="命格"><span class="fi"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3.5l2.5 5.3 5.8.7-4.3 4 1.1 5.7L12 16.4l-5.1 2.8 1.1-5.7-4.3-4 5.8-.7L12 3.5z"/></svg></span><span class="fnl">命格</span></button></nav>
     <button class="logtk" id="log" data-t="log" aria-label="展開戰鬥紀錄"></button>
     <button class="ultbtn hidden" id="ultBtn"></button>
     <div class="devhud hidden" id="devHud"></div>
@@ -743,7 +745,7 @@ body{min-height:0;padding:0}
         <span class="seal big" id="pSeal">銀</span>
         <span class="info">
           <span class="name"><b id="pLv">Lv.1</b><span id="pChips"></span></span>
-          <span class="barrow hp"><span class="bar hp" id="hpBarWrap"><i id="hpBar"></i></span><em id="hpTxt"></em></span>
+          <span class="barrow hp"><span class="bar hp" id="hpBarWrap"><i id="hpBar"></i><b id="shBar"></b></span><em id="hpTxt"></em></span>
           <span class="barrow en"><span class="bar en"><i id="enBar"></i></span><em><span id="enTxt"></span> <span id="enName">氣力</span></em></span>
           <span class="barrow exp"><span class="bar exp"><i id="expBar"></i></span><em id="expTxt"></em></span>
           <span class="hidden" id="pName"></span>
@@ -759,7 +761,7 @@ body{min-height:0;padding:0}
     <div class="sheetbox">
       <div class="sheethd"><span class="grip"></span><b id="sheetTitle"></b><button class="sheetx" id="sheetClose" aria-label="關閉，回到戰鬥"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6 6 18"/></svg></button></div>
       <nav class="tabs" id="tabs">
-        <button data-t="stats">屬性</button><button data-t="skill">技能</button><button data-t="gear">裝備・行囊</button><button data-t="weapon">武器</button><button data-t="fate">命格</button>
+        <button data-t="stats">屬性</button><button data-t="skill">技能</button><button data-t="sword">強化</button><button data-t="fate">命格</button>
       </nav>
       <section class="panel" id="panel"></section>
     </div>
@@ -778,7 +780,7 @@ body{min-height:0;padding:0}
 
 /* ---------- 遊戲資料：名稱、數值都集中在這裡，改這裡就好 ---------- */
 const GAME = {
-  meta: { title: '天星界・御劍者', subtitle: '暫定名稱', version: '0.24.1', era: '仙曆五百餘年' },
+  meta: { title: '天星界・御劍者', subtitle: '暫定名稱', version: '0.24.3', era: '仙曆五百餘年' },
 
   // 八項資源系統（順序固定，星數陣列照這個順序）
   statNames: ['力量', '抵擋', '體力', '敏捷', '智慧', '守護', '靈力', '控制'],
@@ -2072,7 +2074,7 @@ GAME.main = {
     { title: '淬煉', lv: 5, npc: '溫遲',
       lines: ['你回來了。劍刃上還沾著楓葉的顏色。', '劍不會自己變利。人放進去多少，它就還你多少。'],
       goal: { type: 'forge', n: 3 }, goalText: '部位強化合計 +3',
-      hint: '在「裝備」→「強化」，武器和每件防具的部位都可以強化，所有武器共用。',
+      hint: '點右邊的「強化」，武器和每件防具的部位都可以強化，所有武器共用。',
       reward: { silver: 300, expPct: 0.1, mats: { '精魄': 10 } } },
     { title: '石階', zone: 'mt1', lv: 5, npc: '明臺・守階人',
       lines: ['石階一級一級往上，昨天多了一級。', '多出來的那一級，會走。'],
@@ -5153,7 +5155,8 @@ const SC = {
   WW: 440, WH: 320, cam: { x: 0, y: 0 }, ground: null, props: [], water: [], key: '', B: null,
   pl: null, ents: new Map(), wand: [], fx: [], txt: [], amb: [], t: 0, last: 0, running: false,
   mob: {}, pf: null, pw: '', flash: 0, flashC: '#ffffff', lastKill: null, font: 'sans-serif', ro: null, banner: null, fade: 0,
-  mood: null, lights: [], lc: null, lcx: null, vig: null, vigK: '', fog: null, fogK: '', title: null, titleZ: '', serif: 'serif'
+  mood: null, lights: [], lc: null, lcx: null, vig: null, vigK: '', fog: null, fogK: '', title: null, titleZ: '', serif: 'serif',
+  safe: { t: 0, b: 0, l: 0, r: 0 }, safeT: 0, miB: 0
 };
 const OL = '#1d1a17';
 
@@ -5629,7 +5632,8 @@ function sceneBuild(key) {
   }
   // 起始位置、鏡頭
   SC.pl = { x: W / 2, y: H / 2 + 20, face: 1, st: 'idle', walkT: 0, atk: 0, hurt: 0, pt: null, pause: 1 };
-  SC.cam.x = SC.pl.x - SC.lw / 2; SC.cam.y = SC.pl.y - SC.lh / 2; clampCam();
+  measureSafe(); { const B = safeBox(); SC.pl.x = clampIn(SC.pl.x, B.x0, B.x1); SC.pl.y = clampIn(SC.pl.y, B.y0, B.y1); }
+  { const k = SC.PX || 3, S = SC.safe; SC.cam.x = SC.pl.x - (S.l + (SC.W - S.l - S.r) / 2) / k; SC.cam.y = SC.pl.y - 12 - (S.t + (SC.H - S.t - S.b) / 2) / k; } clampCam();
   initAmb();
   SC.mood = moodOf(); SC.lights = [];
   if (rt.tower) { const T = towerById(rt.tower.id), F = rt.tower.floor; SC.fade = .5; SC.banner = { s: '第 ' + F + ' 層', sub: T.name + (F % GAME.towerRules.bossEvery === 0 ? '・守塔者在這一層' : ''), c: '#e8e4dc', t: 0, life: 1.7 }; }
@@ -5668,7 +5672,9 @@ function newEnt(key, x, y, uid) { const m = GAME.monsters[key]; return { uid, ke
 function placeGroup(list) {
   const P = SC.pl, a0 = Math.atan2(SC.WH / 2 - P.y, SC.WW / 2 - P.x) + (Math.random() - .5) * 2.2;
   let ax = P.x + Math.cos(a0) * 52, ay = P.y + Math.sin(a0) * 34;
-  ax = Math.max(SC.cam.x + 16, Math.min(SC.cam.x + SC.lw - 16, ax)); ay = Math.max(SC.cam.y + 30, Math.min(SC.cam.y + SC.lh - 8, ay));
+  const B = safeBox(), k = SC.PX || 3;
+  ax = Math.max(SC.cam.x + SC.safe.l / k + 16, Math.min(SC.cam.x + SC.lw - SC.safe.r / k - 16, ax)); ay = Math.max(SC.cam.y + SC.safe.t / k + 30, Math.min(SC.cam.y + SC.lh - SC.safe.b / k - 8, ay));
+  ax = clampIn(ax, B.x0 + 8, B.x1 - 8); ay = clampIn(ay, B.y0 + 4, B.y1 - 4);
   list.forEach((m, i) => {
     // 先找附近閒晃、同種的魔物接手
     let best = -1, bd = 1e9;
@@ -5687,6 +5693,39 @@ function spawnWanderer() {
   do { x = 20 + Math.random() * (SC.WW - 40); y = 30 + Math.random() * (SC.WH - 40); n++; } while (n < 12 && Math.hypot(x - P.x, y - P.y) < 70);
   SC.wand.push(newEnt(key, x, y, null));
 }
+/* ----- v0.24.3 戰鬥畫面上被介面蓋住的範圍 -----
+   上：主線卡、魔物血條的底（魔物血條只有打架時才出現，量過一次就記住，避免一開打主角就被蓋住）
+   下：戰鬥紀錄的頂；左右：功能鍵。單位是畫面上的 CSS px */
+function measureSafe() {
+  const box = $('#scene'); if (!box || !SC.W) return;
+  const R = box.getBoundingClientRect(), on = e => e && e.offsetParent !== null && e.getBoundingClientRect().height > 0;
+  const mc = $('#mainCard'), mi = $('#mobinfo'), lg = $('#log'), sl = document.querySelector('.field .side.left'), sr = document.querySelector('.field .side.right');
+  let t = 0, b = 0, l = 0, r = 0;
+  const tb = document.querySelector('.field .topbar'); if (on(tb)) t = tb.getBoundingClientRect().bottom - R.top;
+  if (on(mc)) t = Math.max(t, mc.getBoundingClientRect().bottom - R.top);
+  if (on(mi)) SC.miB = mi.getBoundingClientRect().bottom - R.top;
+  // 還沒看過魔物血條：它跟功能鍵同一個高度開始（CSS 差 2px），高約 66
+  t = Math.max(t, SC.miB || (on(sl) ? sl.getBoundingClientRect().top - R.top + 64 : on(mc) ? mc.getBoundingClientRect().bottom - R.top + 72 : 0));
+  if (on(lg) && lg.textContent) b = R.bottom - lg.getBoundingClientRect().top;
+  if (on(sl)) l = sl.getBoundingClientRect().right - R.left;
+  if (on(sr)) r = R.right - sr.getBoundingClientRect().left;
+  SC.safe = { t: Math.max(0, t), b: Math.max(0, b), l: Math.max(0, l), r: Math.max(0, r) };
+}
+// 主角、參戰魔物的腳可以站的範圍（地圖座標）：鏡頭貼到地圖邊時，也不會走到介面底下
+function safeBox() {
+  const k = SC.PX || 3, S = SC.safe;
+  let x0 = S.l / k + 8, x1 = SC.WW - S.r / k - 8, y0 = S.t / k + 26, y1 = SC.WH - S.b / k - 4;
+  if (x1 - x0 < 40) { x0 = 24; x1 = SC.WW - 24; }
+  if (y1 - y0 < 30) { y0 = 34; y1 = SC.WH - 12; }
+  return { x0, x1, y0, y1 };
+}
+const clampIn = (v, a, b) => Math.max(a, Math.min(b, v));
+// 超出範圍的慢慢推回來（不是一下跳過去）
+function nudgeIn(o, B, dt) {
+  const s = 40 * dt;
+  if (o.x < B.x0) o.x = Math.min(B.x0, o.x + s); else if (o.x > B.x1) o.x = Math.max(B.x1, o.x - s);
+  if (o.y < B.y0) o.y = Math.min(B.y0, o.y + s); else if (o.y > B.y1) o.y = Math.max(B.y1, o.y - s);
+}
 function moveTo(o, tx, ty, spd, dt) {
   const dx = tx - o.x, dy = ty - o.y, d = Math.hypot(dx, dy);
   if (d < .6) return false;
@@ -5698,6 +5737,8 @@ function moveTo(o, tx, ty, spd, dt) {
 /* ----- 每一格的更新 ----- */
 function sceneUpdate(dt) {
   SC.t += dt;
+  if ((SC.safeT -= dt) <= 0) { SC.safeT = .5; measureSafe(); }
+  const SB = safeBox();
   SC.checkT = (SC.checkT || 0) - dt;
   if (SC.lost || (SC.checkT <= 0 && !sceneArtOk())) sceneRefreshArt();
   if (SC.checkT <= 0) SC.checkT = 1;
@@ -5719,7 +5760,8 @@ function sceneUpdate(dt) {
       const dx = e.x - P.x, dy = e.y - P.y, d = Math.hypot(dx, dy) || 1, rad = ringR(e);
       let tx = P.x + dx / d * rad, ty = P.y + dy / d * rad * .75;
       for (const [u2, o] of SC.ents) if (u2 !== uid && !o.die) { const ox = e.x - o.x, oy = e.y - o.y, od = Math.hypot(ox, oy); if (od < 15 && od > .01) { tx += ox / od * 7; ty += oy / od * 7; } }
-      e.moving = moveTo(e, tx, ty, e.rank === 'boss' ? 24 : 34, dt);
+      e.moving = moveTo(e, clampIn(tx, SB.x0, SB.x1), clampIn(ty, SB.y0, SB.y1), e.rank === 'boss' ? 24 : 34, dt);
+      nudgeIn(e, SB, dt);
     } else e.moving = false;
     e.face = P.x > e.x ? 1 : -1;
   }
@@ -5746,20 +5788,22 @@ function sceneUpdate(dt) {
   else if (mode === 'fight' && T && !T.die) {
     const dx = T.x - P.x, dy = T.y - P.y, d = Math.hypot(dx, dy), want2 = Math.max(reach + T.size * .22, ringR(T));
     // 只有離得比魔物圍上來的距離還遠時才靠過去，避免一邊打一邊把魔物推到地圖邊
-    if (d > want2 + 6) walking = moveTo(P, T.x - dx / d * want2, T.y - dy / d * want2 * .8, 58, dt);
+    if (d > want2 + 6) walking = moveTo(P, clampIn(T.x - dx / d * want2, SB.x0, SB.x1), clampIn(T.y - dy / d * want2 * .8, SB.y0, SB.y1), 58, dt);
     P.face = dx >= 0 ? 1 : -1; P.st = walking ? 'walk' : 'idle';
   } else {
     if (P.pause > 0) P.pause -= dt;
     else {
-      if (!P.pt) { const a = Math.random() * 6.28, r = 30 + Math.random() * 60; P.pt = [Math.max(24, Math.min(SC.WW - 24, P.x + Math.cos(a) * r)), Math.max(34, Math.min(SC.WH - 12, P.y + Math.sin(a) * r * .7))]; }
+      if (!P.pt) { const a = Math.random() * 6.28, r = 30 + Math.random() * 60; P.pt = [clampIn(P.x + Math.cos(a) * r, SB.x0, SB.x1), clampIn(P.y + Math.sin(a) * r * .7, SB.y0, SB.y1)]; }
       walking = moveTo(P, P.pt[0], P.pt[1], 26, dt);
       if (!walking) { P.pt = null; P.pause = .4 + Math.random() * 1.4; }
     }
     P.st = walking ? 'walk' : 'idle';
   }
   if (walking) P.walkT += dt;
-  // 鏡頭
-  const cx = P.x - SC.lw / 2, cy = P.y - SC.lh / 2 - 6;
+  if (P.st !== 'down') nudgeIn(P, SB, dt);
+  // 鏡頭：主角放在沒被介面蓋住的範圍正中間
+  const k = SC.PX || 3, S = SC.safe;
+  const cx = P.x - (S.l + (SC.W - S.l - S.r) / 2) / k, cy = P.y - 12 - (S.t + (SC.H - S.t - S.b) / 2) / k;
   SC.cam.x += (cx - SC.cam.x) * Math.min(1, dt * 3); SC.cam.y += (cy - SC.cam.y) * Math.min(1, dt * 3); clampCam();
   // 特效、文字
   for (const f of SC.fx) f.t += dt;
@@ -5835,6 +5879,13 @@ function drawPlayer(x, P, cam, t) {
   if (GAME.weapons[st.weapon].item === '寶輪' && !(P.ringOut > 0)) drawRing(x, ringPos(P, t), cam, t);
   x.drawImage(fr[dir], X, Y - hop);
   if (P.hurt > .04) { x.globalAlpha = .45; x.drawImage(F.hurt[dir], X, Y); x.globalAlpha = 1; }
+  // v0.24.2 有護盾時，主角身上罩一層淺藍色的光（盾越厚越亮）
+  if (rt.shield >= 1 && rt.d) {
+    const k = Math.min(1, rt.shield / rt.d.maxHp * 2.5), cx = Math.round(P.x - cam.x), cy = Math.round(P.y - cam.y - 13 - hop);
+    x.save(); x.beginPath(); x.ellipse(cx, cy, 12, 16, 0, 0, Math.PI * 2);
+    x.globalAlpha = (.1 + .12 * k) * (1 + .25 * Math.sin(t * 3)); x.fillStyle = '#a9d6ff'; x.fill();
+    x.globalAlpha = .35 + .35 * k; x.strokeStyle = '#d8eeff'; x.lineWidth = 1; x.stroke(); x.restore();
+  }
 }
 // 寶輪：浮在主角身後、肩膀上方，慢慢上下飄，一顆亮點繞著轉
 function ringPos(P, t) { return [P.x - P.face * 7, P.y - 24 + Math.sin(t * 2.2) * 1.5]; }
@@ -6017,7 +6068,7 @@ function zoneTitle() {
 function drawTitle(c) {
   const T = SC.title; if (!T || T.t < 0) return;
   const tt = T.t, out = T.life - tt < .8 ? Math.max(0, (T.life - tt) / .8) : 1;
-  const X = SC.W / 2, Y = SC.H * .24, size = Math.round(Math.min(34, SC.W * .085)), sp = size * .32;
+  const size = Math.round(Math.min(34, SC.W * .085)), sp = size * .32, X = SC.W / 2, Y = Math.max(SC.H * .24, SC.safe.t + size * 1.35 + 6); // v0.24.3 不要被魔物血條擋住
   const chars = [...T.s];
   c.save();
   // 襯底：一條淡淡的暗帶
@@ -6092,7 +6143,7 @@ function drawLabels(c, cam, PX, t) {
 function drawBanner(c) {
   const B = SC.banner; if (!B) return;
   const k = B.t / B.life, a = k < .12 ? k / .12 : k > .8 ? (1 - k) / .2 : 1, pop = k < .12 ? .7 + .3 * (k / .12) + Math.sin(k / .12 * Math.PI) * .12 : 1;
-  const X = SC.W / 2, Y = SC.H * .3;
+  const X = SC.W / 2, Y = Math.max(SC.H * .3, SC.safe.t + 46);
   c.globalAlpha = Math.max(0, a);
   if (B.glow) { const g = c.createRadialGradient(X, Y - 8, 4, X, Y - 8, 120); g.addColorStop(0, 'rgba(242,213,138,.35)'); g.addColorStop(1, 'rgba(242,213,138,0)'); c.fillStyle = g; c.fillRect(X - 130, Y - 70, 260, 120); }
   c.save(); c.translate(X, Y); c.scale(pop, pop);
@@ -6135,10 +6186,10 @@ function sceneEvent(e) {
       say(P.x, P.y - 30, e.name, '#f2d58a', 13, { life: 1.1, dx: 0, rise: 16, w: 700 });
       P.atk = .25; lightAdd(P.x, P.y - 12, e.aoe ? 62 : 40, acc, .45);
       if (e.aoe) { fxAdd({ k: 'ring', x: P.x, y: P.y - 4, r0: 4, r1: 48, c: acc, life: .45 }); fxAdd({ k: 'ring', x: P.x, y: P.y - 4, r0: 2, r1: 34, c: '#ffffff', life: .35 }); }
-      for (const s of e.fx || []) { const m = /回復 (\d+)/.exec(s); if (m) { say(P.x, P.y - 32, '+' + fmt(+m[1]), '#8af0a8', 14, { dx: 0, life: 1 }); burst(P.x, P.y - 10, '#8af0a8', 8, 18, .7, 16); } else if (/護盾/.test(s)) fxAdd({ k: 'ring', x: P.x, y: P.y - 10, r0: 10, r1: 13, c: '#9fd8ff', life: .7 }); }
+      for (const s of e.fx || []) { const m = /回復 (\d+)/.exec(s); if (m) { say(P.x, P.y - 32, '+' + fmt(+m[1]), '#8af0a8', 14, { dx: 0, life: 1 }); burst(P.x, P.y - 10, '#8af0a8', 8, 18, .7, 16); } else { const g = /護盾 (\d+)/.exec(s); if (g) { fxAdd({ k: 'ring', x: P.x, y: P.y - 10, r0: 10, r1: 13, c: '#9fd8ff', life: .7 }); say(P.x, P.y - 44, '盾 ' + fmt(+g[1]), '#a9d6ff', 12, { dx: 0, life: 1 }); } } }
       break;
     }
-    case 'proc': { const m = /回復 (\d+)/.exec(e.text || ''); if (m) { say(P.x, P.y - 32, '+' + fmt(+m[1]), '#8af0a8', 13, { dx: 0 }); burst(P.x, P.y - 10, '#8af0a8', 6, 16, .6, 14); } else if (!e.quiet) say(P.x, P.y - 36, e.name, '#e6c77a', 11, { dx: 0, rise: 12 }); break; }
+    case 'proc': { const m = /回復 (\d+)/.exec(e.text || ''), g = /護盾 (\d+)/.exec(e.text || ''); if (g) { fxAdd({ k: 'ring', x: P.x, y: P.y - 10, r0: 10, r1: 13, c: '#9fd8ff', life: .7 }); say(P.x, P.y - 44, '盾 ' + fmt(+g[1]), '#a9d6ff', 12, { dx: 0, life: 1 }); if (!e.quiet) say(P.x, P.y - 32, e.name, '#e6c77a', 11, { dx: 0, rise: 12 }); break; } if (m) { say(P.x, P.y - 32, '+' + fmt(+m[1]), '#8af0a8', 13, { dx: 0 }); burst(P.x, P.y - 10, '#8af0a8', 6, 16, .6, 14); } else if (!e.quiet) say(P.x, P.y - 36, e.name, '#e6c77a', 11, { dx: 0, rise: 12 }); break; }
     case 'potion': say(P.x, P.y - 32, e.v ? '+' + fmt(e.v) : e.name, e.v ? '#8af0a8' : '#9fd8ff', 13, { dx: 0 }); burst(P.x, P.y - 10, e.v ? '#8af0a8' : '#9fd8ff', 8, 16, .7, 16); break;
     case 'kill': if (ent) { SC.lastKill = { x: ent.x, y: ent.y }; burst(ent.x, ent.y - ent.size * .4, '#d8d2c8', 10, 22, .6); if (e.got && Object.keys(e.got).length) { fxAdd({ k: 'beam', x: ent.x, y: ent.y, c: '#e6c77a', life: .6 }); } } break;
     case 'loot': { const L = SC.lastKill || P, Q = GAME.gear.quality[e.q]; if (e.q >= 2) fxAdd({ k: 'beam', x: L.x, y: L.y, c: Q.color, life: 1.4 }); say(L.x, L.y - 20, e.name, Q.color, e.q >= 3 ? 13 : 11, { dx: 0, life: 1.6, rise: 20 }); break; }
@@ -6174,7 +6225,7 @@ function sceneSize() {
   SC.lw = Math.ceil(SC.W / SC.PX); SC.lh = Math.ceil(SC.H / SC.PX);
   SC.cv.width = Math.round(SC.W * SC.dpr); SC.cv.height = Math.round(SC.H * SC.dpr);
   const [lo, lx] = mkCv(SC.lw, SC.lh); SC.lo = lo; SC.lx = lx; SC.cx = SC.cv.getContext('2d');
-  clampCam(); initAmb();
+  SC.miB = 0; measureSafe(); clampCam(); initAmb();
 }
 function sceneInit() {
   SC.cv = $('#scv'); if (!SC.cv) return;
@@ -6757,6 +6808,18 @@ function audPanel() {
    有新版本時齒輪上會有紅點、設定頁裡的按鈕有「新」，打開看過就消失（看過的版本記在 localStorage 'yujian-seen-ver'）。
    這個檔案由 build.py 塞進 template.html 的 CHANGELOG 標記處 */
 const CHANGELOG = [
+  { v: '0.24.3', d: '2026-11-25', items: [
+    '主角和正在打的魔物不會再走到主線卡、魔物血條、功能鍵、戰鬥紀錄底下；鏡頭把主角放在沒被擋住的範圍正中間',
+    '進入新地區的地名、爬塔的橫幅，改到魔物血條下面出現，不會再被擋住',
+    '功能鍵重新排：左邊是武器、城鎮、圖鑑；右邊依序是背包・裝備、屬性、技能、強化、命格',
+    '地圖鍵拿掉了：點左上角的地名就會打開地圖（地名旁邊多一個小地圖圖示）',
+    '背包・裝備裡分成穿戴、行囊、物品三頁；強化獨立成一頁，跟屬性、技能、命格放在同一排分頁，可以直接切換'
+  ] },
+  { v: '0.24.2', d: '2026-11-25', items: [
+    '看得到護盾了：有護盾時主角身上罩一層淺藍色的光，盾越厚越亮；盾破了光就消失',
+    '血條後面多一段淺藍色，長度就是護盾能吸收的量（血滿的時候從右邊蓋上去）；電腦上滑鼠停在血條上會顯示護盾的數字',
+    '張開護盾的那一下，主角頭上跳「盾」和護盾的數字'
+  ] },
   { v: '0.24.1', d: '2026-11-25', items: [
     '平板、電腦這類寬螢幕：功能頁固定在右邊，戰鬥畫面一直看得到；點戰鬥畫面上的功能鍵就換頁，設定、戰鬥紀錄關掉後回到上一頁',
     '再寬一點（平板橫放、電腦）：左邊多一欄，放位階和功績、三張懸賞的進度（完成了可以直接回報）、完整的戰鬥紀錄',
@@ -6966,7 +7029,7 @@ function handle(e) {
       const got = Object.entries(e.got).map(([k, n]) => k + '×' + n).join('、');
       addLog('擊倒' + e.label + '，經驗 +' + e.exp + '，銀兩 +' + e.silver + (got ? '，<span class="k-gold">獲得 ' + got + '</span>' : ''));
       renderExplore();
-      if (!(tab === 'gear' && gearTab !== 'sword')) panelDirty = true; break;
+      if (tab !== 'gear') panelDirty = true; break;
     }
     case 'loot': {
       const Q = GAME.gear.quality[e.q], nm = '<span style="color:' + Q.color + '">' + e.name + '</span>（' + Q.name + '）';
@@ -7015,7 +7078,14 @@ function renderHero() {
   const lvT = 'Lv.' + st.lv; if ($('#pLv').textContent !== lvT) $('#pLv').textContent = lvT;
   const need = expNeed(st.lv);
   $('#expBar').style.width = Math.min(100, st.exp / need * 100) + '%'; $('#expTxt').textContent = '經驗 ' + Math.floor(st.exp / need * 100) + '%';
-  $('#hpBar').style.width = (st.hp / d.maxHp * 100) + '%'; $('#hpTxt').textContent = fmt(Math.ceil(st.hp)) + '／' + fmt(d.maxHp);
+  // v0.24.2 護盾：血條後面接一段淺藍色（滿血時從右邊蓋上去）；數字寫在血量後面會把血條擠得太短，所以只放在長按提示
+  const hpP = st.hp / d.maxHp * 100, sh = rt.mode !== 'down' && rt.shield >= 1 ? rt.shield : 0, shP = Math.min(100, sh / d.maxHp * 100), sb = $('#shBar');
+  $('#hpBar').style.width = hpP + '%';
+  if (sh) { sb.style.display = 'block'; sb.style.left = Math.max(0, Math.min(hpP, 100 - shP)) + '%'; sb.style.width = shP + '%'; } else if (sb.style.display !== 'none') sb.style.display = 'none';
+  const hpT = fmt(Math.ceil(st.hp)) + '／' + fmt(d.maxHp);
+  if (hpT !== lastHpT) { $('#hpTxt').textContent = hpT; lastHpT = hpT; }
+  const shT = sh ? '護盾 ' + fmt(Math.round(sh)) : '';
+  if ($('#hpBarWrap').title !== shT) $('#hpBarWrap').title = shT;
   $('#enName').textContent = d.enName;
   $('#enBar').style.width = (st.en / d.maxEn * 100) + '%'; $('#enTxt').textContent = fmt(st.en);
   $('#silver').textContent = '銀兩 ' + fmt(st.silver);
@@ -7036,7 +7106,7 @@ function renderLoc() {
   }
   $('#loc').className = 'loc';
   const z = zoneById(st.zone);
-  $('#loc').innerHTML = '<button class="where" data-t="map" aria-label="打開地圖"><small>' + z.chapter + '・' + z.place + '</small><b>' + z.name + '</b><em>魔物 ' + zoneLvText(z) + '</em><span class="xrow"><span class="xbar"><i id="xbar"></i></span><span class="xt" id="xt"></span></span></button>';
+  $('#loc').innerHTML = '<button class="where" data-t="map" aria-label="打開地圖"><small>' + z.chapter + '・' + z.place + '</small><b>' + z.name + '<svg class="mapic" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4 3 6v14l6-2 6 2 6-2V4l-6 2-6-2zM9 4v14M15 6v14"/></svg></b><em>魔物 ' + zoneLvText(z) + '</em><span class="xrow"><span class="xbar"><i id="xbar"></i></span><span class="xt" id="xt"></span></span></button>';
   renderExplore();
 }
 // 探索度：每次擊倒只更新數字跟進度條
@@ -7200,6 +7270,7 @@ function ultShow(name, label, calm) {
 function renderLog() { $('#log').innerHTML = logs.slice(0, 3).reverse().map(l => '<div>' + l + '</div>').join(''); if (tab === 'log') panelDirty = true; sideLog = true; }
 // v0.24.1 寬螢幕左欄：位階、懸賞進度、完整的戰鬥紀錄
 let sideLog = true, sideAt = 0, sideRank = '', sideBnty = '';
+let lastHpT = '';
 function renderSide(force) {
   if (!isWide3()) return;
   const now = Date.now();
@@ -7254,14 +7325,14 @@ function gearHint() { return st.gear.some(it => it.isNew && (it.q === 4 || (gear
 function renderTabs() {
   document.querySelectorAll('#tabs button, .side .fn, .setbtn').forEach(b => {
     b.classList.toggle('on', b.dataset.t === tab);
-    const dot = (b.dataset.t === 'quest' && (questReady() || (featureOpen(st, 'board') && st.board.some(r => (st.mats[r.mat] || 0) >= r.n)))) || (b.dataset.t === 'gear' && (forgeReady() || gearHint())) || (b.dataset.t === 'fate' && fateHint()) || (b.dataset.t === 'stats' && pointsFree(st, st.weapon) > 0) || (b.dataset.t === 'skill' && bookHint()) || (b.dataset.t === 'quest' && towerOpen(st) && !GAME.towers.some(T => towerBest(st, T.id) > 0)) || (b.dataset.t === 'codex' && codexReady()) || (b.dataset.t === 'settings' && changelogSeen() !== GAME.meta.version);
+    const dot = (b.dataset.t === 'quest' && (questReady() || (featureOpen(st, 'board') && st.board.some(r => (st.mats[r.mat] || 0) >= r.n)))) || (b.dataset.t === 'gear' && gearHint()) || (b.dataset.t === 'sword' && forgeReady()) || (b.dataset.t === 'fate' && fateHint()) || (b.dataset.t === 'stats' && pointsFree(st, st.weapon) > 0) || (b.dataset.t === 'skill' && bookHint()) || (b.dataset.t === 'quest' && towerOpen(st) && !GAME.towers.some(T => towerBest(st, T.id) > 0)) || (b.dataset.t === 'codex' && codexReady()) || (b.dataset.t === 'settings' && changelogSeen() !== GAME.meta.version);
     const has = b.querySelector('.dot');
     if (dot && !has) b.insertAdjacentHTML('beforeend', '<span class="dot"></span>');
     if (!dot && has) has.remove();
   });
 }
 
-// v0.24：原本的「背包」併進「裝備・行囊」的「物品」
+// v0.24：原本的「背包」併進「背包・裝備」的「物品」
 function itemsPanel() {
     let h = '<div class="sec"><h3>銀兩 ' + fmt(st.silver) + '</h3></div>';
     h += '<div class="sec"><h3>藥品</h3><label class="toggle"><span>血量低於多少時，自動服用回復藥</span><select id="potThr">' + GAME.potionRules.thresholds.map(t => '<option value="' + t + '"' + (st.potion.thr === t ? ' selected' : '') + '>' + Math.round(t * 100) + '%</option>').join('') + '</select></label>';
@@ -7286,8 +7357,8 @@ function itemsPanel() {
     return h + '</div>';
 }
 // v0.24：功能都放在從下面拉上來的頁面裡；tab 是 null 就是關著，只看戰鬥畫面
-const SHEET_T = { map: '地圖', quest: '城鎮', codex: '魔物圖鑑', stats: '屬性', skill: '技能', gear: '裝備・行囊', weapon: '武器', fate: '命格', settings: '設定', log: '戰鬥紀錄', sword: '部位強化' };
-const CHAR_TABS = ['stats', 'skill', 'gear', 'weapon', 'fate'];
+const SHEET_T = { map: '地圖', quest: '城鎮', codex: '魔物圖鑑', stats: '屬性', skill: '技能', gear: '背包・裝備', weapon: '武器', fate: '命格', settings: '設定', log: '戰鬥紀錄', sword: '強化' };
+const CHAR_TABS = ['stats', 'skill', 'sword', 'fate']; // v0.24.3：背包・裝備、武器各自獨立
 // v0.24.1 寬螢幕：功能頁固定在右邊，不會關起來（設定、戰鬥紀錄關掉後回到上一頁）
 const mq = q => { try { return window.matchMedia(q); } catch (e) { return null; } };
 const WIDE = mq('(min-width:760px) and (min-height:500px)'), WIDE3 = mq('(min-width:1180px) and (min-height:500px)');
@@ -7329,11 +7400,11 @@ function renderPanel() {
   } else if (tab === 'skill') {
     p.innerHTML = skillPanel(st.weapon, d, true);
   } else if (tab === 'gear') {
-    let h = '<div class="subtabs four"><button data-gt="wear" class="' + (gearTab === 'wear' ? 'on' : '') + '">穿戴</button><button data-gt="bag" class="' + (gearTab === 'bag' ? 'on' : '') + '">行囊（' + st.gear.length + '）</button><button data-gt="sword" class="' + (gearTab === 'sword' ? 'on' : '') + '">強化</button><button data-gt="items" class="' + (gearTab === 'items' ? 'on' : '') + '">物品</button></div>';
+    if (gearTab === 'sword') gearTab = 'wear'; // v0.24.3 強化獨立成一頁
+    let h = '<div class="subtabs three"><button data-gt="wear" class="' + (gearTab === 'wear' ? 'on' : '') + '">穿戴</button><button data-gt="bag" class="' + (gearTab === 'bag' ? 'on' : '') + '">行囊（' + st.gear.length + '）</button><button data-gt="items" class="' + (gearTab === 'items' ? 'on' : '') + '">物品</button></div>';
     if (gearTab === 'wear') p.innerHTML = h + gearWear();
     else if (gearTab === 'bag') { p.innerHTML = h + gearBag(); sawBag = true; }
-    else if (gearTab === 'items') p.innerHTML = h + itemsPanel();
-    else p.innerHTML = h + forgePanel();
+    else p.innerHTML = h + itemsPanel();
   } else if (tab === 'fate') {
     p.innerHTML = fatePanel();
   } else if (tab === 'sword') {
