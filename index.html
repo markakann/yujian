@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#121315">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>天星界・御劍者 v0.24.3</title>
+<title>天星界・御劍者 v0.24.4</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -483,6 +483,11 @@ button:active:not(:disabled){transform:scale(.95)}
 .skbar .sk.noen .ic{filter:saturate(.4) brightness(.75)}
 .skbar .nm{font-size:11px;color:var(--muted);white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
 .skbar .sk.off .nm::after{content:'（關）'}
+.skbar .sk{-webkit-touch-callout:none;user-select:none;-webkit-user-select:none;touch-action:manipulation}
+.skbar .sk.tap .ic{animation:skTap .28s ease-out}
+.skbar .sk.deny .ic{animation:skDeny .3s ease-in-out}
+@keyframes skTap{0%{transform:scale(.86)}60%{transform:scale(1.06)}100%{transform:scale(1)}}
+@keyframes skDeny{0%,100%{transform:translateX(0)}25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
 .potbar{display:flex;gap:6px;align-items:stretch;margin-top:8px;padding:6px;border:1px solid var(--line);border-radius:10px;background:var(--panel2);overflow-x:auto}
 .potbar .lab{writing-mode:vertical-rl;font-size:11px;color:var(--gold);letter-spacing:.2em;padding:2px 0;align-self:center}
 .potbar .pt{position:relative;flex:0 0 auto;width:48px;height:48px;border-radius:9px;border:1px solid var(--line);background:var(--panel);font-family:var(--serif);font-size:19px;color:var(--text);padding:0;overflow:hidden}
@@ -780,7 +785,7 @@ body{min-height:0;padding:0}
 
 /* ---------- 遊戲資料：名稱、數值都集中在這裡，改這裡就好 ---------- */
 const GAME = {
-  meta: { title: '天星界・御劍者', subtitle: '暫定名稱', version: '0.24.3', era: '仙曆五百餘年' },
+  meta: { title: '天星界・御劍者', subtitle: '暫定名稱', version: '0.24.4', era: '仙曆五百餘年' },
 
   // 八項資源系統（順序固定，星數陣列照這個順序）
   statNames: ['力量', '抵擋', '體力', '敏捷', '智慧', '守護', '靈力', '控制'],
@@ -3206,6 +3211,22 @@ function pickActive(st, rt) {
   }
   return null;
 }
+// v0.24.4 手動放招（點下面的招式欄）：冷卻好、氣力夠就馬上放。這一下算一次出手，下一次出手重新計時，
+// 所以手動不會比自動多打。招式本身的條件（血量低於多少、要有中毒的魔物）照算；自己設的施放條件不管（手動就是現在要放）
+function castManual(st, rt, i) {
+  if (!rt || rt.mode !== 'fight' || !alive(rt).length) return { ok: false, why: 'idle' };
+  if (rt.bound > 0) return { ok: false, why: 'bound' };
+  const r = rt.d.actives.find(x => x.i === i); if (!r) return { ok: false, why: 'none' };
+  const cd = rt.cds[i] || 0; if (cd > 0) return { ok: false, why: 'cd', t: cd };
+  if (st.en < r.s.cost) return { ok: false, why: 'en', need: r.s.cost };
+  if (r.s.hpBelow && st.hp > rt.d.maxHp * r.s.hpBelow) return { ok: false, why: 'hp', v: r.s.hpBelow };
+  if (r.s.needDot && !alive(rt).some(x => x.dot && x.dot.t > 0)) return { ok: false, why: 'dot' };
+  if (!rt.mob || rt.mob.dead || rt.mob.hp <= 0) rt.mob = alive(rt)[0];
+  castActive(st, rt, r);
+  rt.pTimer = Math.max(rt.pTimer, rt.d.interval / (1 + (rt.haste.n ? rt.haste.n * rt.haste.v : 0)));
+  reap(st, rt);
+  return { ok: true };
+}
 function castActive(st, rt, r) {
   const d = rt.d, s = r.s, main = rt.mob, FT = d.fate || {};
   st.en -= s.cost; rt.cds[r.i] = s.cd * (1 - d.cdr);
@@ -3439,7 +3460,7 @@ function spawnGroup(st) {
   for (const m of list) cnt[m.name] = (cnt[m.name] || 0) + 1;
   list.forEach((m, i) => {
     m.uid = ++MOB_UID;
-    if (cnt[m.name] > 1) { idx[m.name] = idx[m.name] || 0; m.label = m.name + '甲乙丙丁戊己庚辛壬癸'[idx[m.name]++]; } else m.label = m.name;
+    m.label = m.name; // v0.24.4 同一批同名的不再分甲乙丙
     m.timer = m.interval * (0.6 + 0.3 * i) + delay; // 錯開出手時間；遠程武器多一段接近時間
   });
   return list;
@@ -3648,7 +3669,7 @@ function towerGroup(st, rt) {
   rt.tower.amp = T.id === 'star' ? 1.3 : 0;
   const cnt = {}, idx = {};
   for (const m of list) cnt[m.name] = (cnt[m.name] || 0) + 1;
-  for (const m of list) { if (cnt[m.name] > 1) { idx[m.name] = idx[m.name] || 0; m.label = m.name + '甲乙丙丁戊己庚辛壬癸'[idx[m.name]++]; } else m.label = m.name; }
+  for (const m of list) m.label = m.name; // v0.24.4 同一批同名的不再分甲乙丙
   return list;
 }
 // 通過一層：第一次通過才有獎勵；接著往上一層
@@ -4717,7 +4738,7 @@ if (typeof module !== 'undefined') module.exports = {
   receiveGear, bestGear, ensureWeaponGear, reviveCost, revive, tierFx, tierLine, mainCh,
   exploreOf, explored, zoneLvOk, zoneExploreOk, placesDone, drinkItem,
   rankOf, rankName, rankByMerit, examReady, examStart, deeds, towerOpen, towerNext, towerById, towerBest, towerUnlocked, towerStart, towerEnd, makeMob,
-  skillKnown, ultKnown, hasBook, bookName, bookLv, buyBook, exchangePages, gainBook, readBooks, castUlt, ultReady, skillCfg, setSkillCfg, activeOrder, moveSkill, learnBook,
+  skillKnown, ultKnown, hasBook, bookName, bookLv, buyBook, exchangePages, gainBook, readBooks, castUlt, ultReady, castManual, skillCfg, setSkillCfg, activeOrder, moveSkill, learnBook,
   atkShare, shareWord, atkSum,
   skillUpLv, barCount, shopBooks, skillLand, ultLv, ultMult, ultUpCost, upgradeUlt, ultGain, skillT, skillDmgX,
   castActive, hitMob, dmgCalc, pickActive, skillValue, equipCount, rollIdx, playableWeapons, autoSalvageable, gearOwner, salvageValue, namedDir
@@ -6808,6 +6829,12 @@ function audPanel() {
    有新版本時齒輪上會有紅點、設定頁裡的按鈕有「新」，打開看過就消失（看過的版本記在 localStorage 'yujian-seen-ver'）。
    這個檔案由 build.py 塞進 template.html 的 CHANGELOG 標記處 */
 const CHANGELOG = [
+  { v: '0.24.4', d: '2026-11-25', items: [
+    '點下面的招式欄就會放那一招（冷卻好、氣力夠的時候）；冷卻中或氣力不夠會跳提示。長按招式 0.5 秒打開技能頁，空格點了也是打開技能頁',
+    '手動放招算一次出手，下一次出手重新計時，所以不會比自動打得多；只是可以挑時機',
+    '招式欄只放開著「自動施放」的招（最多 5 格）',
+    '同一批出現的同種魔物不再分甲、乙、丙'
+  ] },
   { v: '0.24.3', d: '2026-11-25', items: [
     '主角和正在打的魔物不會再走到主線卡、魔物血條、功能鍵、戰鬥紀錄底下；鏡頭把主角放在沒被擋住的範圍正中間',
     '進入新地區的地名、爬塔的橫幅，改到魔物血條下面出現，不會再被擋住',
@@ -7202,13 +7229,14 @@ let lastSk = '', lastPot = '', lastBoost = '';
 function renderBars() {
   const d = rt.d, w = st.weapon, look = (typeof WLOOK !== 'undefined' && WLOOK[w]) || ['#555', '#222', '#c9a45c'];
   // 技能列：結構有變才重畫，冷卻數字每次只改字
-  const custom = st.skillOrder && st.skillOrder[w], acts = custom ? activeOrder(st, d) : d.actives.slice().sort((a, b) => a.i - b.i), sk = $('#skBar');
+  // v0.24.4 招式欄只放開著「自動施放」的招（最多 5 格），點一下手動放
+  const custom = st.skillOrder && st.skillOrder[w], acts = (custom ? activeOrder(st, d) : d.actives.slice().sort((a, b) => a.i - b.i)).filter(r => skillCfg(st, w, r.i).on), sk = $('#skBar');
   const key = w + ':' + acts.map(r => r.i + (skillCfg(st, w, r.i).on ? '' : 'x')).join(',');
   if (key !== lastSk) {
     lastSk = key;
     // v0.24：招式欄固定 5 格，空的格子點了打開「技能」
     const empty = Math.max(0, (GAME.skillBar || 5) - acts.length);
-    sk.innerHTML = acts.map(r => '<button class="sk" data-sk="' + r.i + '" style="--c:' + look[2] + '"><span class="ic">' + (r.s.ic || r.s.name[0]) + '<i></i><b></b></span><span class="nm">' + r.s.name + '</span></button>').join('') +
+    sk.innerHTML = acts.map(r => '<button class="sk" data-sk="' + r.i + '" aria-label="' + r.s.name + '：點一下施放，長按看技能" style="--c:' + look[2] + '"><span class="ic">' + (r.s.ic || r.s.name[0]) + '<i></i><b></b></span><span class="nm">' + r.s.name + '</span></button>').join('') +
       '<button class="sk empty" data-sk="" aria-label="空的招式欄，打開技能"><span class="ic">＋</span><span class="nm">空格</span></button>'.repeat(empty);
   }
   for (const r of acts) {
@@ -8121,6 +8149,15 @@ document.addEventListener('change', ev => {
 });
 $('#potBar').addEventListener('scroll', potPage, { passive: true });
 $('#sheetBg').addEventListener('click', () => closeSheet());
+// v0.24.4 長按招式欄 0.5 秒：打開技能頁（點一下是放招）
+const skHold = { t: 0, done: false };
+(() => {
+  const bar = $('#skBar'); if (!bar) return;
+  const stop = () => { clearTimeout(skHold.t); skHold.t = 0; };
+  bar.addEventListener('pointerdown', e => { skHold.done = false; const b = e.target.closest('.sk'); if (!b || b.dataset.sk === '') return; stop(); skHold.t = setTimeout(() => { skHold.done = true; skHold.t = 0; openSheet('skill'); }, 500); });
+  ['pointerup', 'pointerleave', 'pointercancel'].forEach(n => bar.addEventListener(n, stop));
+  bar.addEventListener('contextmenu', e => e.preventDefault());
+})();
 // v0.24.1 平板轉橫、轉直：寬螢幕功能頁固定在右邊；變回窄的就關起來，回到戰鬥畫面
 function onWideChange() { if (!isWide()) tab = null; panelDirty = true; if (st) { renderTabs(); renderPanel(); renderSide(true); } }
 [WIDE, WIDE3].forEach(m => { if (!m) return; try { m.addEventListener('change', onWideChange); } catch (e) { try { m.addListener(onWideChange); } catch (e2) {} } });
@@ -8165,7 +8202,19 @@ document.addEventListener('click', ev => {
   if (t.dataset.gobook) { bookW = t.dataset.gobook; townTab = 'book'; openSheet('quest'); return; }
   if (t.dataset.buybook) { if (buyBook(st, rt, t.dataset.buybook, +t.dataset.i)) { for (const e of rt.events) handle(e); rt.events.length = 0; save(); } renderAll(); return; }
   if (t.dataset.pages) { if (exchangePages(st, rt, t.dataset.pages)) { for (const e of rt.events) handle(e); rt.events.length = 0; toast('換到' + bookName(t.dataset.pages, 'u')); save(); } renderAll(); return; }
-  if (t.dataset.sk !== undefined) { openSheet('skill'); return; }
+  // v0.24.4 點招式欄：有招就手動放（長按打開技能頁），空格打開技能頁
+  if (t.dataset.sk !== undefined) {
+    if (skHold.done) { skHold.done = false; if (t.dataset.sk !== '') return; }
+    if (t.dataset.sk === '') { openSheet('skill'); return; }
+    const r = castManual(st, rt, +t.dataset.sk);
+    if (r.ok) { t.classList.remove('tap'); void t.offsetWidth; t.classList.add('tap'); renderBars(); }
+    else {
+      const en = rt.d.enName || '氣力';
+      toast(r.why === 'cd' ? '還在冷卻，' + r.t.toFixed(1) + ' 秒後可以放' : r.why === 'en' ? en + '不夠，要 ' + r.need : r.why === 'hp' ? '血量低於 ' + Math.round(r.v * 100) + '% 才能放' : r.why === 'dot' ? '要先有中毒的魔物' : r.why === 'bound' ? '被定住了，放不出招' : '沒有在戰鬥');
+      t.classList.remove('deny'); void t.offsetWidth; t.classList.add('deny');
+    }
+    return;
+  }
   if (t.dataset.pot) {
     const r = drinkItem(st, rt, t.dataset.pot);
     if (r.ok) { pulse(t, 'used'); for (const e of rt.events) handle(e); rt.events.length = 0; renderLog(); save(); lastPot = ''; renderBars(); } else if (r.why) toast(r.why);
