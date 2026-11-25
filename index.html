@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#121315">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>天星界・御劍者 v0.21</title>
+<title>天星界・御劍者 v0.21.1</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -596,7 +596,7 @@ button:active:not(:disabled){transform:scale(.95)}
 
 /* ---------- 遊戲資料：名稱、數值都集中在這裡，改這裡就好 ---------- */
 const GAME = {
-  meta: { title: '天星界・御劍者', subtitle: '暫定名稱', version: '0.21', era: '仙曆五百餘年' },
+  meta: { title: '天星界・御劍者', subtitle: '暫定名稱', version: '0.21.1', era: '仙曆五百餘年' },
 
   // 八項資源系統（順序固定，星數陣列照這個順序）
   statNames: ['力量', '抵擋', '體力', '敏捷', '智慧', '守護', '靈力', '控制'],
@@ -1577,7 +1577,7 @@ GAME.books = {
   dropAhead: 5,                             // 掉落只掉學會等級不超過「目前等級＋5」的書
   drop: { normal: 0.002, elite: 0.10, boss: 0.10 },   // 魔物掉落技能書
   ultDrop: { elite: 0.04, boss: 0.06 },     // 精英、首領掉落天御書
-  pageDrop: { elite: 0.4, boss: 1 },        // 天御殘頁
+  pageDrop: { elite: 0.15, boss: 0.35 },    // 天御殘頁（v0.21：稀有素材，只靠精英、首領掉落，主線前段和守塔者另外給一點）
   pages: 10                                 // 幾張殘頁換一本天御書
 };
 GAME.bookNpc = { name: '沈硯', title: '天霖市・墨香書肆掌櫃', seal: '硯', land: '天霖國', line: '書裡的招式，看得懂的人才帶得走。' };
@@ -1906,7 +1906,7 @@ GAME.main2 = {
     { title: '殘頁', zone: 'lq1', lv: 24, npc: '柳青臺・說書人',
       lines: ['我說了三十年御劍者的故事，頭一回在柳樹底下撿到真的。', '一頁一頁散在堤上，字是手抄的，墨還沒乾透。'],
       goal: { type: 'kill', keys: ['liuxu', 'qingshe'], n: 20 }, goalText: '擊倒柳絮靈或青蛇 20 隻',
-      reward: { silver: 3500, expPct: 0.15, pages: 2 } },
+      reward: { silver: 3500, expPct: 0.15, pages: 4 } },
     { title: '柳下', zone: 'lq3', lv: 25, npc: '柳青臺・說書人',
       lines: ['柳妖身上纏著紙，撕下來看，是同一本書的後半。', '我說書的時候總愛說：招式是活的。現在我不太敢這樣說了。'],
       goal: { type: 'counter', n: 15 }, goalText: '在魔物的架勢被你剋制時擊倒牠 15 次',
@@ -1932,7 +1932,7 @@ GAME.main2 = {
       lines: ['古道盡頭有東西守著。不是人，是一副空的甲。', '我看見它放了一招，天整個暗下來。那是天御。'],
       goal: { type: 'kill', keys: ['youjian'], n: 1 }, goalText: '擊倒精英「古道遊劍」',
       hint: '古道遊劍會放天御，被打中很痛。帶夠藥再去。',
-      reward: { silver: 8000, expPct: 0.3, pages: 3 } },
+      reward: { silver: 8000, expPct: 0.3, pages: 4 } },
     { title: '天御', lv: 30, npc: '溫遲（信）',
       lines: ['魔物會用天御，代表教牠的人學過完整的御劍者功法。', '這件事你得親手確認：讓你的劍也記得那一招。'],
       goal: { type: 'stat', key: 'ults', n: 1 }, goalText: '施放一次天御',
@@ -1958,7 +1958,7 @@ GAME.main2 = {
     { title: '狼王', zone: 'ly3', lv: 35, npc: '冷遠道・冰窖主',
       lines: ['寒鴉嶺上那頭白狼，額頭有一道舊疤，是劍傷。', '傷牠的人沒有殺牠，留了牠一條命，好讓牠記得那一劍。'],
       goal: { type: 'kill', keys: ['langwang'], n: 1 }, goalText: '擊倒精英「霜原狼王」',
-      reward: { silver: 12000, expPct: 0.3, mats: { '霜晶': 5 }, pages: 3 } },
+      reward: { silver: 12000, expPct: 0.3, mats: { '霜晶': 5 } } },
     { title: '血譚', zone: 'lx1', lv: 36, npc: '葉朔',
       lines: ['烈血譚的水本來是清的。', '現在水面上浮著的不是血，是被染紅的劍穗。'],
       goal: { type: 'kill', keys: ['xueshe', 'xueteng'], n: 30 }, goalText: '擊倒血蛇或血藤 30 隻',
@@ -1985,7 +1985,7 @@ GAME.main3 = {
     { title: '伶影', zone: 'sq6', lv: 41, npc: '思曲村・唱曲的阿婆',
       lines: ['聽曲崖上有個影子，把〈不歸〉唱完了。', '它唱到名字那一句，聲音就變成了劍聲。'],
       goal: { type: 'kill', keys: ['lingying'], n: 1 }, goalText: '擊倒精英「戲臺伶影」',
-      reward: { silver: 22000, expPct: 0.3, pages: 2 } },
+      reward: { silver: 22000, expPct: 0.3 } },
     { title: '名字', lv: 42, npc: '溫遲（信）',
       lines: ['你問的那個名字，我本來不想說。', '晏歸。巡守司十八年前除名的人。那一頁，是我親手劃的。', '他走之前，把一路上遇過的東西都記了下來。你也記一記。'],
       goal: { type: 'codex', n: 6 }, goalText: '魔物圖鑑再多 6 顆星',
@@ -2002,7 +2002,7 @@ GAME.main3 = {
     { title: '鷲王', zone: 'jf6', lv: 45, npc: '鷲鋒區・採藥人',
       lines: ['鷲王的爪子上纏著一條，是最舊的。', '取下來的時候，別弄斷。'],
       goal: { type: 'kill', keys: ['jiuwang'], n: 1 }, goalText: '擊倒精英「鷲王」',
-      reward: { silver: 28000, expPct: 0.3, pages: 3 } },
+      reward: { silver: 28000, expPct: 0.3 } },
     { title: '懸賞', lv: 46, npc: '溫遲（信）',
       lines: ['你在柳區的事傳回來了。巡守司的懸賞令，以後柳區也會貼。', '接幾張吧。讓分部的人知道，你是自己人。'],
       goal: { type: 'bounty', n: 3 }, goalText: '完成巡守司懸賞 3 張',
@@ -2020,7 +2020,7 @@ GAME.main3 = {
       lines: ['譚上有個人踩著水走。', '不是他——是穿著跟他同一套衣服的東西。'],
       goal: { type: 'kill', keys: ['lufeng'], n: 1 }, goalText: '擊倒精英「履風客」',
       hint: '履風客會放天御，帶夠藥再去。',
-      reward: { silver: 34000, expPct: 0.3, pages: 3 } },
+      reward: { silver: 34000, expPct: 0.3 } },
     { title: '參道', lv: 51, npc: '神參道・廟祝',
       lines: ['山神廟裡留了一卷東西，說要等一個「記得所有招式的人」。', '我不懂。你把劍再磨一磨，也許就懂了。'],
       goal: { type: 'forge', n: 35 }, goalText: '部位強化合計 +35',
@@ -2033,7 +2033,7 @@ GAME.main3 = {
     { title: '燮影', zone: 'xg6', lv: 54, npc: '燮影鎮・皮影匠',
       lines: ['最後走的那一個，刻的是晏歸。', '它在無燈後街，跟自己的影子打了一整夜。'],
       goal: { type: 'kill', keys: ['xieying'], n: 1 }, goalText: '擊倒精英「燮影」',
-      reward: { silver: 40000, expPct: 0.3, pages: 3 } },
+      reward: { silver: 40000, expPct: 0.3 } },
     { title: '凝蓮', zone: 'ln3', lv: 55, npc: '蓮凝楓臺・守臺人',
       lines: ['楓臺上的蓮，十八年前一夜之間全結了霜。', '那天晚上，有人在池邊坐到天亮。'],
       goal: { type: 'collect', mat: '凝蓮', n: 15 }, goalText: '交付凝蓮 15 片',
@@ -2042,7 +2042,7 @@ GAME.main3 = {
       lines: ['霜婆是村裡的老人，十八年前替那支隊伍縫過冬衣。', '她走進寒林就沒有回來。現在寒林裡有個東西，會縫。'],
       goal: { type: 'kill', keys: ['shuangpo'], n: 1 }, goalText: '擊倒精英「霜婆」',
       hint: '霜婆會放天御。',
-      reward: { silver: 44000, expPct: 0.3, mats: { '凝蓮': 5 }, pages: 2 } },
+      reward: { silver: 44000, expPct: 0.3, mats: { '凝蓮': 5 } } },
     { title: '分部', zone: 'lc4', lv: 58, npc: '柳區巡守分部・副統領 段霜',
       lines: ['溫遲的人？柳區的事，柳區自己會處理。', '……算了。城裡夜巡的傀儡失控了，你要幫就幫吧。'],
       goal: { type: 'kill', keys: ['xunwei'], n: 40 }, goalText: '擊倒巡衛傀儡 40 隻',
@@ -2060,7 +2060,7 @@ GAME.main3 = {
       lines: ['籐心裡纏著一把劍，劍柄上刻著一個「晏」字。', '把它拿回來。'],
       goal: { type: 'kill', keys: ['chanxin'], n: 1 }, goalText: '擊倒首領「籐主・纏心」',
       hint: '纏心會纏住你，也會放天御。戰鬥前把藥備齊。',
-      reward: { silver: 60000, expPct: 0.5, mats: { '籐心': 2 }, pages: 3 } }
+      reward: { silver: 60000, expPct: 0.5, mats: { '籐心': 2 } } }
   ],
   epilogue: { npc: '', narr: true, lines: ['纏心倒下的時候，籐道盡頭站著一個穿黑衣的人。他接過那把劍，看了很久。', '「你來得比我想的早。」', '「那一頁上不只我一個名字。另外十一個，還在孤區等我。」', '他把劍收進鞘裡，往孤區走了。'] }
 };
@@ -2080,7 +2080,7 @@ GAME.main4 = {
       lines: ['城牆上有個守城的，守了幾百年。', '他記得那一晚，有十二個人從他面前走過去，往息區的方向。'],
       goal: { type: 'kill', keys: ['gujiang'], n: 1 }, goalText: '擊倒精英「守城古將」',
       hint: '守城古將會放天御。',
-      reward: { silver: 55000, expPct: 0.3, pages: 3 } },
+      reward: { silver: 55000, expPct: 0.3 } },
     { title: '水底街', zone: 'lu3', lv: 64, npc: '崙閭譚・採珠人',
       lines: ['譚底下有一條街，是古時候沉下去的。', '銜珠魚嘴裡的珠子，照得出沉下去那天的光。'],
       goal: { type: 'collect', mat: '閭珠', n: 12 }, goalText: '交付閭珠 12 顆',
@@ -2101,7 +2101,7 @@ GAME.main4 = {
       lines: ['殤陽古壘上的將軍，每天傍晚都對著太陽舉一次刀。', '太陽落下去，他就再死一次。'],
       goal: { type: 'kill', keys: ['shangjiang'], n: 1 }, goalText: '擊倒精英「殤陽將」',
       hint: '殤陽將會放天御。',
-      reward: { silver: 70000, expPct: 0.3, pages: 3 } },
+      reward: { silver: 70000, expPct: 0.3 } },
     { title: '對照', lv: 70, npc: '溫遲（信）',
       lines: ['你寄回來的圖鑑抄本，我一隻一隻對過了。', '有十一種魔物出招的習慣，跟那支隊伍的人一模一樣。', '再多記一些。我想知道剩下的在哪裡。'],
       goal: { type: 'codex', n: 8 }, goalText: '魔物圖鑑再多 8 顆星',
@@ -2125,7 +2125,7 @@ GAME.main4 = {
     { title: '古樹', zone: 'yc8', lv: 74, npc: '顧衡',
       lines: ['城心那棵古樹，是十八年前那一晚枯的。', '樹裡有東西。葉城的人，誰都不敢靠近。'],
       goal: { type: 'kill', keys: ['shuyao'], n: 1 }, goalText: '擊倒精英「城心古樹」',
-      reward: { silver: 80000, expPct: 0.3, pages: 3, gear: { q: 3 } } },
+      reward: { silver: 80000, expPct: 0.3, gear: { q: 3 } } },
     { title: '一杯', zone: 'qf3', lv: 75, npc: '秋逢鎮・酒肆老闆娘',
       lines: ['他每年秋天都來，喝一壺，倒十一杯。', '今年他只倒了一杯，說剩下的十個，已經找到了。'],
       goal: { type: 'kill', keys: ['qiuyan'], n: 50 }, goalText: '擊倒秋雁 50 隻',
@@ -2143,7 +2143,7 @@ GAME.main4 = {
       lines: ['夢華是江上的一個夢，夢的是那支隊伍出發的前一晚。', '她不讓任何人醒過來。'],
       goal: { type: 'kill', keys: ['menghua'], n: 1 }, goalText: '擊倒精英「夢華」',
       hint: '夢華會放天御。',
-      reward: { silver: 90000, expPct: 0.3, mats: { '夢砂': 5 }, pages: 3 } },
+      reward: { silver: 90000, expPct: 0.3, mats: { '夢砂': 5 } } },
     { title: '倒影', zone: 'yj3', lv: 81, npc: '晏歸',
       lines: ['你看見了嗎？倒影裡的人，比外面多了十一個。', '影界臺的另一邊，就是他們。'],
       goal: { type: 'kill', keys: ['jieying', 'jingzhu'], n: 60 }, goalText: '擊倒界影或鏡蛛 60 隻',
@@ -2152,7 +2152,7 @@ GAME.main4 = {
       lines: ['界主沒有臉。它用的，是每一個站在它面前的人的臉。', '這一次，你得打自己。'],
       goal: { type: 'kill', keys: ['wumian'], n: 1 }, goalText: '擊倒首領「界主・無面」',
       hint: '無面會放天御。戰鬥前把藥備齊。',
-      reward: { silver: 120000, expPct: 0.5, mats: { '界晶': 2 }, pages: 3 } }
+      reward: { silver: 120000, expPct: 0.5, mats: { '界晶': 2 } } }
   ],
   epilogue: { npc: '', narr: true, lines: ['無面倒下的時候，倒影裡的十一個人轉過頭，看了你一眼。', '「十八年前，我們十二個人去息區，是去關一道門。」', '「門沒有關上。是我讓它開著的。」', '他往息區走了。這一次，他沒有回頭。'] }
 };
@@ -2171,7 +2171,7 @@ GAME.main5 = {
     { title: '羽衣', zone: 'mu6', lv: 84, npc: '明羽村・塾師',
       lines: ['羽衣祠裡供著一件羽衣，沒有人記得是誰留下的。', '最近羽衣自己站起來了，在祠裡走來走去，像在找誰。'],
       goal: { type: 'kill', keys: ['yuyi'], n: 1 }, goalText: '擊倒精英「羽衣舊魂」',
-      reward: { silver: 110000, expPct: 0.3, pages: 3 } },
+      reward: { silver: 110000, expPct: 0.3 } },
     { title: '燎原', zone: 'yr2', lv: 85, npc: '燎原山・守火人',
       lines: ['燎原山的火從來不熄，是用來擋瘴的。', '最近火往山裡縮，瘴氣就跟著下來了。'],
       goal: { type: 'collect', mat: '燎羽', n: 15 }, goalText: '交付燎羽 15 根',
@@ -2183,7 +2183,7 @@ GAME.main5 = {
     { title: '斥候', zone: 'gx6', lv: 87, npc: '姑息大地・遊商',
       lines: ['大地裂口那邊的東西，不是這邊的。', '牠們穿著甲，甲上的紋路我在書上看過——是魔界的。'],
       goal: { type: 'kill', keys: ['chihou'], n: 1 }, goalText: '擊倒精英「魔界斥候」',
-      reward: { silver: 120000, expPct: 0.3, pages: 3 } },
+      reward: { silver: 120000, expPct: 0.3 } },
     { title: '假星', zone: 'xe4', lv: 88, npc: '晏歸',
       lines: ['你跟到這裡了。', '星夜大地的星是假的。每一顆，都是從門那邊漏過來的光。'],
       goal: { type: 'counter', n: 60 }, goalText: '在魔物的架勢被你剋制時擊倒牠 60 次',
@@ -2196,7 +2196,7 @@ GAME.main5 = {
       lines: ['臺頂望海的地方，有一條很大的魚。', '每退一次潮，牠就往岸上爬一點。'],
       goal: { type: 'kill', keys: ['chaozhu'], n: 1 }, goalText: '擊倒精英「潮主」',
       hint: '潮主會放天御。',
-      reward: { silver: 130000, expPct: 0.3, mats: { '汐珠': 5 }, pages: 3 } },
+      reward: { silver: 130000, expPct: 0.3, mats: { '汐珠': 5 } } },
     { title: '送魂', zone: 'jl3', lv: 91, npc: '降靈臺・守臺老人',
       lines: ['降靈臺不是招魂的，是送魂的。', '那支隊伍的十一個人，魂一直送不走。'],
       goal: { type: 'kill', keys: ['jiangling', 'zhaohun'], n: 60 }, goalText: '擊倒降靈或招魂幡 60 隻',
@@ -2214,7 +2214,7 @@ GAME.main5 = {
       lines: ['起源之坑裡睡著一頭獸，比天霖國還老。', '門開著，牠就醒了。'],
       goal: { type: 'kill', keys: ['yuanshou'], n: 1 }, goalText: '擊倒精英「原初之獸」',
       hint: '原初之獸會放天御。',
-      reward: { silver: 140000, expPct: 0.3, pages: 3 } },
+      reward: { silver: 140000, expPct: 0.3 } },
     { title: '站穩', zone: 'ft4', lv: 94, npc: '風臺・看風人',
       lines: ['風臺上的風，都是往門裡吹的。', '站穩了，別被吹進去。'],
       goal: { type: 'survive', zone: 'ft4', sec: 1200 }, goalText: '在風臺・風蝕洞連續巡守 20 分鐘，中途不重傷',
@@ -2227,7 +2227,7 @@ GAME.main5 = {
       lines: ['城裡最老的煉師，煉丹煉到把自己也煉了進去。', '九轉丹臺上的火，是他在燒。'],
       goal: { type: 'kill', keys: ['danshi'], n: 1 }, goalText: '擊倒精英「丹城煉師」',
       hint: '丹城煉師會放天御。',
-      reward: { silver: 150000, expPct: 0.3, pages: 3, gear: { q: 3 } } },
+      reward: { silver: 150000, expPct: 0.3, gear: { q: 3 } } },
     { title: '守門的人', lv: 96, npc: '古丹城・城主 姜寧',
       lines: ['這顆丹給你。吃下去，劍會比你先知道門在哪裡。', '可是劍要夠深，才裝得下。'],
       goal: { type: 'forge', n: 55 }, goalText: '部位強化合計 +55',
@@ -2240,7 +2240,7 @@ GAME.main5 = {
     { title: '十一朵', zone: 'bh6', lv: 99, npc: '晏歸',
       lines: ['百花大地的花，都開在他們倒下的地方。', '十一朵。最大的那一朵，會咬人。'],
       goal: { type: 'kill', keys: ['huahun'], n: 1 }, goalText: '擊倒精英「百花魂」',
-      reward: { silver: 160000, expPct: 0.3, pages: 3 } },
+      reward: { silver: 160000, expPct: 0.3 } },
     { title: '宿月', zone: 'su3', lv: 100, npc: '晏歸',
       lines: ['宿月區，就是門。', '十八年前我沒有關。不是關不上——是門那邊，還有我們的人。'],
       goal: { type: 'kill', keys: ['yuehun', 'molie'], n: 80 }, goalText: '擊倒宿月魂或裂隙魔 80 隻',
@@ -2249,7 +2249,7 @@ GAME.main5 = {
       lines: ['先鋒過來了。', '這一次，我們一起守。'],
       goal: { type: 'kill', keys: ['xianfeng'], n: 1 }, goalText: '擊倒首領「魔界先鋒・蝕月」',
       hint: '蝕月會放天御。戰鬥前把藥備齊。',
-      reward: { silver: 200000, expPct: 0.5, mats: { '蝕月鱗': 2 }, pages: 5 } }
+      reward: { silver: 200000, expPct: 0.5, mats: { '蝕月鱗': 2 } } }
   ],
   epilogue: { npc: '', narr: true, lines: ['蝕月倒下，宿月區的瘴散了一夜。月亮只剩一個。', '晏歸把十一個名字刻在宿月之頂的石頭上，最後刻上自己的，又劃掉。', '「門不在息區。息區，只是門流出來的地方。」', '「真正的門，在陰區。魔峰。」'] }
 };
@@ -3337,7 +3337,7 @@ function towerFloorDone(st, rt) {
     gainExp(st, rt, Math.round(expNeed(st.lv) * 0.02));
     if (F % R.lotusEvery === 0) { st.lotus = (st.lotus || 0) + 1; rew.lotus = 1; g.lotus++; }
     if (boss) {
-      st.pages = (st.pages || 0) + 2; rew.pages = 2; g.pages += 2;
+      st.pages = (st.pages || 0) + 1; rew.pages = 1; g.pages += 1;
       if (st.equip) receiveGear(st, rt, genGear(st, R.lv(F), 3), T.name);
     }
   }
@@ -4128,7 +4128,7 @@ GAME.codex = {
   dmg: [0, 0.04, 0.08, 0.12], dr: [0, 0, 0.03, 0.06], drop: [0, 0, 0, 0.10],
   milestones: [15, 40, 70, 105, 145, 190, 240, 290, 340, 390, 430, 465],
   bonus: 0.005,
-  reward(i) { return { silver: 3000 * (i + 1) * (i + 1), soul: 40 * (i + 1), pages: i % 3 === 2 ? 3 : 1 }; }
+  reward(i) { return { silver: 3000 * (i + 1) * (i + 1), soul: 40 * (i + 1), pages: 0 }; } // v0.21：殘頁是稀有素材，圖鑑不給
 };
 const CODEX_WHERE = {}; // 每種魔物出沒的小地區
 for (const z of GAME.zones) for (const [k] of z.spawns) (CODEX_WHERE[k] = CODEX_WHERE[k] || []).push(z.id);
@@ -4198,7 +4198,7 @@ function genBounty(st, others = []) {
   const L = st.lv, pot = L >= 15 ? '大還丹' : L >= 8 ? '中還丹' : '小還丹';
   b.reward = { silver: Math.round(b.star * 20 * Math.pow(L + 4, 1.5) / 10) * 10, expPct: [0, 0.015, 0.025, 0.04][b.star], merit: b.star };
   if (b.star >= 2) { b.reward.soul = Math.round((10 + L * 0.6) * (b.star - 1)); b.reward.items = { [pot]: 2 * b.star - 2 }; }
-  if (b.star >= 3) { b.reward.pages = 1; b.reward.gear = rng() < 0.4 ? 3 : 2; }
+  if (b.star >= 3) { b.reward.gear = rng() < 0.4 ? 3 : 2; }
   return b;
 }
 function fillBounties(st) {
@@ -4270,8 +4270,8 @@ function claimBounty(st, rt, i) {
   st.bounty.streak = (st.bounty.streak || 0) + 1;
   if (st.bounty.streak % GAME.bounty.streakEvery === 0) { // 每完成五張：額外獎勵
     const pot = st.lv >= 15 ? '大還丹' : st.lv >= 8 ? '中還丹' : '小還丹';
-    st.pages = (st.pages || 0) + 2; st.items[pot] = (st.items[pot] || 0) + 5;
-    got.streak = { pages: 2, item: pot, n: 5 };
+    st.items[pot] = (st.items[pot] || 0) + 5;
+    got.streak = { item: pot, n: 5 };
   }
   st.bounty.list[i] = { type: 'wait', t: GAME.bounty.nextSec };
   if (got.exp) gainExp(st, rt, got.exp);
@@ -4291,25 +4291,25 @@ function rerollBounty(st, i) {
 GAME.shop = {
   npc: { name: '陸平', title: '天霖市・萬寶齋掌櫃', seal: '寶', line: '東西不多，每隔一陣子補一次貨。銀兩擺著不用，可不會自己變成劍。' },
   soul: { every: 4 * 3600, batch(lv) { return 50 + 5 * lv; }, price(lv) { return 3 * (lv + 4); } },
-  page: { every: 6 * 3600, batch() { return 2; }, price(lv) { return 4000 + 600 * lv; } },
   postNow(lv) { return 100 * (lv + 4); },   // 懸賞立刻貼出
   dyes: [['月白', '#dcd6c8'], ['墨黑', '#2c2a30'], ['竹青', '#4f7a5a'], ['緋紅', '#a83a34'], ['靛藍', '#2f4a7a'], ['杏黃', '#c8a050'], ['藕荷', '#a888a8'], ['鴉青', '#3a4a5a'], ['赭石', '#8a5a3a'], ['霜灰', '#9aa2aa'], ['胭脂', '#c86a7a'], ['松綠', '#2e5a4a']],
   dyePrice(i) { return 20000 * (i + 1); }
 };
 function shopInit(st) {
   if (!st.shop) st.shop = {};
-  for (const k of ['soul', 'page']) if (st.shop[k] === undefined) { st.shop[k] = GAME.shop[k].batch(st.lv); st.shop[k + 'T'] = GAME.shop[k].every; }
+  for (const k of ['soul']) if (st.shop[k] === undefined) { st.shop[k] = GAME.shop[k].batch(st.lv); st.shop[k + 'T'] = GAME.shop[k].every; }
   if (!st.dyes) st.dyes = [];
   if (!st.dye) st.dye = {};
 }
 function shopTick(st, dt) {
   if (!st.shop) return;
-  for (const k of ['soul', 'page']) if ((st.shop[k + 'T'] -= dt) <= 0) { st.shop[k] = GAME.shop[k].batch(st.lv); st.shop[k + 'T'] = GAME.shop[k].every; }
+  for (const k of ['soul']) if ((st.shop[k + 'T'] -= dt) <= 0) { st.shop[k] = GAME.shop[k].batch(st.lv); st.shop[k + 'T'] = GAME.shop[k].every; }
 }
 function buyShop(st, k, n) {
   shopInit(st);
-  const S = GAME.shop[k], c = S.price(st.lv) * n;
-  if (!S || n <= 0 || st.shop[k] < n || st.silver < c) return false;
+  const S = GAME.shop[k]; if (!S) return false;
+  const c = S.price(st.lv) * n;
+  if ( n <= 0 || st.shop[k] < n || st.silver < c) return false;
   st.silver -= c; st.shop[k] -= n;
   if (k === 'soul') st.mats['精魄'] = (st.mats['精魄'] || 0) + n; else st.pages = (st.pages || 0) + n;
   return true;
@@ -6397,6 +6397,12 @@ function audPanel() {
    有新版本時標題旁會出現「新」，打開看過就消失（看過的版本記在 localStorage 'yujian-seen-ver'）。
    這個檔案由 build.py 塞進 template.html 的 CHANGELOG 標記處 */
 const CHANGELOG = [
+  { v: '0.21.1', d: '2026-11-25', items: [
+    '天御殘頁改回稀有素材：主要靠精英（15%）和首領（35%）掉落',
+    '主線只在第二章〈劍偶〉〈殘頁〉〈遊劍〉給，合計 10 張，剛好換第一本天御書；之後的主線不再給',
+    '圖鑑獎勵、三星懸賞、連續完成懸賞不再給殘頁；萬寶齋不再賣殘頁',
+    '天陰塔的守塔者每 10 層改給 1 張'
+  ] },
   { v: '0.21', d: '2026-11-25', items: [
     '新招式：每把武器在天霖國都學得到 3 個主動招，一共多了 34 招（名字都是四個字），從 Lv.25、Lv.40、Lv.45 開始能研讀',
     '新招的技能書在書肆買得到，魔物也會掉；每個國家的書肆賣的書不一樣',
@@ -6887,7 +6893,7 @@ function renderPanel() {
       const N = GAME.npcs, B = GAME.bounty, left = B.streakEvery - ((st.bounty.streak || 0) % B.streakEvery);
       h += '<div class="npc quest"><div class="giver"><span class="seal mid">' + N.quest.seal + '</span><div><b>' + N.quest.name + '</b><br><span>' + N.quest.title + '</span></div></div>' +
         '<h3 class="serif" style="font-size:15px;margin-bottom:6px">巡守司懸賞令</h3><p>各地的懸賞同時貼三張。完成一張就換一張新的，離線時的進度也算。</p>' +
-        '<p class="note">已完成 ' + fmt(st.stats.bounties || 0) + ' 張。再完成 ' + left + ' 張，另外加贈天御殘頁 2 張和還丹 5 顆。</p></div>';
+        '<p class="note">已完成 ' + fmt(st.stats.bounties || 0) + ' 張。再完成 ' + left + ' 張，另外加贈還丹 5 顆。</p></div>';
       st.bounty.list.forEach((b, i) => { h += bountyCard(b, i); });
       h += '<div class="sec" style="margin-top:14px"><h3>委託板</h3><p class="note">' + (featureOpen(st, 'board') ? '各地的人託你收集材料。交付後會貼上新的委託；已交付 ' + st.boardDone + ' 張。' : '完成主線〈南門〉後開放。') + '</p></div>';
       if (featureOpen(st, 'board')) st.board.forEach((rq, i) => {
@@ -6992,7 +6998,7 @@ function martPanel() {
     return '<div class="itemrow"><span class="seal">' + seal + '</span><div><b>' + name + '<em>剩 ' + fmt(left) + ' / ' + fmt(b) + '</em></b><small>' + desc + '　每份 ' + fmt(pr) + ' 銀兩・' + hm(sh[k + 'T']) + '後補貨</small></div>' +
       '<div class="ctl"><button data-mart="' + k + '" data-n="1"' + (left >= 1 && st.silver >= pr ? '' : ' disabled') + '>買 1</button>' + (unit > 1 ? '<button data-mart="' + k + '" data-n="' + n10 + '"' + (n10 >= 1 && st.silver >= pr * n10 ? '' : ' disabled') + '>買 ' + n10 + '</button>' : '') + '</div></div>';
   };
-  h += '<div class="sec"><h3>限量貨</h3>' + row('soul', '魄', '精魄', '部位強化、升級招式都要用', 50) + row('page', '頁', '天御殘頁', GAME.books.pages + ' 張到書肆換一本天御書', 1) +
+  h += '<div class="sec"><h3>限量貨</h3>' + row('soul', '魄', '精魄', '部位強化、升級招式都要用', 50) +
     '<p class="note">每隔一段時間補一次貨（離線也算），補貨時直接補滿，沒買完的不會累積。</p></div>';
   const cur = st.dye[st.weapon];
   h += '<div class="sec"><h3>外觀染坊</h3><p class="note">買下的顏色每把武器都能用；換顏色不用錢，只改外觀，不影響戰力。目前：' + wName(st.weapon) + (cur !== undefined ? '・' + S.dyes[cur][0] : '・原色') + '</p><div class="dyes">' +
@@ -7640,7 +7646,7 @@ document.addEventListener('click', ev => {
       const g = r.got, a = ['銀兩 +' + fmt(g.silver), '經驗 +' + fmt(g.exp), '功績 +' + g.merit];
       if (g.soul) a.push('精魄 +' + g.soul); for (const k in g.items) a.push(k + '×' + g.items[k]); if (g.pages) a.push('天御殘頁 +' + g.pages); if (g.gear) a.push('裝備「' + g.gear + '」');
       addLog('<span class="k-gold">懸賞完成（' + bountyText(r.b).tag + '）：' + a.join('、') + '</span>');
-      if (g.streak) addLog('<span class="k-lv">連續完成 ' + GAME.bounty.streakEvery + ' 張懸賞：天御殘頁 +' + g.streak.pages + '、' + g.streak.item + '×' + g.streak.n + '</span>');
+      if (g.streak) addLog('<span class="k-lv">連續完成 ' + GAME.bounty.streakEvery + ' 張懸賞：' + g.streak.item + '×' + g.streak.n + '</span>');
       for (const e of rt.events) handle(e); rt.events.length = 0;
       toast(g.streak ? '懸賞完成，另有連續獎勵' : '懸賞完成'); save();
     }
@@ -7715,7 +7721,7 @@ document.addEventListener('click', ev => {
       else bulkArm = Date.now() + 4000;
       break;
     }
-    case 'cxClaim': { const r = codexClaim(st, rt); if (r) { rt.d = derive(st); addLog('<span class="k-lv">圖鑑獎勵 ' + r.n + ' 份：銀兩 +' + fmt(r.silver) + '、精魄 +' + r.soul + '、天御殘頁 +' + r.pages + '</span>'); toast('領取圖鑑獎勵'); save(); } break; }
+    case 'cxClaim': { const r = codexClaim(st, rt); if (r) { rt.d = derive(st); addLog('<span class="k-lv">圖鑑獎勵 ' + r.n + ' 份：銀兩 +' + fmt(r.silver) + '、精魄 +' + r.soul + (r.pages ? '、天御殘頁 +' + r.pages : '') + '</span>'); toast('領取圖鑑獎勵'); save(); } break; }
     case 'doSwap': {
       if (rt.tower) { towerEnd(st, rt, 'leave'); for (const e of rt.events) handle(e); rt.events.length = 0; }
       const ratio = st.hp / rt.d.maxHp; st.weapon = selWeapon; pend = [0, 0, 0, 0, 0, 0, 0, 0];
