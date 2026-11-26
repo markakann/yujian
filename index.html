@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#121315">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>天星界・御劍者 v0.24.4</title>
+<title>天星界・御劍者 v0.24.7</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -483,6 +483,23 @@ button:active:not(:disabled){transform:scale(.95)}
 .skbar .sk.noen .ic{filter:saturate(.4) brightness(.75)}
 .skbar .nm{font-size:11px;color:var(--muted);white-space:nowrap;max-width:100%;overflow:hidden;text-overflow:ellipsis}
 .skbar .sk.off .nm::after{content:'（關）'}
+.skwrap{position:relative}
+.hud .skbar{touch-action:none}
+.hud .skbar.swup{animation:skSwUp .22s ease-out}.hud .skbar.swdn{animation:skSwDn .22s ease-out}
+@keyframes skSwUp{0%{transform:translateY(14px);opacity:.2}100%{transform:none;opacity:1}}
+@keyframes skSwDn{0%{transform:translateY(-14px);opacity:.2}100%{transform:none;opacity:1}}
+.setdots{position:absolute;right:-7px;top:0;bottom:22px;display:flex;flex-direction:column;justify-content:center;gap:4px;pointer-events:none}
+.setdots i{width:4px;height:4px;border-radius:50%;background:#ffffff38}.setdots i.on{background:var(--gold);height:10px;border-radius:2px}
+.sets .settabs{display:flex;gap:6px;flex-wrap:wrap;margin:6px 0 8px}
+.sets .settabs button{flex:1;min-width:58px;padding:7px 4px;border:1px solid var(--line);border-radius:9px;background:var(--panel2);font-size:13px;line-height:1.3}
+.sets .settabs button small{display:block;font-size:10.5px;color:var(--muted)}
+.sets .settabs button.on{border-color:var(--gold);color:var(--gold)}
+.sets .settabs button.cur small{color:#9fd8b8}
+.sets .settabs button.add{border-style:dashed;color:var(--muted)}
+.sets .setinfo{display:flex;align-items:center;gap:8px;flex-wrap:wrap;font-size:13px}
+.sets .setinfo span{flex:1;min-width:140px}
+.sets .setinfo .btn{width:auto;flex:0 0 auto;padding:6px 14px;font-size:13px}
+.sets .setinfo label{display:flex;align-items:center;gap:5px;font-size:12.5px;color:var(--muted)}
 .skbar .sk{-webkit-touch-callout:none;user-select:none;-webkit-user-select:none;touch-action:manipulation}
 .skbar .sk.tap .ic{animation:skTap .28s ease-out}
 .skbar .sk.deny .ic{animation:skDeny .3s ease-in-out}
@@ -758,7 +775,7 @@ body{min-height:0;padding:0}
       </button>
       <div class="potwrap"><div class="potbar" id="potBar"></div><div class="potdots" id="potDots"></div></div>
     </div>
-    <div class="skbar" id="skBar"></div>
+    <div class="skwrap"><div class="skbar" id="skBar"></div><div class="setdots hidden" id="setDots" aria-hidden="true"></div></div>
   </section>
   <aside class="lside" id="lside" aria-label="位階、懸賞、戰鬥紀錄"><div class="lsec" id="lsRank"></div><div class="lsec" id="lsBounty"></div><div class="lsec lslog"><h4>戰鬥紀錄<small>最近 40 則</small></h4><div class="loglist" id="lsLog"></div></div></aside>
   <section class="sheet hidden" id="sheet" aria-label="功能">
@@ -785,7 +802,7 @@ body{min-height:0;padding:0}
 
 /* ---------- 遊戲資料：名稱、數值都集中在這裡，改這裡就好 ---------- */
 const GAME = {
-  meta: { title: '天星界・御劍者', subtitle: '暫定名稱', version: '0.24.4', era: '仙曆五百餘年' },
+  meta: { title: '天星界・御劍者', subtitle: '暫定名稱', version: '0.24.7', era: '仙曆五百餘年' },
 
   // 八項資源系統（順序固定，星數陣列照這個順序）
   statNames: ['力量', '抵擋', '體力', '敏捷', '智慧', '守護', '靈力', '控制'],
@@ -1499,6 +1516,8 @@ GAME.skillUp = {
   }
 };
 GAME.skillBar = 5; // 招式欄格數
+// v0.24.5 招式組（流派）：每把武器各自編組；前 2 組免費，第 3～5 組要買（買一次，所有武器都多一格）
+GAME.skillSets = { free: 2, max: 5, price: [20000, 50000, 100000] };
 // v0.21 防禦型傷害打八折；v0.22 攻擊依比例算以後，防禦型的力量、智慧星數低，攻擊自然比較低，八折拿掉
 GAME.roleDmg = {};
 GAME.skills = {
@@ -3123,6 +3142,50 @@ function setSkillCfg(st, w, i, patch) {
   st.skillCfg[w][i] = Object.assign({}, skillCfg(st, w, i), patch);
   return true;
 }
+/* ----- v0.24.5 招式組 -----
+   使用中那一組 = 「自動施放」開著的招（skillCfg.on，原本的邏輯都不用改）；其他組存在 st.skillSets[w].sets[k].sk。
+   切換時把使用中的存回去、換上新的一組；新換上來、上一組沒有的招從頭冷卻（兩組都有的不受影響），
+   所以切來切去不會讓能放的招比 5 格多 */
+function setSlots(st) { return Math.min(GAME.skillSets.max, GAME.skillSets.free + (st.setBought || 0)); }
+function skillSets(st, w) {
+  if (!st.skillSets) st.skillSets = {};
+  if (!st.skillSets[w]) st.skillSets[w] = { cur: 0, sets: [{ sk: [], show: true }, { sk: [], show: true }] };
+  return st.skillSets[w];
+}
+function onList(st, w) { return (GAME.skills[w] || []).map((s, i) => i).filter(i => GAME.skills[w][i].type === 'active' && skillKnown(st, w, i) && skillCfg(st, w, i).on); }
+function setMembers(st, w, k) { const S = skillSets(st, w); return k === S.cur ? onList(st, w) : (S.sets[k] ? S.sets[k].sk.filter(i => skillKnown(st, w, i)) : []); }
+function setToggle(st, w, k, i, on) {
+  const S = skillSets(st, w); if (!S.sets[k]) return false;
+  if (k === S.cur) return setSkillCfg(st, w, i, { on });
+  const L = S.sets[k].sk;
+  if (on) { if (L.includes(i)) return true; if (setMembers(st, w, k).length >= GAME.skillBar) return false; L.push(i); }
+  else S.sets[k].sk = L.filter(x => x !== i);
+  return true;
+}
+// 上下滑會輪到的組：使用中的一定在；其他組要有招、而且勾了「上下滑時出現」
+function setsShown(st, w) { const S = skillSets(st, w); return S.sets.map((x, k) => k).filter(k => k === S.cur || (x => x.show && setMembers(st, w, k).length > 0)(S.sets[k])); }
+function switchSet(st, rt, w, k) {
+  const S = skillSets(st, w); if (k === S.cur || !S.sets[k]) return false;
+  const prev = onList(st, w), next = setMembers(st, w, k);
+  S.sets[S.cur].sk = prev.slice();
+  if (!st.skillCfg[w]) st.skillCfg[w] = {};
+  (GAME.skills[w] || []).forEach((s, i) => { if (s.type === 'active') st.skillCfg[w][i] = Object.assign({}, skillCfg(st, w, i), { on: next.includes(i) }); });
+  S.cur = k;
+  if (rt && rt.d && w === st.weapon) for (const r of rt.d.actives) if (next.includes(r.i) && !prev.includes(r.i)) rt.cds[r.i] = Math.max(rt.cds[r.i] || 0, r.s.cd * (1 - (rt.d.cdr || 0)));
+  return true;
+}
+function addSet(st, w) {
+  const S = skillSets(st, w), G = GAME.skillSets;
+  if (S.sets.length >= G.max) return { ok: false, why: 'max' };
+  if (S.sets.length >= setSlots(st)) {
+    const p = G.price[(st.setBought || 0)] || G.price[G.price.length - 1];
+    if (st.silver < p) return { ok: false, why: 'silver', p };
+    st.silver -= p; st.setBought = (st.setBought || 0) + 1;
+  }
+  S.sets.push({ sk: [], show: true });
+  return { ok: true, k: S.sets.length - 1 };
+}
+function setPrice(st, w) { const S = skillSets(st, w), G = GAME.skillSets; return S.sets.length >= G.max ? null : S.sets.length < setSlots(st) ? 0 : (G.price[(st.setBought || 0)] || 0); }
 // 主動技的施放順序：玩家調過就照玩家的，沒調過就照預設（補血、護盾先判斷）
 function activeOrder(st, d, w) {
   const ord = st.skillOrder && st.skillOrder[w || st.weapon];
@@ -4740,7 +4803,7 @@ if (typeof module !== 'undefined') module.exports = {
   rankOf, rankName, rankByMerit, examReady, examStart, deeds, towerOpen, towerNext, towerById, towerBest, towerUnlocked, towerStart, towerEnd, makeMob,
   skillKnown, ultKnown, hasBook, bookName, bookLv, buyBook, exchangePages, gainBook, readBooks, castUlt, ultReady, castManual, skillCfg, setSkillCfg, activeOrder, moveSkill, learnBook,
   atkShare, shareWord, atkSum,
-  skillUpLv, barCount, shopBooks, skillLand, ultLv, ultMult, ultUpCost, upgradeUlt, ultGain, skillT, skillDmgX,
+  skillUpLv, barCount, setSlots, skillSets, onList, setMembers, setToggle, setsShown, switchSet, addSet, setPrice, shopBooks, skillLand, ultLv, ultMult, ultUpCost, upgradeUlt, ultGain, skillT, skillDmgX,
   castActive, hitMob, dmgCalc, pickActive, skillValue, equipCount, rollIdx, playableWeapons, autoSalvageable, gearOwner, salvageValue, namedDir
 };
 
@@ -6770,9 +6833,17 @@ function sfxRender(list, secs) {
   return c.startRendering();
 }
 
-/* ---- 背景音樂：阿布的曲子。files 填「情境 → 檔名」，檔案放在 music/ ----
-   情境：'ch:首區'～'ch:息區'（依目前所在的章節區域）、'boss'（首領在場）、'tower'（塔裡）、'town'（城鎮分頁）、'default'（沒指定時） */
-const BGM = { dir: 'music/', files: {} };
+/* ---- 背景音樂：阿布的曲子。files 填「情境 → 檔名」。原檔放在開發包的 music/，build 會複製到 pwa/，跟 index.html 放在同一層
+   （手機上傳到 GitHub 不用另外開資料夾） ----
+   情境：'ch:首區'～'ch:息區'（依目前所在的章節區域）、'boss'（首領在場）、'tower'（塔裡）、'town'（城鎮分頁）、'default'（沒指定時）
+   v0.24.6：檔名可以給一串（陣列）＝輪播：一首放完，安靜 gap 秒，下一首淡入；每一輪重新洗牌，不會連著放同一首 */
+const BGM = { dir: '', gap: 8, fadeIn: 1.0, files: {
+  default: ['xingye-chenjing.mp3', 'xingye-fuyou.mp3', 'xingye-tansuo.mp3'], // 阿布：星夜沉靜曲、星夜浮游曲、星夜探索曲
+  tower: ['tianzhan-01.mp3', 'tianzhan-02.mp3'] // v0.24.7 阿布：天戰篇、天戰篇 02（進天陰塔）
+}, titles: { 'xingye-chenjing.mp3': '星夜沉靜曲', 'xingye-fuyou.mp3': '星夜浮游曲', 'xingye-tansuo.mp3': '星夜探索曲', 'tianzhan-01.mp3': '天戰篇', 'tianzhan-02.mp3': '天戰篇 02' },
+  // 各情境的輪播規則：gap 秒（[最少, 最多] 就在中間隨機）、fade 下一首要不要淡入、restart 每次進來都從下一首的開頭放
+  opt: { tower: { gap: [2, 3], fade: false, restart: true } } };
+const bgmOpt = key => Object.assign({ gap: BGM.gap, fade: true, restart: false }, BGM.opt[key]);
 function bgmPick() {
   if (typeof st === 'undefined' || !st || !rt) return null;
   if (rt.tower) return 'tower';
@@ -6781,21 +6852,65 @@ function bgmPick() {
   const z = zoneById(st.zone); return z ? 'ch:' + z.chapter.split('　')[0] : null;
 }
 function bgmKey() { const k = bgmPick(); return k && BGM.files[k] ? k : (BGM.files.default ? 'default' : null); }
+// 設定頁顯示「現在放的」
+function bgmNow() {
+  const B = AUD.bgm, a = B.cur && B.els[B.cur]; if (!a) return '';
+  if (a._waiting) return '下一首準備中';
+  const f = a._list ? a._list[a._i] : BGM.files[B.cur]; return BGM.titles[f] || '';
+}
+// 輪播的下一首：這一輪洗好的順序用完就重洗，新一輪的第一首不會跟剛放完的同一首
+function bgmNext(a) {
+  const L = a._list;
+  if (!a._q || !a._q.length) {
+    a._q = L.map((x, i) => i);
+    for (let i = a._q.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a._q[i], a._q[j]] = [a._q[j], a._q[i]]; }
+    if (a._q.length > 1 && a._q[0] === a._i) a._q.push(a._q.shift());
+  }
+  a._i = a._q.shift(); a.src = BGM.dir + L[a._i];
+}
 function bgmEl(key) {
   let a = AUD.bgm.els[key];
   if (!a) {
-    a = new Audio(); a.src = BGM.dir + BGM.files[key]; a.loop = true; a.preload = 'auto';
+    const f = BGM.files[key];
+    a = new Audio(); a.preload = 'auto'; a._key = key;
+    if (Array.isArray(f)) {
+      a._list = f; a._i = -1; a.loop = false; bgmNext(a);
+      a.addEventListener('ended', () => { // 放完：安靜 gap 秒，再放下一首（要不要淡入看 opt）
+        const o = bgmOpt(key), gap = Array.isArray(o.gap) ? o.gap[0] + Math.random() * (o.gap[1] - o.gap[0]) : o.gap;
+        clearTimeout(a._wait); a._waiting = true;
+        try { const t = AUD.ctx.currentTime; a._g.gain.cancelScheduledValues(t); a._g.gain.setValueAtTime(0, t); } catch (e) {}
+        a._wait = setTimeout(() => { a._waiting = false; bgmNext(a); if (AUD.bgm.cur === key) (o.fade ? bgmFadeIn : bgmStart)(a); }, gap * 1000);
+      });
+    } else { a.src = BGM.dir + f; a.loop = true; }
     const g = AUD.ctx.createGain(); g.gain.value = 0;
     try { AUD.ctx.createMediaElementSource(a).connect(g); g.connect(AUD.mus); } catch (e) { a._raw = true; }
-    a._g = g; a._key = key; AUD.bgm.els[key] = a;
+    a._g = g; AUD.bgm.els[key] = a;
   }
   return a;
+}
+// 不淡入：直接用正常音量開始（只留 0.03 秒，避免喀一聲）
+function bgmStart(a) {
+  const t = AUD.ctx.currentTime;
+  a._g.gain.cancelScheduledValues(t); a._g.gain.setValueAtTime(0, t); a._g.gain.setTargetAtTime(1, t, 0.03);
+  a.play().catch(() => {});
+}
+function bgmFadeIn(a) {
+  const t = AUD.ctx.currentTime;
+  a._g.gain.cancelScheduledValues(t); a._g.gain.setValueAtTime(0, t); a._g.gain.setTargetAtTime(1, t, BGM.fadeIn);
+  a.play().catch(() => {});
 }
 function bgmSwitch(key) {
   const B = AUD.bgm, c = AUD.ctx, t = c.currentTime, old = B.cur && B.els[B.cur];
   if (old) { old._g.gain.cancelScheduledValues(t); old._g.gain.setTargetAtTime(0, t, 0.6); setTimeout(() => { if (AUD.bgm.cur !== old._key) old.pause(); }, 3500); }
   B.cur = key; if (!key) return;
   const a = bgmEl(key);
+  if (a._list && bgmOpt(key).restart) { // 塔：每次進來都從下一首的開頭放
+    clearTimeout(a._wait); a._waiting = false; bgmNext(a); (bgmOpt(key).fade ? bgmFadeIn : bgmStart)(a); return;
+  }
+  if (a._list) { // 輪播：還在兩首中間的安靜時間就照等；剛好放完就換下一首
+    if (a._waiting) return;
+    if (a.ended) { bgmNext(a); bgmFadeIn(a); return; }
+  }
   if (key === 'boss') a.currentTime = 0; // 首領曲每次從頭；其他曲子從上次停的地方接著放
   a.play().catch(() => {});
   a._g.gain.cancelScheduledValues(t); a._g.gain.setValueAtTime(a._g.gain.value, t); a._g.gain.setTargetAtTime(1, t, 0.8);
@@ -6806,7 +6921,7 @@ function bgmUpdate(force) {
   const p = audPrefs(), B = AUD.bgm, want = p.music && !document.hidden ? bgmKey() : null, now = Date.now();
   if (want !== B.want) { B.want = want; B.since = now; }
   if (want === B.cur) return;
-  if (!force && want !== 'boss' && now - B.since < 2500) return; // 同一個情境穩定 2.5 秒才換曲，避免來回跳
+  if (!force && want !== 'boss' && want !== 'tower' && now - B.since < 2500) return; // 同一個情境穩定 2.5 秒才換曲，避免來回跳（首領、進塔馬上換）
   bgmSwitch(want);
 }
 function audTick() { if (Date.now() - AUD.tickAt > 1000) { AUD.tickAt = Date.now(); bgmUpdate(); } }
@@ -6820,6 +6935,8 @@ function audPanel() {
     '<label class="toggle"><span>音效</span><input type="checkbox" id="audSfx"' + (p.sfx ? ' checked' : '') + '></label>' +
     '<div class="audrow"><span>音量</span><input type="range" id="audSv" min="0" max="100" value="' + Math.round(p.sv * 100) + '"></div>' +
     '<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:8px 0"><button class="btn ghost" data-aud="hit">普攻</button><button class="btn ghost" data-aud="crit">爆擊</button><button class="btn ghost" data-aud="levelup">升級</button><button class="btn ghost" data-aud="ult">天御</button></div>' +
+    (n ? '<p class="note">曲子都是阿布寫的。平常：' + [].concat(BGM.files.default || []).map(f => '《' + (BGM.titles[f] || f) + '》').join('') + '輪流，一首放完安靜 ' + BGM.gap + ' 秒再淡入下一首' +
+      (BGM.files.tower ? '；天陰塔裡：' + [].concat(BGM.files.tower).map(f => '《' + (BGM.titles[f] || f) + '》').join('') + '輪流，放完隔 2～3 秒直接接下一首' : '') + (bgmNow() ? '。現在：' + bgmNow() : '') + '</p>' : '') +
     '<p class="note">' + (n ? '' : '背景音樂還沒放進來。') + '手機要先點一下畫面才會出聲；切到別的 App 或關掉螢幕會自動停。音量設定只存在這台裝置。</p></div>';
 }
 
@@ -6829,6 +6946,20 @@ function audPanel() {
    有新版本時齒輪上會有紅點、設定頁裡的按鈕有「新」，打開看過就消失（看過的版本記在 localStorage 'yujian-seen-ver'）。
    這個檔案由 build.py 塞進 template.html 的 CHANGELOG 標記處 */
 const CHANGELOG = [
+  { v: '0.24.7', d: '2026-11-26', items: [
+    '天陰塔的戰鬥音樂：阿布的《天戰篇》《天戰篇 02》。一進塔馬上換曲，每次都從新的一首開頭放；一首放完隔 2～3 秒直接接下一首，不淡入',
+    '離開塔以後，回到平常的星夜三首，從剛才停的地方接著放'
+  ] },
+  { v: '0.24.6', d: '2026-11-26', items: [
+    '背景音樂：阿布的《星夜沉靜曲》《星夜浮游曲》《星夜探索曲》，輪流播放；一首放完安靜 8 秒，再淡入下一首，每一輪重新洗牌，不會連著放同一首',
+    '設定頁的「聲音」會顯示現在放的是哪一首'
+  ] },
+  { v: '0.24.5', d: '2026-11-25', items: [
+    '招式組（流派）：技能頁最上面可以編組，每組最多 5 招；每把武器一開始有兩組（第二組是空的），第三到第五組要用銀兩買（2 萬、5 萬、10 萬），買一次所有武器都多一組',
+    '招式欄上下滑（電腦用滾輪）就換組，右邊的小點是目前在第幾組；空的組、沒勾「上下滑時出現」的組不會輪到',
+    '換組時，新換上來、上一組沒有的招要從頭冷卻；兩組都有的招不受影響。所以切來切去，能放的招還是只有 5 格',
+    '技能頁的「自動施放」改成「放進招式欄」（編別組時是「放進第幾組」）'
+  ] },
   { v: '0.24.4', d: '2026-11-25', items: [
     '點下面的招式欄就會放那一招（冷卻好、氣力夠的時候）；冷卻中或氣力不夠會跳提示。長按招式 0.5 秒打開技能頁，空格點了也是打開技能頁',
     '手動放招算一次出手，下一次出手重新計時，所以不會比自動打得多；只是可以挑時機',
@@ -7239,6 +7370,8 @@ function renderBars() {
     sk.innerHTML = acts.map(r => '<button class="sk" data-sk="' + r.i + '" aria-label="' + r.s.name + '：點一下施放，長按看技能" style="--c:' + look[2] + '"><span class="ic">' + (r.s.ic || r.s.name[0]) + '<i></i><b></b></span><span class="nm">' + r.s.name + '</span></button>').join('') +
       '<button class="sk empty" data-sk="" aria-label="空的招式欄，打開技能"><span class="ic">＋</span><span class="nm">空格</span></button>'.repeat(empty);
   }
+  { const S = skillSets(st, w), shown = setsShown(st, w), dk = shown.join(',') + ':' + S.cur, dd = $('#setDots');
+    if (dd.dataset.k !== dk) { dd.dataset.k = dk; dd.classList.toggle('hidden', shown.length < 2); dd.innerHTML = shown.map(k => '<i class="' + (k === S.cur ? 'on' : '') + '"></i>').join(''); } }
   for (const r of acts) {
     const el = sk.querySelector('[data-sk="' + r.i + '"]'); if (!el) continue;
     const on = skillCfg(st, w, r.i).on, cd = Math.max(0, rt.cds[r.i] || 0), max = Math.max(.1, r.s.cd * (1 - (d.cdr || 0))), noEn = st.en < r.s.cost;
@@ -7393,7 +7526,7 @@ const WIDE = mq('(min-width:760px) and (min-height:500px)'), WIDE3 = mq('(min-wi
 function isWide() { return !!(WIDE && WIDE.matches); }
 function isWide3() { return !!(WIDE3 && WIDE3.matches); }
 let dockTab = 'stats';
-function openSheet(t) { if (tab === 'gear' && t !== 'gear') clearNewGear(); if (tab !== t) setTimeout(animPanel, 0); if (t !== 'settings' && t !== 'log') dockTab = t; tab = t; if (t === 'map') viewChap = curChap(); if (t === 'codex') { cxChap = curChap(); cxSel = null; } panelDirty = true; renderTabs(); renderPanel(); $('#panel').scrollTop = 0; }
+function openSheet(t) { if (tab === 'gear' && t !== 'gear') clearNewGear(); if (tab !== t) setTimeout(animPanel, 0); if (t !== 'settings' && t !== 'log') dockTab = t; tab = t; if (t === 'map') viewChap = curChap(); if (t === 'codex') { cxChap = curChap(); cxSel = null; } if (t === 'skill' && st) skEdit = { w: st.weapon, k: skillSets(st, st.weapon).cur }; panelDirty = true; renderTabs(); renderPanel(); $('#panel').scrollTop = 0; }
 function closeSheet() { if (tab === 'gear') clearNewGear(); tab = isWide() && tab !== dockTab ? dockTab : null; renderTabs(); renderPanel(); }
 function renderPanel() {
   const d = rt.d, p = $('#panel'), sh = $('#sheet');
@@ -7986,11 +8119,28 @@ function ultCard(w, d) {
     '<div class="sm">戰鬥中、受到傷害、擊倒魔物都會集氣（離線也照樣集），一般刷怪約 20 分鐘集滿；只能按戰鬥畫面右下角的圓鈕手動施放' + (known && L > 1 ? '・目前傷害 ×' + f3(ultMult(st, w)) : '') + '</div>' +
     '<div class="sd">' + U.desc + '</div>' + up + (known ? '' : bookLine(w, 'u')) + '<div class="sf">「' + U.flavor + '」</div></div>';
 }
+// v0.24.5 招式組：技能頁最上面挑要編哪一組；勾「放進這組」就是把招放進那一組
+let skEdit = { w: '', k: 0 };
+const SET_NO = ['一', '二', '三', '四', '五'];
+function setEditK(w) { const S = skillSets(st, w); if (skEdit.w !== w || !S.sets[skEdit.k]) skEdit = { w, k: S.cur }; return skEdit.k; }
+function setsCard(w) {
+  const S = skillSets(st, w), k = setEditK(w), G = GAME.skillSets, price = setPrice(st, w), mem = setMembers(st, w, k);
+  let h = '<div class="sec sets"><h3>招式組</h3><p class="note">每組最多 ' + GAME.skillBar + ' 招。招式欄上下滑就換組；新換上來、上一組沒有的招要從頭冷卻，兩組都有的不受影響。</p><div class="settabs">';
+  S.sets.forEach((x, j) => { const n = setMembers(st, w, j).length; h += '<button data-sset="' + j + '" class="' + (j === k ? 'on' : '') + (j === S.cur ? ' cur' : '') + '">第' + SET_NO[j] + '組<small>' + (j === S.cur ? '使用中' : n ? n + ' 招' : '空的') + '</small></button>'; });
+  if (price !== null) h += '<button class="add" data-sadd="' + w + '">＋ 新增<small>' + (price ? '銀兩 ' + fmt(price) : '免費') + '</small></button>';
+  h += '</div><div class="setinfo"><span>第' + SET_NO[k] + '組：' + (mem.length ? mem.map(i => GAME.skills[w][i].name).join('、') : '還沒有招，從下面勾「放進這組」') + '（' + mem.length + '／' + GAME.skillBar + '）</span>';
+  if (k !== S.cur && w === st.weapon) h += '<button class="btn sm" data-suse="' + k + '"' + (mem.length ? '' : ' disabled') + '>換成這組</button>';
+  if (k !== S.cur) h += '<label><input type="checkbox" data-sshow="' + k + '"' + (S.sets[k].show ? ' checked' : '') + (mem.length ? '' : ' disabled') + '>上下滑時出現</label>';
+  h += '</div>' + (S.sets.length >= G.max ? '' : '<p class="note" style="margin-top:6px">前 ' + G.free + ' 組免費；第 3～' + G.max + ' 組要買，買了所有武器都多一組。</p>') + '</div>';
+  return h;
+}
 function skillPanel(w, d, mine) {
   const list = GAME.skills[w] || [], sw = 0;
+  const ek = mine ? setEditK(w) : 0, emem = mine ? setMembers(st, w, ek) : [], eCur = mine && ek === skillSets(st, w).cur;
   const custom = !!(st.skillOrder && st.skillOrder[w]);
   let h = '<div class="sec"><h3>' + wName(w) + '的招式</h3><p class="note">第一招入門就會，其他招式要讀技能書才學得會（書肆買得到，魔物也會掉）。天霖國每把武器學得到 3 個主動招；被動、觸發學會就一直有效，不佔招式欄。<br>招式等級：第三章柳區（Lv.' + GAME.mastery.needLv[2] + '）以後能升到 Lv.2，每級傷害 +15%；Lv.3 跟著陰區開放。→ 後面是 Lv.' + GAME.mastery.max + ' 的數值。</p>' +
-    (mine ? '<p class="note">招式欄 ' + barCount(st, w) + '／' + GAME.skillBar + ' 格（開著「自動施放」的主動招）。</p>' : '') + '</div>';
+    (mine ? '<p class="note">招式欄 ' + barCount(st, w) + '／' + GAME.skillBar + ' 格：使用中那一組的招，全部會自動施放，點一下也能手動放。</p>' : '') + '</div>';
+  if (mine) h += setsCard(w);
   h += ultCard(w, d);
   const order = activeOrder(st, d, w).map(r => r.i);
   list.forEach((s, i) => {
@@ -8005,8 +8155,9 @@ function skillPanel(w, d, mine) {
       (!known ? bookLine(w, i) : '');
     if (mine && learned && s.type === 'active') {
       const c = skillCfg(st, w, i), k = order.indexOf(i);
-      h += '<div class="scfg"><label><input type="checkbox" data-son="' + i + '"' + (c.on ? ' checked' : '') + '>自動施放</label>' +
-        '<select data-scond="' + i + '"' + (c.on ? '' : ' disabled') + '>' + GAME.conds.map(([v, t]) => '<option value="' + v + '"' + (c.cond === v ? ' selected' : '') + '>' + t + '</option>').join('') + '</select>' +
+      const inSet = emem.includes(i);
+      h += '<div class="scfg"><label><input type="checkbox" data-son="' + i + '"' + (inSet ? ' checked' : '') + '>' + (eCur ? '放進招式欄' : '放進第' + SET_NO[ek] + '組') + '</label>' +
+        '<select data-scond="' + i + '"' + (inSet ? '' : ' disabled') + '>' + GAME.conds.map(([v, t]) => '<option value="' + v + '"' + (c.cond === v ? ' selected' : '') + '>' + t + '</option>').join('') + '</select>' +
         (order.length > 1 ? '<span class="ord">' + (custom ? '順序 ' + (k + 1) : '排順序') + '<button data-sord="' + i + '" data-dir="-1"' + (k > 0 ? '' : ' disabled') + ' aria-label="提前">↑</button><button data-sord="' + i + '" data-dir="1"' + (k < order.length - 1 ? '' : ' disabled') + ' aria-label="延後">↓</button></span>' : '') + '</div>';
     }
     h += '<div class="sf">「' + s.flavor + '」</div></div>';
@@ -8136,7 +8287,8 @@ document.addEventListener('change', ev => {
   if (ev.target.id === 'autoMove') { st.auto = ev.target.checked; save(); toast(st.auto ? '新的狩獵區開放時會自動前往' : '會留在目前的狩獵區'); }
   if (ev.target.id === 'gAuto') { st.gearSet.autoEquip = ev.target.checked; save(); toast(st.gearSet.autoEquip ? '撿到更好的會自動換上' : '撿到的裝備都先放進行囊'); }
   if (ev.target.id === 'gOther') { st.gearSet.other = ev.target.checked; save(); }
-  if (ev.target.dataset.son !== undefined) { if (!setSkillCfg(st, st.weapon, +ev.target.dataset.son, { on: ev.target.checked })) toast('招式欄只有 ' + GAME.skillBar + ' 格，先關掉一招'); rt.d = derive(st); save(); renderPanel(); return; }
+  if (ev.target.dataset.son !== undefined) { if (!setToggle(st, st.weapon, setEditK(st.weapon), +ev.target.dataset.son, ev.target.checked)) toast('一組最多 ' + GAME.skillBar + ' 招，先拿掉一招'); rt.d = derive(st); save(); renderPanel(); renderBars(); return; }
+  if (ev.target.dataset.sshow !== undefined) { const S = skillSets(st, st.weapon), x = S.sets[+ev.target.dataset.sshow]; if (x) x.show = ev.target.checked; save(); renderBars(); return; }
   if (ev.target.dataset.scond !== undefined) { setSkillCfg(st, st.weapon, +ev.target.dataset.scond, { cond: ev.target.value }); save(); toast('施放條件：' + GAME.conds.find(c => c[0] === ev.target.value)[1]); return; }
   if (ev.target.id === 'bookW') { bookW = ev.target.value; renderPanel(); return; }
   if (ev.target.id === 'fxScene') { st.fx.scene = ev.target.checked; save(); sceneApply(); renderAll(); return; }
@@ -8149,13 +8301,36 @@ document.addEventListener('change', ev => {
 });
 $('#potBar').addEventListener('scroll', potPage, { passive: true });
 $('#sheetBg').addEventListener('click', () => closeSheet());
-// v0.24.4 長按招式欄 0.5 秒：打開技能頁（點一下是放招）
-const skHold = { t: 0, done: false };
+// v0.24.5 換招式組：dir = 1 下一組、-1 上一組；或直接給組號
+function useSet(k, dir) {
+  const w = st.weapon, S = skillSets(st, w), shown = setsShown(st, w);
+  if (dir) { if (shown.length < 2) return false; const p = shown.indexOf(S.cur); k = shown[(p + dir + shown.length) % shown.length]; }
+  if (k === S.cur || !switchSet(st, rt, w, k)) return false;
+  rt.d = derive(st); save();
+  lastSk = ''; renderBars();
+  const bar = $('#skBar'); bar.classList.remove('swup', 'swdn'); void bar.offsetWidth; bar.classList.add(dir < 0 ? 'swdn' : 'swup');
+  const n = setMembers(st, w, k).length; toast('第' + SET_NO[k] + '組・' + n + ' 招' + (n ? '' : '（空的）'));
+  if (tab === 'skill') panelDirty = true;
+  return true;
+}
+// v0.24.4 長按招式欄 0.5 秒：打開技能頁（點一下是放招）；v0.24.5 上下滑換招式組
+const skHold = { t: 0, done: false, y: 0, x: 0, sw: false };
 (() => {
   const bar = $('#skBar'); if (!bar) return;
   const stop = () => { clearTimeout(skHold.t); skHold.t = 0; };
-  bar.addEventListener('pointerdown', e => { skHold.done = false; const b = e.target.closest('.sk'); if (!b || b.dataset.sk === '') return; stop(); skHold.t = setTimeout(() => { skHold.done = true; skHold.t = 0; openSheet('skill'); }, 500); });
-  ['pointerup', 'pointerleave', 'pointercancel'].forEach(n => bar.addEventListener(n, stop));
+  bar.addEventListener('pointerdown', e => {
+    skHold.done = false; skHold.sw = false; skHold.x = e.clientX; skHold.y = e.clientY; skHold.on = true;
+    const b = e.target.closest('.sk'); if (!b || b.dataset.sk === '') return; stop(); skHold.t = setTimeout(() => { skHold.done = true; skHold.t = 0; openSheet('skill'); }, 500);
+  });
+  window.addEventListener('pointermove', e => { // 掛在 window：手指滑出招式欄也接得到
+    if (!skHold.on || skHold.sw) return;
+    const dx = e.clientX - skHold.x, dy = e.clientY - skHold.y;
+    if (Math.abs(dy) > 22 && Math.abs(dy) > Math.abs(dx) * 1.2) { stop(); skHold.sw = true; skHold.done = true; useSet(0, dy < 0 ? 1 : -1); }
+    else if (Math.abs(dx) > 14 || Math.abs(dy) > 14) stop(); // 手指在動就不算長按
+  });
+  ['pointerup', 'pointercancel'].forEach(n => window.addEventListener(n, () => { stop(); skHold.on = false; }));
+  let wheelAt = 0;
+  bar.addEventListener('wheel', e => { e.preventDefault(); const now = Date.now(); if (now - wheelAt < 350 || Math.abs(e.deltaY) < 4) return; wheelAt = now; useSet(0, e.deltaY > 0 ? 1 : -1); }, { passive: false });
   bar.addEventListener('contextmenu', e => e.preventDefault());
 })();
 // v0.24.1 平板轉橫、轉直：寬螢幕功能頁固定在右邊；變回窄的就關起來，回到戰鬥畫面
@@ -8195,6 +8370,9 @@ document.addEventListener('click', ev => {
     if (r) { ultShow(GAME.ult.name + '・' + GAME.ults[st.weapon].name); for (const e of rt.events) handle(e); rt.events.length = 0; save(); renderAll(); }
     return;
   }
+  if (t.dataset.sset !== undefined) { skEdit = { w: st.weapon, k: +t.dataset.sset }; renderPanel(); return; }
+  if (t.dataset.suse !== undefined) { useSet(+t.dataset.suse); renderPanel(); return; }
+  if (t.dataset.sadd !== undefined) { const r = addSet(st, st.weapon); if (r.ok) { skEdit = { w: st.weapon, k: r.k }; toast('多了第' + SET_NO[r.k] + '組'); save(); } else toast(r.why === 'silver' ? '銀兩不夠，要 ' + fmt(r.p) : '最多 ' + GAME.skillSets.max + ' 組'); renderPanel(); return; }
   if (t.dataset.sordreset !== undefined) { delete st.skillOrder[t.dataset.sordreset]; rt.d = derive(st); save(); renderPanel(); return; }
   if (t.dataset.ultup !== undefined) { if (upgradeUlt(st, t.dataset.ultup)) { toast(GAME.ult.name + '升到 Lv.' + ultLv(st, t.dataset.ultup)); save(); } renderAll(); return; }
   if (t.dataset.sord !== undefined) { if (moveSkill(st, rt.d, +t.dataset.sord, +t.dataset.dir)) { rt.d = derive(st); save(); } renderPanel(); return; }
@@ -8204,7 +8382,7 @@ document.addEventListener('click', ev => {
   if (t.dataset.pages) { if (exchangePages(st, rt, t.dataset.pages)) { for (const e of rt.events) handle(e); rt.events.length = 0; toast('換到' + bookName(t.dataset.pages, 'u')); save(); } renderAll(); return; }
   // v0.24.4 點招式欄：有招就手動放（長按打開技能頁），空格打開技能頁
   if (t.dataset.sk !== undefined) {
-    if (skHold.done) { skHold.done = false; if (t.dataset.sk !== '') return; }
+    if (skHold.done) { skHold.done = false; if (t.dataset.sk !== '' || skHold.sw) return; }
     if (t.dataset.sk === '') { openSheet('skill'); return; }
     const r = castManual(st, rt, +t.dataset.sk);
     if (r.ok) { t.classList.remove('tap'); void t.offsetWidth; t.classList.add('tap'); renderBars(); }

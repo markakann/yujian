@@ -1,5 +1,5 @@
 /* 天星界・御劍者：離線快取。每次發新版本，把 CACHE 的版本號改掉即可 */
-const CACHE = 'yujian-v0.24.4';
+const CACHE = 'yujian-v0.24.7';
 const FILES = ['./', './index.html', './manifest.webmanifest', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {
@@ -18,6 +18,7 @@ self.addEventListener('fetch', e => {
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
   if (url.origin !== location.origin) return;
+  if (/\.(m4a|mp3|ogg)$/.test(url.pathname)) return; // 音樂直接走網路（播放器會分段要檔案，不經過離線快取）
   if (req.mode === 'navigate' || url.pathname.endsWith('.html') || url.pathname.endsWith('/')) {
     // 遊戲本體：有網路就拿最新版，沒網路才用存在手機裡的那份
     e.respondWith(fetch(req)
