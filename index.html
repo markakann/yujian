@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <meta name="theme-color" content="#121315">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<title>天星界・御劍者 v0.24.7</title>
+<title>天星界・御劍者 v0.24.8</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" type="image/png" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
@@ -586,6 +586,7 @@ body{min-height:0;padding:0}
 .topbar .loc .xt{display:block;font-size:10.5px;color:#a8a296;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 1px 2px #000}
 .topbar .loc #towerLeave{margin-left:8px;padding:2px 9px;border:1px solid var(--gold-d);border-radius:7px;font-family:var(--serif);font-size:12px;background:#1b1d20cc;vertical-align:3px}
 .topbar .loc .where em.tw{display:block;margin:2px 0 0;font-size:10.5px}
+.topbar .loc .where em.tw .out{color:#ff8a7a}
 .topbar .loc.intower{background:none;border:0}
 .topbar .tr{display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0}
 .topbar .trow{display:flex;align-items:center;gap:8px}
@@ -802,7 +803,7 @@ body{min-height:0;padding:0}
 
 /* ---------- 遊戲資料：名稱、數值都集中在這裡，改這裡就好 ---------- */
 const GAME = {
-  meta: { title: '天星界・御劍者', subtitle: '暫定名稱', version: '0.24.7', era: '仙曆五百餘年' },
+  meta: { title: '天星界・御劍者', subtitle: '暫定名稱', version: '0.24.8', era: '仙曆五百餘年' },
 
   // 八項資源系統（順序固定，星數陣列照這個順序）
   statNames: ['力量', '抵擋', '體力', '敏捷', '智慧', '守護', '靈力', '控制'],
@@ -6946,6 +6947,9 @@ function audPanel() {
    有新版本時齒輪上會有紅點、設定頁裡的按鈕有「新」，打開看過就消失（看過的版本記在 localStorage 'yujian-seen-ver'）。
    這個檔案由 build.py 塞進 template.html 的 CHANGELOG 標記處 */
 const CHANGELOG = [
+  { v: '0.24.8', d: '2026-11-26', items: [
+    '修正：天陰塔左上的「本層回復藥」吃了藥不會跳，一直顯示 0；現在吃一顆就加一，用完會變紅、寫「用完了」，戰鬥紀錄也會提醒一次（到下一層才重新算）'
+  ] },
   { v: '0.24.7', d: '2026-11-26', items: [
     '天陰塔的戰鬥音樂：阿布的《天戰篇》《天戰篇 02》。一進塔馬上換曲，每次都從新的一首開頭放；一首放完隔 2～3 秒直接接下一首，不淡入',
     '離開塔以後，回到平常的星夜三首，從剛才停的地方接著放'
@@ -7174,7 +7178,13 @@ function handle(e) {
       break;
     }
     case 'proc': if (!e.quiet) addLog('<span class="k-gold">【' + e.name + '】</span>' + e.text); break;
-    case 'potion': addLog('<span class="k-good">服下' + e.name + (e.v ? '，回復 ' + e.v : '') + '</span>'); break;
+    case 'potion': addLog('<span class="k-good">服下' + e.name + (e.v ? '，回復 ' + e.v : '') + '</span>');
+      if (rt.tower && e.name !== '凝神丹') { // v0.24.8 塔裡吃了藥要馬上更新「本層回復藥」；用完時提醒一次
+        renderLoc();
+        const cap = rt.tower.id === 'origin' ? GAME.towerRules.potsOrigin : GAME.towerRules.pots;
+        if (rt.tower.pots >= cap) addLog('<span class="k-bad">這一層的回復藥用完了（' + cap + ' 顆），到下一層才會重新算</span>');
+      }
+      break;
     case 'buff': addLog('<span class="k-gold">' + (e.auto ? e.name + '效果結束，自動補上一份' : '使用' + e.name + '：' + GAME.items[e.name].desc.replace('。', '')) + '</span>'); panelDirty = true; break;
     case 'buffEnd': addLog(e.name + '的效果結束了'); panelDirty = true; break;
     case 'mastery': addLog('<span class="k-lv">' + e.name + '升到 Lv.' + e.lv + '</span>'); toast(e.name + ' 升到 Lv.' + e.lv); panelDirty = true; break;
@@ -7259,7 +7269,7 @@ function renderLoc() {
   if (rt && rt.tower) {
     const T = towerById(rt.tower.id);
     $('#loc').className = 'loc intower';
-    $('#loc').innerHTML = '<div class="where"><small>陰區・天陰五大塔</small><b>' + T.name + '　第 ' + rt.tower.floor + ' 層</b><button id="towerLeave">離開塔</button><em class="tw">最高 ' + towerBest(st, T.id) + ' 層・本層回復藥 ' + rt.tower.pots + '／' + (T.id === 'origin' ? GAME.towerRules.potsOrigin : GAME.towerRules.pots) + '</em></div>';
+    $('#loc').innerHTML = '<div class="where"><small>陰區・天陰五大塔</small><b>' + T.name + '　第 ' + rt.tower.floor + ' 層</b><button id="towerLeave">離開塔</button><em class="tw">最高 ' + towerBest(st, T.id) + ' 層・' + (rt.tower.pots >= (T.id === 'origin' ? GAME.towerRules.potsOrigin : GAME.towerRules.pots) ? '<span class="out">' : '<span>') + '本層回復藥 ' + rt.tower.pots + '／' + (T.id === 'origin' ? GAME.towerRules.potsOrigin : GAME.towerRules.pots) + (rt.tower.pots >= (T.id === 'origin' ? GAME.towerRules.potsOrigin : GAME.towerRules.pots) ? '・用完了' : '') + '</span></em></div>';
     return;
   }
   $('#loc').className = 'loc';
